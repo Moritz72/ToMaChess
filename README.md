@@ -1,5 +1,6 @@
 # ToMaChess  
 *ToMaChess* is a gui application to manage chess tournaments written in Python.  
+Requires PyQt5.
   
 ## Tournaments  
 There are currently four tournament modes available; *Swiss*, *Round Robin*, *Knockout* and *Custom*.  
@@ -13,21 +14,21 @@ The user can specify the parameters *Cycles* (single RR, double RR, etc.), *Choo
 *Knockout (Single-elimination)* pairs the first round by dividing the particpants into an upper and a lower bracket by rating and then pairs first player in upper against first lower and so on.  
 In succesive rounds the winners of the previous round are again divided into an upper and a lower bracket based on the bracket number they played in in the previous round and paired the same way.  
 The user can specify the parameters *Games per Match* (only even values allowed) and an *Armageddon* parameter.  
-If there is a tie after the number of games specified, pairs of tiebreak games will be played until either the tie is resolved or the of tiebreak pairs specified in the Armageddon parameter is reached.  
+If there is a tie after the number of games specified, pairs of tiebreak games will be played until either the tie is resolved or the number of tiebreak pairs specified in the Armageddon parameter is reached.  
   
 *Custom* does not pair at all, instead the user can manually pair all games.  
 The user can specify the parameter *Games per Round*, *Rounds*, *Point System* and four *Tiebreak* parameters.  
   
 ### Tiebreak Criteria  
 The possible tiebreak criteria are  
-- *Buchholz* (with additional parameters Cut (bottom), Cut (top) and Virtual opponents)  
-- *Buchholz Sum* (with additional parameters Cut (bottom), Cut (top) and Virtual opponents)  
-- *Sonneborn-Berger* (with additional parameters Cut (bottom), Cut (top) and Virtual opponents)  
+- *Buchholz* (with additional parameters *Cut (bottom)*, *Cut (top)* and *Virtual opponents*)  
+- *Buchholz Sum* (with additional parameters *Cut (bottom)*, *Cut (top)* and *Virtual opponents*)  
+- *Sonneborn-Berger* (with additional parameters *Cut (bottom)*, *Cut (top)* and *Virtual opponents*)  
 - *Games as black*  
 - *Wins as black*  
-- *Wins* (with additional parameter Include Forfeits)  
-- *Average Rating* (with additional parameters Cut (bottom), Cut (top))  
-- *Cumulative Points* (with additional parameters Cut (bottom), Cut (top))  
+- *Wins* (with additional parameter *Include Forfeits*)  
+- *Average Rating* (with additional parameters *Cut (bottom)*, *Cut (top)*)  
+- *Cumulative Points* (with additional parameters *Cut (bottom)*, *Cut (top)*)  
 - *Direct Encounter*  
   
 ### Armageddon  
