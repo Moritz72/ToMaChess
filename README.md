@@ -32,14 +32,15 @@ The possible tiebreak criteria are
 - *Direct Encounter*  
   
 ### Armageddon  
-For the *Armageddon* parameter the user can specifiy additionaly parameters *with Armageddon*, *After Tiebreak Pair* and *Color Determination* (In order, Random or Choice).  
+For the *Armageddon* parameter the user can specifiy additionaly parameters *With Armageddon*, *After Tiebreak Pair* and *Color Determination* (In order, Random or Choice).  
   
 ## Multi Stage Tournaments  
 One can also combine multiple tournaments to a multi stage tournament.  
-A multi stage tournament consists of a first stage with a number of tournaments where the participants are predetermined and an arbitrary number of further stages where the participants of the stage tournaments are the participants that got a certain placement a certain tournament of the previous stage.  
+A multi stage tournament consists of a first stage with a number of tournaments where the participants are predetermined.
+Furthermore, it has an arbitrary number of further stages where the participants of the stage tournaments are the participants that got a certain placement in  a certain tournament of the previous stage.  
 
 For example one could have *Round Robin* tournaments *Group A* up to *Group H* with four players each in the first stage and then in the second stage a *Knockout* tournament *Finals* with the participants who placed first or second in their respective group.  
-The seating for all stages except the first is done manually by the user independent of the usual seating of the tournament mode.  
+The seating for all stages except for the first one is done manually by the user independent of the usual seating of the tournament mode.  
   
 ## Teams  
 One can create teams, add players to them, remove players from them and change the team order, but I have yet to implement team tournaments.  
