@@ -14,7 +14,7 @@ The user can specify the parameters *Cycles* (single RR, double RR, etc.), *Choo
 *Knockout (Single-elimination)* pairs the first round by dividing the particpants into an upper and a lower bracket by rating and then pairs first player in upper against first lower and so on.  
 In succesive rounds the winners of the previous round are again divided into an upper and a lower bracket based on the bracket number they played in in the previous round and paired the same way.  
 The user can specify the parameters *Games per Match*, *Games per Tiebreak* and an *Armageddon* parameter.  
-If there is a tie after the number of games specified, the specified number of tiebreak games will be played until either the tie is resolved or the number of tiebreak pairs specified in the Armageddon parameter is reached.  
+If there is a tie after the number of games specified, the specified number of tiebreak games will be played until either the tie is resolved or the number of tiebreaks specified in the Armageddon parameter is reached.  
   
 *Custom* does not pair at all, instead the user can manually pair all games.  
 The user can specify the parameter *Games per Round*, *Rounds*, *Point System* and four *Tiebreak* parameters.  
@@ -32,7 +32,7 @@ The possible tiebreak criteria are
 - *Direct Encounter*  
   
 ### Armageddon  
-For the *Armageddon* parameter the user can specifiy additionaly parameters *With Armageddon*, *After Tiebreak Pair* and *Color Determination* (In order, Random or Choice).  
+For the *Armageddon* parameter the user can specifiy additionaly parameters *With Armageddon*, *After Tiebreak* and *Color Determination* (In Order, Random or Choice).  
   
 ## Multi Stage Tournaments  
 One can also combine multiple tournaments to a multi stage tournament.  
@@ -48,7 +48,7 @@ You can add players to a team, remove players from a team an change the lineup.
   
 ### Team Tournaments  
 Team tournaments work like regular tournaments, except for some restrictions and changes e.g. for tiebreaks or Armageddon.  
-There are two tiebreak criteria exclusive to team tournaments;*Board Points* and *Berliner Wertung*.  
+There is an additional parameter *Boards* which specifies on how many boards the matches ar played and ther are two tiebreak criteria exclusive to team tournaments; *Board Points* and *Berliner Wertung*.  
   
 ## Settings  
 Currently only font size and the path for bbpPairings.  

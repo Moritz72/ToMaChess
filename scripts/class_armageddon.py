@@ -27,7 +27,7 @@ class Armageddon:
             if "after_rounds" not in self.args:
                 self.args["after_rounds"] = 1
             if "after_rounds" not in self.args_display:
-                self.args_display["after_rounds"] = "After Tiebreak Pair"
+                self.args_display["after_rounds"] = "After Tiebreak"
 
     def update(self, args):
         if args["enabled"] != self.args["enabled"]:
@@ -35,7 +35,7 @@ class Armageddon:
                 self.args["enabled"] = True
                 self.args["after_rounds"] = 1
                 self.args["determine_color"] = ["In Order", "Random", "Choice"]
-                self.args_display["after_rounds"] = "After Tiebreak Pair"
+                self.args_display["after_rounds"] = "After Tiebreak"
                 self.args_display["determine_color"] = "Color Determination"
             else:
                 self.args = {"enabled": False}
