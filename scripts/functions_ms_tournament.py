@@ -2,11 +2,7 @@ from json import loads
 from os import listdir
 from .class_ms_tournament import MS_Tournament
 from .functions_util import read_file
-from .functions_util import get_root_directory
-
-
-def get_directory(uuid):
-    return f"{get_root_directory()}/data/ms_tournaments/{uuid}"
+from .functions_util import get_directory_by_uuid
 
 
 def load_ms_tournament_from_string(string):
@@ -16,13 +12,13 @@ def load_ms_tournament_from_string(string):
     return tournament
 
 
-def load_ms_tournament_from_file(uuid):
-    string = read_file(f"{get_directory(uuid)}/ms_tournament.json")
+def load_ms_tournament_from_file(uuid, directory="data/ms_tournaments"):
+    string = read_file(f"{get_directory_by_uuid(directory, uuid)}/ms_tournament.json")
     return load_ms_tournament_from_string(string)
 
 
-def load_ms_tournaments_all():
+def load_ms_tournaments_all(directory="data/ms_tournaments"):
     return sorted((
         load_ms_tournament_from_file(ms_tournament)
-        for ms_tournament in listdir(get_directory(""))
+        for ms_tournament in listdir(get_directory_by_uuid(directory, ""))
     ), key=lambda x: x.get_name())

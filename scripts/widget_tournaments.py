@@ -55,15 +55,24 @@ class Widget_Tournaments(QWidget):
             self.add_tournament_row(i, tournament.get_name(), tournament.get_mode(), len(tournament.get_participants()))
 
     def set_buttons(self):
-        add_button = get_button("large", (10, 5), "Add\nTournament", connect_function=self.open_new_tournament_window)
-        add_button_multi_stage = get_button(
-            "large", (10, 7.5), "Add\nMulti Stage\nTournament",
-            connect_function=self.open_new_tournament_window_multi_stage
+        add_button = get_button(
+            "large", (12, 5), "Add\nTournament",
+            connect_function=lambda: self.open_new_tournament_window(Window_Tournament_New, {}))
+        add_button_team = get_button(
+            "large", (12, 5), "Add Team\nTournament",
+            connect_function=lambda:
+            self.open_new_tournament_window(Window_Tournament_New, {"participant_type": "team"})
         )
-        save_button = get_button("large", (10, 5), "Save", connect_function=self.update_tournaments)
+        add_button_multi_stage = get_button(
+            "large", (12, 5), "Add Multi Stage\nTournament",
+            connect_function=lambda: self.open_new_tournament_window(Window_MS_Tournament_New, {})
+        )
+        save_button = get_button("large", (12, 5), "Save", connect_function=self.update_tournaments)
         layout_buttons = QVBoxLayout()
         layout_buttons.setAlignment(Qt.AlignTop | Qt.AlignLeft)
-        add_widgets_in_layout(self.layout, layout_buttons, (add_button, add_button_multi_stage, save_button))
+        add_widgets_in_layout(
+            self.layout, layout_buttons, (add_button, add_button_team, add_button_multi_stage, save_button)
+        )
 
     def add_tournament_to_be_removed(self):
         row = self.table.currentRow()
@@ -88,17 +97,10 @@ class Widget_Tournaments(QWidget):
     def open_tournament(self):
         self.selected_tournament.emit(self.table.currentRow())
 
-    def open_new_tournament_window(self):
+    def open_new_tournament_window(self, widget, args):
         if self.new_tournament_window is not None:
             self.new_tournament_window.close()
-        self.new_tournament_window = Window_Tournament_New()
-        self.new_tournament_window.added_tournament.connect(self.add_tournament)
-        self.new_tournament_window.show()
-
-    def open_new_tournament_window_multi_stage(self):
-        if self.new_tournament_window is not None:
-            self.new_tournament_window.close()
-        self.new_tournament_window = Window_MS_Tournament_New()
+        self.new_tournament_window = widget(**args)
         self.new_tournament_window.added_tournament.connect(self.add_tournament)
         self.new_tournament_window.show()
 

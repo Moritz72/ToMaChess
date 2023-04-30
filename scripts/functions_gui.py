@@ -47,16 +47,17 @@ class Options_Window(QMainWindow):
         self.args_widget_data = tuple(
             (arg, args_display[arg], get_suitable_widget(value)) for arg, value in args.items()
         )
+
         parameter_widgets = []
         for _, display, widget in self.args_widget_data:
             connect_widget(widget, lambda _: self.update_widget_data(self.get_new_args()))
             parameter_widgets = parameter_widgets + [get_label(display, "large"), widget, QLabel()]
+
         widget = QWidget()
         layout = QVBoxLayout()
         get_scroll_area_widgets_and_layouts(
             layout, parameter_widgets[:-1], margins=(20, 20, 40, 20), spacing=10
         )
-
         widget.setLayout(layout)
         self.setCentralWidget(widget)
         self.setFixedWidth(layout.sizeHint().width())

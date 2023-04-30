@@ -115,7 +115,7 @@ def get_sonneborn_berger(uuids, results, score_dict, all_participants, cut_up=0,
     )
 
 
-def get_blacks(uuids, results, score_dict, all_participants):
+def get_blacks(uuids, results):
     blacks = {uuid: 0 for uuid in uuids}
 
     for roun in results:
@@ -126,7 +126,7 @@ def get_blacks(uuids, results, score_dict, all_participants):
     return blacks
 
 
-def get_number_of_wins(uuids, results, score_dict, all_participants, include_forfeits=True):
+def get_number_of_wins(uuids, results, score_dict, include_forfeits=True):
     score_max = max(score_dict.values())
     wins = {uuid: 0 for uuid in uuids}
 
@@ -141,7 +141,7 @@ def get_number_of_wins(uuids, results, score_dict, all_participants, include_for
     return wins
 
 
-def get_number_of_black_wins(uuids, results, score_dict, all_participants):
+def get_number_of_black_wins(uuids, results, score_dict):
     black_wins = {uuid: 0 for uuid in uuids}
 
     for roun in results:
@@ -211,4 +211,32 @@ def get_direct_encounter(uuids, results, score_dict, all_participants):
             if uuid_1 in scores and uuid_2 in scores:
                 scores[uuid_1] += score_dict[score_1]-score_dict[score_2]
                 scores[uuid_2] += score_dict[score_2]-score_dict[score_1]
+    return shorten_floats(scores)
+
+
+def get_board_points(uuids, results, score_dict_game, results_individual):
+    scores = {uuid: 0 for uuid in uuids}
+    for roun, roun_individual in zip(results, results_individual):
+        for ((uuid_1, _), (uuid_2, _)), result_individual in zip(roun, roun_individual):
+            if uuid_1 in scores:
+                scores[uuid_1] += sum(score_dict_game[score_1] for (_, score_1), (_, _) in result_individual)
+            if uuid_2 in scores:
+                scores[uuid_2] += sum(score_dict_game[score_2] for (_, _), (_, score_2) in result_individual)
+    return shorten_floats(scores)
+
+
+def get_berliner_wertung(uuids, results, score_dict_game, results_individual):
+    scores = {uuid: 0 for uuid in uuids}
+    for roun, roun_individual in zip(results, results_individual):
+        for ((uuid_1, _), (uuid_2, _)), result_individual in zip(roun, roun_individual):
+            if uuid_1 in scores:
+                scores[uuid_1] += sum(
+                    score_dict_game[score_1] * (len(result_individual) - i)
+                    for i, ((_, score_1), (_, _)) in enumerate(result_individual)
+                )
+            if uuid_2 in scores:
+                scores[uuid_2] += sum(
+                    score_dict_game[score_2] * (len(result_individual) - i)
+                    for i, ((_, _), (_, score_2)) in enumerate(result_individual)
+                )
     return shorten_floats(scores)

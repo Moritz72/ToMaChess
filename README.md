@@ -13,22 +13,22 @@ The user can specify the parameters *Cycles* (single RR, double RR, etc.), *Choo
   
 *Knockout (Single-elimination)* pairs the first round by dividing the particpants into an upper and a lower bracket by rating and then pairs first player in upper against first lower and so on.  
 In succesive rounds the winners of the previous round are again divided into an upper and a lower bracket based on the bracket number they played in in the previous round and paired the same way.  
-The user can specify the parameters *Games per Match* (only even values allowed) and an *Armageddon* parameter.  
-If there is a tie after the number of games specified, pairs of tiebreak games will be played until either the tie is resolved or the number of tiebreak pairs specified in the Armageddon parameter is reached.  
+The user can specify the parameters *Games per Match*, *Games per Tiebreak* and an *Armageddon* parameter.  
+If there is a tie after the number of games specified, the specified number of tiebreak games will be played until either the tie is resolved or the number of tiebreak pairs specified in the Armageddon parameter is reached.  
   
 *Custom* does not pair at all, instead the user can manually pair all games.  
 The user can specify the parameter *Games per Round*, *Rounds*, *Point System* and four *Tiebreak* parameters.  
   
 ### Tiebreak Criteria  
 The possible tiebreak criteria are  
-- *Buchholz* (with additional parameters *Cut (bottom)*, *Cut (top)* and *Virtual opponents*)  
-- *Buchholz Sum* (with additional parameters *Cut (bottom)*, *Cut (top)* and *Virtual opponents*)  
-- *Sonneborn-Berger* (with additional parameters *Cut (bottom)*, *Cut (top)* and *Virtual opponents*)  
+- *Buchholz* (with additional parameters *Cut (bottom)*, *Cut (top)* and *Virtual Opponents*)  
+- *Buchholz Sum* (with additional parameters *Cut (bottom)*, *Cut (top)* and *Virtual Opponents*)  
+- *Sonneborn-Berger* (with additional parameters *Cut (bottom)*, *Cut (top)* and *Virtual Opponents*)  
 - *Games as black*  
 - *Wins as black*  
 - *Wins* (with additional parameter *Include Forfeits*)  
 - *Average Rating* (with additional parameters *Cut (bottom)*, *Cut (top)*)  
-- *Cumulative Points* (with additional parameters *Cut (bottom)*, *Cut (top)*)  
+- *Cumulative Score* (with additional parameters *Cut (bottom)*, *Cut (top)*)  
 - *Direct Encounter*  
   
 ### Armageddon  
@@ -38,12 +38,17 @@ For the *Armageddon* parameter the user can specifiy additionaly parameters *Wit
 One can also combine multiple tournaments to a multi stage tournament.  
 A multi stage tournament consists of a first stage with a number of tournaments where the participants are predetermined.
 Furthermore, it has an arbitrary number of further stages where the participants of the stage tournaments are the participants that got a certain placement in  a certain tournament of the previous stage.  
-
+  
 For example one could have *Round Robin* tournaments *Group A* up to *Group H* with four players each in the first stage and then in the second stage a *Knockout* tournament *Finals* with the participants who placed first or second in their respective group.  
 The seating for all stages except for the first one is done manually by the user independent of the usual seating of the tournament mode.  
   
 ## Teams  
-One can create teams, add players to them, remove players from them and change the team order, but I have yet to implement team tournaments.  
+Teams are an ordered collection of players.
+You can add players to a team, remove players from a team an change the lineup.  
+  
+### Team Tournaments  
+Team tournaments work like regular tournaments, except for some restrictions and changes e.g. for tiebreaks or Armageddon.  
+There are two tiebreak criteria exclusive to team tournaments;*Board Points* and *Berliner Wertung*.  
   
 ## Settings  
 Currently only font size and the path for bbpPairings.  

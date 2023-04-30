@@ -1,6 +1,16 @@
+from inspect import getfullargspec
 from .functions_tiebreak import get_buchholz, get_buchholz_sum, get_sonneborn_berger, get_blacks,\
     get_number_of_wins, get_opponent_average_rating, get_cumulative_score, get_number_of_black_wins,\
-    get_direct_encounter
+    get_direct_encounter, get_board_points, get_berliner_wertung
+
+tiebreak_list = [
+    "None", "Buchholz", "Buchholz Sum", "Sonneborn-Berger", "Games as Black", "Wins", "Wins as Black",
+    "Average Rating", "Cumulative Score", "Direct Encounter"
+]
+tiebreak_list_team = [
+    "None", "Board Points", "Berliner Wertung", "Buchholz", "Buchholz Sum", "Sonneborn-Berger", "Wins",
+    "Cumulative Score", "Direct Encounter"
+]
 
 tiebreaks = {
     "None": None,
@@ -11,8 +21,10 @@ tiebreaks = {
     "Wins": get_number_of_wins,
     "Wins as Black": get_number_of_black_wins,
     "Average Rating": get_opponent_average_rating,
-    "Cumulative Points": get_cumulative_score,
-    "Direct Encounter": get_direct_encounter
+    "Cumulative Score": get_cumulative_score,
+    "Direct Encounter": get_direct_encounter,
+    "Board Points": get_board_points,
+    "Berliner Wertung": get_berliner_wertung
 }
 abbreviations = {
     "None": None,
@@ -23,8 +35,10 @@ abbreviations = {
     "Wins": "Wins",
     "Wins as Black": "BlaW",
     "Average Rating": "AvRa",
-    "Cumulative Points": "Cumu",
-    "Direct Encounter": "DiEn"
+    "Cumulative Score": "Cumu",
+    "Direct Encounter": "DiEn",
+    "Board Points": "BoPo",
+    "Berliner Wertung": "BeWe"
 }
 func_args = {
     "None": {},
@@ -35,20 +49,24 @@ func_args = {
     "Wins": {"include_forfeits": False},
     "Wins as Black": {},
     "Average Rating": {"cut_down": 0, "cut_up": 0},
-    "Cumulative Points": {"cut_down": 0, "cut_up": 0},
-    "Direct Encounter": {}
+    "Cumulative Score": {"cut_down": 0, "cut_up": 0},
+    "Direct Encounter": {},
+    "Board Points": {},
+    "Berliner Wertung": {}
 }
 func_args_display = {
     "None": {},
-    "Buchholz": {"cut_down": "Cut (bottom)", "cut_up": "Cut (top)", "virtual": "Virtual opponents"},
-    "Buchholz Sum": {"cut_down": "Cut (bottom)", "cut_up": "Cut (top)", "virtual": "Virtual opponents"},
-    "Sonneborn-Berger": {"cut_down": "Cut (bottom)", "cut_up": "Cut (top)", "virtual": "Virtual opponents"},
+    "Buchholz": {"cut_down": "Cut (bottom)", "cut_up": "Cut (top)", "virtual": "Virtual Opponents"},
+    "Buchholz Sum": {"cut_down": "Cut (bottom)", "cut_up": "Cut (top)", "virtual": "Virtual Opponents"},
+    "Sonneborn-Berger": {"cut_down": "Cut (bottom)", "cut_up": "Cut (top)", "virtual": "Virtual Opponents"},
     "Games as Black": {},
     "Wins": {"include_forfeits": "Include Forfeits"},
     "Wins as Black": {},
     "Average Rating": {"cut_down": "Cut (bottom)", "cut_up": "Cut (top)"},
-    "Cumulative Points": {"cut_down": "Cut (bottom)", "cut_up": "Cut (top)"},
-    "Direct Encounter": {}
+    "Cumulative Score": {"cut_down": "Cut (bottom)", "cut_up": "Cut (top)"},
+    "Direct Encounter": {},
+    "Board Points": {},
+    "Berliner Wertung": {}
 }
 
 
@@ -85,10 +103,10 @@ class Tiebreak:
     def is_valid():
         return True
 
-    def evaluate(self, uuids, results, score_dict, player_all):
-        func_args = self.args.copy()
-        func = func_args.pop("functions")[0]
-        return tiebreaks[func](uuids, results, score_dict, player_all, **func_args)
+    def evaluate(self, args):
+        func_args = self.args.copy() | args
+        func = tiebreaks[func_args.pop("functions")[0]]
+        return func(**{key: value for key, value in func_args.items() if key in getfullargspec(func).args})
 
     def get_abbreviation(self):
         return abbreviations[self.args["functions"][0]]

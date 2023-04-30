@@ -3,11 +3,7 @@ from uuid import uuid4
 from os import mkdir
 from os.path import exists
 from shutil import rmtree
-from .functions_util import get_root_directory, write_file
-
-
-def get_directory(uuid):
-    return f"{get_root_directory()}/data/teams/{uuid}"
+from .functions_util import get_directory_by_uuid, write_file
 
 
 class Team:
@@ -27,21 +23,22 @@ class Team:
         data["members"] = [member.get_uuid() for member in data["members"]]
         return dumps(data)
 
-    def save(self):
+    def save(self, directory="data/teams"):
         uuid = self.get_uuid()
 
-        if exists(get_directory(uuid)):
-            rmtree(f"{get_directory(uuid)}/members")
+        folder_directory = get_directory_by_uuid(directory, uuid)
+        if exists(folder_directory):
+            rmtree(f"{folder_directory}/members")
         else:
-            mkdir(get_directory(uuid))
+            mkdir(folder_directory)
 
-        mkdir(f"{get_directory(uuid)}/members")
+        mkdir(f"{folder_directory}/members")
         for member in self.get_members():
             member.save(f"data/teams/{uuid}/members")
-        write_file(f"{get_directory(uuid)}/team.json", self.dump_to_json())
+        write_file(f"{folder_directory}/team.json", self.dump_to_json())
 
-    def remove(self):
-        rmtree(f"{get_directory(self.get_uuid())}")
+    def remove(self, directory="data/teams"):
+        rmtree(f"{get_directory_by_uuid(directory, self.get_uuid())}")
 
     def get_uuid(self):
         return self.uuid
@@ -64,5 +61,14 @@ class Team:
     def remove_member(self, member):
         self.get_members().remove(member)
 
+    def get_rating(self):
+        return int(sum(member.get_rating() for member in self.get_members())/len(self.get_members()))
+
     def is_valid(self):
         return self.get_name() != "" and len(self.get_members()) > 0
+
+    def get_uuid_to_member_dict(self):
+        return {member.get_uuid(): member for member in self.get_members()}
+
+    def get_uuid_to_number_dict(self):
+        return {member.get_uuid(): i+1 for i, member in enumerate(self.get_members())}

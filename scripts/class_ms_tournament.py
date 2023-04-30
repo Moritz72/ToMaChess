@@ -5,15 +5,11 @@ from os import mkdir
 from os.path import exists
 from shutil import rmtree
 from .functions_tournament import load_tournament_from_file
-from .functions_util import get_root_directory, write_file
-
-
-def get_directory(uuid):
-    return f"{get_root_directory()}/data/ms_tournaments/{uuid}"
+from .functions_util import get_directory_by_uuid, write_file
 
 
 def make_stage_directory(uuid, stage):
-    mkdir(f"{get_directory(uuid)}/stage_{stage + 1}")
+    mkdir(f"{get_directory_by_uuid('data/ms_tournaments', uuid)}/stage_{stage + 1}")
 
 
 class MS_Tournament:
@@ -45,23 +41,24 @@ class MS_Tournament:
             ]
             self.add_stage_tournaments(tournaments)
 
-    def save(self):
+    def save(self, directory="data/ms_tournaments"):
         uuid = self.get_uuid()
         stages = self.get_stages()
 
-        if not exists(get_directory(uuid)):
-            mkdir(get_directory(uuid))
+        folder_directory = get_directory_by_uuid(directory, uuid)
+        if not exists(folder_directory):
+            mkdir(folder_directory)
             for stage in range(stages):
                 make_stage_directory(uuid, stage)
 
         for stage in range(stages):
             for tournament in self.get_tournaments(stage):
-                tournament.save(f"data/ms_tournaments/{uuid}/stage_{stage + 1}")
+                tournament.save(f"{directory}/{uuid}/stage_{stage + 1}")
 
-        write_file(f"{get_directory(uuid)}/ms_tournament.json", self.dump_to_json())
+        write_file(f"{folder_directory}/ms_tournament.json", self.dump_to_json())
 
-    def remove(self):
-        rmtree(f"{get_directory(self.get_uuid())}")
+    def remove(self, directory="data/ms_tournaments"):
+        rmtree(f"{get_directory_by_uuid(directory, self.get_uuid())}")
 
     def get_uuid(self):
         return self.uuid

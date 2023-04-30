@@ -5,11 +5,8 @@ from os import mkdir
 from os.path import exists
 from shutil import rmtree
 from .functions_player import load_player
-from .functions_util import shorten_float, get_root_directory, write_file
-
-
-def get_directory(directory, uuid):
-    return f"{get_root_directory()}/{directory}/{uuid}"
+from .functions_util import shorten_float, get_directory_by_uuid, write_file
+from .functions_tournament_2 import get_standings_with_tiebreaks
 
 
 class Tournament:
@@ -43,9 +40,12 @@ class Tournament:
                 }
         return dumps(data)
 
-    def load_from_json(self, directory, json):
-        players = [load_player(uuid, f"{directory}/{json['uuid']}/participants") for uuid in json["participants"]]
-        self.set_participants(players)
+    def load_from_json(self, directory, json, load_participants_function=load_player):
+        participants = [
+            load_participants_function(uuid, f"{directory}/{json['uuid']}/participants")
+            for uuid in json["participants"]
+        ]
+        self.set_participants(participants)
         for parameter, value in json["parameters"].items():
             self.set_parameter(parameter, value)
         for variable, value in json["variables"].items():
@@ -57,16 +57,17 @@ class Tournament:
     def save(self, directory="data/tournaments"):
         uuid = self.get_uuid()
 
-        if not exists(get_directory(directory, uuid)):
-            mkdir(get_directory(directory, uuid))
-            mkdir(f"{get_directory(directory, uuid)}/participants")
+        folder_directory = get_directory_by_uuid(directory, uuid)
+        if not exists(folder_directory):
+            mkdir(folder_directory)
+            mkdir(f"{folder_directory}/participants")
 
         for participant in self.get_participants():
             participant.save(f"{directory}/{uuid}/participants")
-        write_file(f"{get_directory(directory, uuid)}/tournament.json", self.dump_to_json())
+        write_file(f"{folder_directory}/tournament.json", self.dump_to_json())
 
     def remove(self, directory="data/tournaments"):
-        rmtree(get_directory(directory, self.get_uuid()))
+        rmtree(get_directory_by_uuid(directory, self.get_uuid()))
 
     def set_participants(self, participants):
         self.participants = participants
@@ -145,9 +146,7 @@ class Tournament:
         return self.get_variable("results")
 
     def add_results(self, results):
-        self.variables["results"].append([
-            ((uuid_1, score_1), (uuid_2, score_2)) for (uuid_1, score_1), (uuid_2, score_2) in results
-        ])
+        self.variables["results"].append(results)
         self.set_pairings(None)
         self.set_round(self.get_round()+1)
 
@@ -180,28 +179,8 @@ class Tournament:
     def is_done(self):
         return False
 
-    @staticmethod
-    def get_standings_header_vertical(table):
-        header_vertical = []
-        last_entry = None
-        for i, entry in enumerate(table):
-            if last_entry is None or entry[1:] != last_entry[1:]:
-                header_vertical.append(str(i+1))
-            else:
-                header_vertical.append('')
-            last_entry = entry
-        return header_vertical
-
     def get_standings(self):
-        results = self.get_results()
-        header_horizontal = ["Name", "P"]
-        points = self.get_simple_scores()
-        table = sorted(
-            ((participant, points[participant.get_uuid()]) for participant in self.get_participants()),
-            key=lambda x: x[1], reverse=True
-        )
-        header_vertical = self.get_standings_header_vertical(table)
-        return header_horizontal, header_vertical, table
+        return get_standings_with_tiebreaks(self, {})
 
     def load_pairings(self):
         if self.get_pairings() is not None or self.is_done():

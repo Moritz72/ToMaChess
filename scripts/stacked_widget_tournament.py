@@ -20,24 +20,29 @@ class Stacked_Widget_Tournament(QStackedWidget):
         self.addWidget(self.cross_table_widget)
 
         self.add_round_widgets()
-        self.add_connect_function()
         self.set_index()
 
-    def add_round_widget(self, widget):
+    def add_round_widget(self, roun, current):
+        if current:
+            results = [((uuid_1, None), (uuid_2, None)) for uuid_1, uuid_2 in self.tournament.get_pairings()]
+        else:
+            results = self.tournament.get_results()[roun - 1]
+        widget = Widget_Tournament_Round(
+            results, self.tournament.get_uuid_to_participant_dict(),
+            self.tournament.get_possible_scores(), self.tournament.is_valid_pairings
+        )
         self.round_widgets.append(widget)
         self.addWidget(widget)
+        if current:
+            widget.confirmed_round.connect(self.load_next_round)
 
     def add_round_widgets(self):
         rounds = self.tournament.get_round()
         self.tournament.load_pairings()
-        if self.tournament.get_pairings() is None:
-            rounds = rounds - 1
-        for i in range(rounds):
-            self.add_round_widget(Widget_Tournament_Round(self.tournament, i + 1))
-
-    def add_connect_function(self):
-        if len(self.round_widgets) > 0 and self.round_widgets[-1].current:
-            self.round_widgets[-1].confirmed_round.connect(self.load_next_round)
+        for i in range(1, rounds):
+            self.add_round_widget(i, False)
+        if self.tournament.get_pairings() is not None:
+            self.add_round_widget(rounds, True)
 
     def set_index(self):
         if self.tournament.is_done():
@@ -62,6 +67,10 @@ class Stacked_Widget_Tournament(QStackedWidget):
         self.window_main.set_stacked_widget("Default")
 
     def load_next_round(self):
+        self.tournament.add_results(self.sender().results)
+        self.update_rounds()
+
+    def update_rounds(self):
         self.tournament.save("data/tournaments")
         self.standings_widget.update_table()
         self.cross_table_widget.update_table()
@@ -74,6 +83,5 @@ class Stacked_Widget_Tournament(QStackedWidget):
             self.setCurrentIndex(0)
         else:
             roun = self.tournament.get_round()
-            self.add_round_widget(Widget_Tournament_Round(self.tournament, roun))
-            self.add_connect_function()
+            self.add_round_widget(roun, True)
             self.setCurrentIndex(self.count() - 1)

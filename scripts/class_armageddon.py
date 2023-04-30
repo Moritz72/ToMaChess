@@ -46,8 +46,8 @@ class Armageddon:
     def get_args_and_args_display(self):
         return self.args, self.args_display
 
-    def is_armageddon(self, games, roun):
-        return self.args["enabled"] and roun-games-2*self.args["after_rounds"] >= 1
+    def is_armageddon(self, games, games_per_tiebreak, roun):
+        return self.args["enabled"] and roun-games-games_per_tiebreak*self.args["after_rounds"] >= 1
 
     def determine_color(self, participant_1, participant_2):
         if self.args["determine_color"][0] == "In Order":

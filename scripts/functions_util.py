@@ -21,6 +21,10 @@ def get_root_directory():
     return abspath(join(dirname(abspath(__file__)), pardir))
 
 
+def get_directory_by_uuid(directory, uuid):
+    return f"{get_root_directory()}/{directory}/{uuid}"
+
+
 def recursive_buckets(lis, functions, reverse=True):
     if len(functions) == 0:
         return lis

@@ -50,8 +50,8 @@ class Widget_Teams(QWidget):
             self.add_team_row(i, team.get_name(), len(team.get_members()))
 
     def set_buttons(self):
-        add_button = get_button("large", (10, 5), "Add\nTeam", connect_function=self.add_new_team_row)
-        save_button = get_button("large", (10, 5), "Save", connect_function=self.update_teams)
+        add_button = get_button("large", (12, 5), "Add\nTeam", connect_function=self.add_new_team_row)
+        save_button = get_button("large", (12, 5), "Save", connect_function=self.update_teams)
         layout_buttons = QVBoxLayout()
         layout_buttons.setAlignment(Qt.AlignTop | Qt.AlignLeft)
         add_widgets_in_layout(self.layout, layout_buttons, (add_button, save_button))
@@ -87,12 +87,15 @@ class Widget_Teams(QWidget):
     def edit_team(self):
         row = self.table.currentRow()
         self.window_team_edit = Window_Team_Edit(self.teams[row])
-        self.window_team_edit.window_closed.connect(self.update_teams)
+        self.window_team_edit.window_closed.connect(self.update_teams_no_reload)
         self.window_team_edit.show()
+
+    def update_teams_no_reload(self):
+        clear_table(self.table)
+        self.fill_in_table()
 
     def update_teams(self):
         self.save_teams()
         self.remove_teams()
-        clear_table(self.table)
         self.teams = load_teams_all()
-        self.fill_in_table()
+        self.update_teams_no_reload()

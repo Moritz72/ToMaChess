@@ -46,7 +46,7 @@ class Window_Team_Edit(QMainWindow):
     def open_window_add_members(self):
         self.close_windows()
         self.window_add_members = Window_Add_Players(
-            [player for player in self.players if player not in self.team.get_members()]
+            [player for player in self.players if player.get_uuid() not in self.team.get_uuid_to_member_dict()]
         )
         self.window_add_members.window_closed.connect(self.add_members)
         self.window_add_members.show()
@@ -64,10 +64,10 @@ class Window_Team_Edit(QMainWindow):
         self.window_line_up.show()
 
     def add_members(self):
-        self.team.add_members([
+        self.team.add_members(sorted([
             self.players[row] for row in range(self.window_add_members.table.rowCount())
             if self.window_add_members.table.cellWidget(row, 3).checkState() == Qt.Checked
-        ])
+        ], key=lambda x: x.get_rating(), reverse=True))
         self.window_add_members = None
 
     def remove_members(self):

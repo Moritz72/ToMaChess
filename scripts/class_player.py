@@ -1,11 +1,7 @@
 from uuid import uuid4
 from os import remove
 from json import dumps
-from .functions_util import get_root_directory, write_file
-
-
-def get_directory(directory, uuid):
-    return f"{get_root_directory()}/{directory}/{uuid}"
+from .functions_util import get_directory_by_uuid, write_file
 
 
 class Player:
@@ -27,10 +23,10 @@ class Player:
             return last_name
 
     def save(self, directory="data/players"):
-        write_file(f"{get_directory(directory, self.get_uuid())}.json", dumps(self.__dict__))
+        write_file(f"{get_directory_by_uuid(directory, self.get_uuid())}.json", dumps(self.__dict__))
 
     def remove(self, directory="data/players"):
-        remove(f"{get_directory(directory, self.get_uuid())}.json")
+        remove(f"{get_directory_by_uuid(directory, self.get_uuid())}.json")
 
     def get_uuid(self):
         return self.uuid

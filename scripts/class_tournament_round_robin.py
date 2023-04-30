@@ -1,7 +1,7 @@
 from random import shuffle
 from .class_tournament import Tournament
-from .class_tiebreak import Tiebreak, tiebreaks
-from .functions_util import recursive_buckets
+from .class_tiebreak import Tiebreak, tiebreak_list
+from .functions_tournament_2 import get_score_dict_by_point_system, get_standings_with_tiebreaks
 
 
 def get_seating_from_pairings(participants, results):
@@ -54,18 +54,18 @@ class Tournament_Round_Robin(Tournament):
         self.parameters = {
             "cycles": 1,
             "choose_seating": False,
-            "point_system": ["1 - ½ - 0", "3 - 1 - 0"],
+            "point_system": ["1 - ½ - 0", "2 - 1 - 0", "3 - 1 - 0"],
             "tiebreak 1": Tiebreak(
-                args={"functions": sorted(tiebreaks.keys(), key=lambda x: x != "Direct Encounter")}
+                args={"functions": sorted(tiebreak_list, key=lambda x: x != "Direct Encounter")}
             ),
             "tiebreak 2": Tiebreak(
-                args={"functions": sorted(tiebreaks.keys(), key=lambda x: x != "Sonneborn-Berger")}
+                args={"functions": sorted(tiebreak_list, key=lambda x: x != "Sonneborn-Berger")}
             ),
             "tiebreak 3": Tiebreak(
-                args={"functions": sorted(tiebreaks.keys(), key=lambda x: x != "None")}
+                args={"functions": sorted(tiebreak_list, key=lambda x: x != "None")}
             ),
             "tiebreak 4": Tiebreak(
-                args={"functions": sorted(tiebreaks.keys(), key=lambda x: x != "None")}
+                args={"functions": sorted(tiebreak_list, key=lambda x: x != "None")}
             )
         }
         self.parameter_display = {
@@ -83,9 +83,7 @@ class Tournament_Round_Robin(Tournament):
         return globals()
 
     def get_score_dict(self):
-        if self.get_parameter("point_system")[0] == "1 - ½ - 0":
-            return super().get_score_dict()
-        return {'1': 3, '½': 1, '0': 0, '+': 3, '-': 0}
+        return get_score_dict_by_point_system(self.get_parameter("point_system")[0])
 
     def is_valid_parameters(self):
         return self.get_parameter("cycles") > 0
@@ -105,16 +103,9 @@ class Tournament_Round_Robin(Tournament):
             return self.get_round() > self.get_parameter("cycles") * (participant_number - 1)
 
     def add_results(self, results):
-        self.variables["results"].append([
-            ((uuid_1, score_1), (uuid_2, score_2)) for (uuid_1, score_1), (uuid_2, score_2) in results
-        ])
-
-        if self.get_round() == 1 and self.get_parameter("choose_seating"):
+        super().add_results(results)
+        if self.get_round() == 2 and self.get_parameter("choose_seating"):
             self.set_participants(get_seating_from_pairings(self.get_participants(), results))
-
-        self.set_pairings(None)
-        self.set_round(self.get_round() + 1)
-        return True
 
     def get_round_name(self, r):
         if self.get_parameter("cycles") == 1:
@@ -126,31 +117,10 @@ class Tournament_Round_Robin(Tournament):
         return f"Round {cycle + 1}.{modulo_round + 1}"
 
     def get_standings(self):
-        participants = self.get_participants()
-        results = self.get_results()
-        score_dict = self.get_score_dict()
-        uuid_to_participant_dict = self.get_uuid_to_participant_dict()
-        tiebreaks = [
-            self.get_parameter("tiebreak 1"),
-            self.get_parameter("tiebreak 2"),
-            self.get_parameter("tiebreak 3"),
-            self.get_parameter("tiebreak 4")
-        ]
-
-        header_horizontal = ["Name", "P"]
-        rank_functions = [lambda x: self.get_simple_scores()]
-        for tb in tiebreaks:
-            if tb.get_abbreviation() is None:
-                continue
-            header_horizontal.append(tb.get_abbreviation())
-            rank_functions.append(lambda x, tiebreak=tb: tiebreak.evaluate(x, results, score_dict, participants))
-
-        table = [
-            [uuid_to_participant_dict[e[0]]] + e[1:]
-            for e in recursive_buckets([[f] for f in uuid_to_participant_dict], rank_functions)
-        ]
-        header_vertical = self.get_standings_header_vertical(table)
-        return header_horizontal, header_vertical, table
+        return get_standings_with_tiebreaks(self, {
+            "results": self.get_results(), "score_dict": self.get_score_dict(),
+            "all_participants": self.get_participants()
+        })
 
     def load_pairings(self):
         if self.get_pairings() is not None or self.is_done():

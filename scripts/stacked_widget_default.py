@@ -1,5 +1,6 @@
 from PyQt5.QtWidgets import QStackedWidget
 from PyQt5.QtCore import pyqtSignal
+from .functions_tournament import modes
 from .widget_players import Widget_Players
 from .widget_tournaments import Widget_Tournaments
 from .widget_teams import Widget_Teams
@@ -38,8 +39,13 @@ class Stacked_Widget_Default(QStackedWidget):
                 "MS_Tournament",
                 {"ms_tournament": tournament, "stage": tournament.get_stage()}
             )
-        else:
+        elif tournament.get_mode() in modes:
             self.window_main.set_stacked_widget(
                 "Tournament",
+                {"tournament": tournament}
+            )
+        else:
+            self.window_main.set_stacked_widget(
+                "Tournament_Team",
                 {"tournament": tournament}
             )

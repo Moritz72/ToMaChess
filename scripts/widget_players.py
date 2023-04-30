@@ -47,8 +47,8 @@ class Widget_Players(QWidget):
             self.add_player_row(i, player.get_first_name(), player.get_last_name(), player.get_rating())
 
     def set_buttons(self):
-        add_button = get_button("large", (10, 5), "Add\nPlayer", connect_function=self.add_new_player_row)
-        save_button = get_button("large", (10, 5), "Save", connect_function=self.update_players)
+        add_button = get_button("large", (12, 5), "Add\nPlayer", connect_function=self.add_new_player_row)
+        save_button = get_button("large", (12, 5), "Save", connect_function=self.update_players)
         layout_buttons = QVBoxLayout()
         layout_buttons.setAlignment(Qt.AlignTop | Qt.AlignLeft)
         add_widgets_in_layout(self.layout, layout_buttons, (add_button, save_button))

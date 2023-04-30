@@ -5,12 +5,14 @@ from os.path import exists
 from .side_menu import Side_Menu
 from .stacked_widget_default import Stacked_Widget_Default
 from .stacked_widget_tournament import Stacked_Widget_Tournament
+from .stacked_widget_tournament_team import Stacked_Widget_Tournament_Team
 from .stacked_widget_ms_tournament import Stacked_Widget_MS_Tournament
 from .functions_util import get_root_directory
 
 stacked_widgets = {
     "Default": Stacked_Widget_Default,
     "Tournament": Stacked_Widget_Tournament,
+    "Tournament_Team": Stacked_Widget_Tournament_Team,
     "MS_Tournament": Stacked_Widget_MS_Tournament
 }
 
