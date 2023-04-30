@@ -48,7 +48,7 @@ You can add players to a team, remove players from a team an change the lineup.
   
 ### Team Tournaments  
 Team tournaments work like regular tournaments, except for some restrictions and changes e.g. for tiebreaks or Armageddon.  
-There is an additional parameter *Boards* which specifies on how many boards the matches ar played and ther are two tiebreak criteria exclusive to team tournaments; *Board Points* and *Berliner Wertung*.  
+There is an additional parameter *Boards* which specifies on how many boards the matches are played and ther are two tiebreak criteria exclusive to team tournaments; *Board Points* and *Berliner Wertung*.  
   
 ## Settings  
 Currently only font size and the path for bbpPairings.  
