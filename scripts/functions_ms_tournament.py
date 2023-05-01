@@ -7,7 +7,9 @@ from .functions_util import get_directory_by_uuid
 
 def load_ms_tournament_from_string(string):
     json = loads(string)
-    tournament = MS_Tournament(json["name"], [], json["stages_advance_lists"], json["stage"], json["uuid"])
+    tournament = MS_Tournament(
+        json["name"], [], json["stages_advance_lists"], json["draw_lots"], json["stage"], json["uuid"]
+    )
     tournament.load_from_json(json)
     return tournament
 

@@ -13,7 +13,9 @@ class Stacked_Widget_MS_Tournament(QStackedWidget):
         self.window_main = window_main
         self.ms_tournament = ms_tournament
         self.stage = stage
-        self.tournaments = self.ms_tournament.get_tournaments(self.stage)
+        self.tournaments = [
+            tournament for tournament in self.ms_tournament.get_tournaments(self.stage) if tournament.is_valid()
+        ]
 
         self.standings_widgets = []
         self.cross_table_widgets = []

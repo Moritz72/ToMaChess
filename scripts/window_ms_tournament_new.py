@@ -1,9 +1,9 @@
 from PyQt5.QtWidgets import QMainWindow, QHBoxLayout, QApplication, QWidget, QVBoxLayout
-from PyQt5.QtCore import pyqtSignal
+from PyQt5.QtCore import Qt, pyqtSignal
 from .class_ms_tournament import MS_Tournament
 from .widget_ms_tournament_stage_new import Widget_MS_Tournament_Stage_New
 from .functions_gui import get_button, get_scroll_area_widgets_and_layouts, add_widgets_in_layout, get_lineedit,\
-    get_label
+    get_label, get_check_box, add_widgets_to_layout
 
 
 class Window_MS_Tournament_New(QMainWindow):
@@ -13,11 +13,12 @@ class Window_MS_Tournament_New(QMainWindow):
         super().__init__()
         self.setWindowTitle("New Multi Stage Tournament")
         self.name_line = None
+        self.draw_lots_check = None
         self.new_tournament = None
 
         self.widget = QWidget()
         self.layout = QVBoxLayout()
-        self.add_name_line()
+        self.add_top_line()
         _, _, self.layout_inner = get_scroll_area_widgets_and_layouts(self.layout, [])
         self.add_buttons()
         self.add_stage()
@@ -28,13 +29,18 @@ class Window_MS_Tournament_New(QMainWindow):
         self.setFixedWidth(int(QApplication.primaryScreen().size().height()*.8))
         self.setFixedHeight(int(QApplication.primaryScreen().size().height()*.8))
 
-    def add_name_line(self):
-        label = get_label("Name", "large")
+    def add_top_line(self):
+        name_label = get_label("Name", "large")
         self.name_line = get_lineedit("medium", (15, 2.5))
+        draw_lots_label = get_label("Draw Lots in Case of Tie", "large")
+        self.draw_lots_check = get_check_box(True, (3, 3))
         layout = QHBoxLayout()
         layout.addStretch()
-        add_widgets_in_layout(self.layout, layout, (label, self.name_line))
+        add_widgets_to_layout(layout, (name_label, self.name_line))
         layout.addStretch()
+        add_widgets_to_layout(layout, (draw_lots_label, self.draw_lots_check))
+        layout.addStretch()
+        self.layout.addLayout(layout)
 
     def add_buttons(self):
         add_widgets_in_layout(self.layout, QHBoxLayout(), (
@@ -54,7 +60,9 @@ class Window_MS_Tournament_New(QMainWindow):
             self.layout_inner.takeAt(self.layout_inner.count()-1).widget().setParent(None)
 
     def create_tournament(self):
-        self.new_tournament = MS_Tournament(self.name_line.text(), [], [])
+        self.new_tournament = MS_Tournament(
+            self.name_line.text(), [], [], self.draw_lots_check.checkState() == Qt.Checked
+        )
         for i in range(self.layout_inner.count()):
             stage_tounaments = self.layout_inner.itemAt(i).widget().tournaments
             self.new_tournament.add_stage_tournaments(stage_tounaments)

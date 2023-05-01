@@ -1,3 +1,4 @@
+from random import shuffle
 from .functions_util import recursive_buckets, shorten_float
 
 
@@ -78,3 +79,27 @@ def is_valid_team_seatings(team_uuids, team_member_lists, results_match):
                 return False
             indices[i] = number
     return True
+
+
+def get_placements_from_standings(standings, draw_lots):
+    _, header_vertical, table = standings
+    placements = []
+    entry_index = None
+    for row, header_item in zip(table, header_vertical):
+        if header_item == "":
+            placements[entry_index].append(row[0])
+            placements.append([])
+        else:
+            placements.append([row[0]])
+            entry_index = len(placements)-1
+    for placement in placements:
+        shuffle(placement)
+    if not draw_lots:
+        return placements
+    i = 0
+    while i < len(placements):
+        for j in range(i+1, i+len(placements[i])):
+            placements[j] = [placements[i].pop(0)]
+            i += 1
+        i += 1
+    return placements

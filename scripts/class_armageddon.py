@@ -16,9 +16,15 @@ def determine_color_choice(participant_1, participant_2):
 
 
 class Armageddon:
-    def __init__(self, args={}, args_display={}):
-        self.args = args
-        self.args_display = args_display
+    def __init__(self, args=None, args_display=None):
+        if args is None:
+            self.args = {}
+        else:
+            self.args = args
+        if args_display is None:
+            self.args_display = {}
+        else:
+            self.args_display = args_display
         if "enabled" not in self.args:
             self.args["enabled"] = False
         if "enabled" not in self.args_display:

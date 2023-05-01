@@ -5,6 +5,7 @@ from os import mkdir
 from os.path import exists
 from shutil import rmtree
 from .functions_tournament import load_tournament_from_file
+from .functions_tournament_2 import get_placements_from_standings
 from .functions_util import get_directory_by_uuid, write_file
 
 
@@ -13,7 +14,7 @@ def make_stage_directory(uuid, stage):
 
 
 class MS_Tournament:
-    def __init__(self, name, stages_tournaments, stages_advance_lists, stage=0, uuid=None):
+    def __init__(self, name, stages_tournaments, stages_advance_lists, draw_lots, stage=0, uuid=None):
         if uuid is None:
             self.uuid = str(uuid4())
         else:
@@ -21,6 +22,7 @@ class MS_Tournament:
         self.name = name
         self.stages_tournaments = stages_tournaments
         self.stages_advance_lists = stages_advance_lists
+        self.draw_lots = draw_lots
         self.stage = stage
 
     def __str__(self):
@@ -122,11 +124,15 @@ class MS_Tournament:
         return all(tournament.is_done() for tournament in self.get_current_tournaments())
 
     def advance_stage(self):
-        tournaments_standings = [tournament.get_standings()[2] for tournament in self.get_current_tournaments()]
-        participants_placements = [[result[0] for result in standings] for standings in tournaments_standings]
-
+        participants_placements = [
+            get_placements_from_standings(tournament.get_standings(), self.draw_lots)
+            for tournament in self.get_current_tournaments()
+        ]
         participants_next_stage = [
-            [participants_placements[tournament][placement-1] for tournament, placement in advance_list]
+            [
+                participant for tournament, placement in advance_list
+                for participant in participants_placements[tournament][placement-1]
+            ]
             for advance_list in self.get_current_advance_list()
         ]
 
