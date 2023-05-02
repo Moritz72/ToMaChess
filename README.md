@@ -1,5 +1,5 @@
 # ToMaChess  
-![Icon](./images/icon.png)
+![Icon](./images/logo.png)
 *ToMaChess* is a gui application to manage chess tournaments written in Python.  
 Requires PyQt5.
   
