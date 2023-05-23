@@ -16,9 +16,11 @@ def get_uuid_from_numbers(n, m):
 
 def renew_certificate(certificate):
     try:
-        response = get(f"https://raw.githubusercontent.com/Moritz72/ToMaChess/master/certificates/{certificate}")
+        response = get(
+            f"https://raw.githubusercontent.com/Moritz72/ToMaChess/master/certificates/{certificate.split('/')[-1]}"
+        )
         response.raise_for_status()
-        with open(f"{get_root_directory()}/certificates/{certificate}", 'wb') as file:
+        with open(certificate, 'wb') as file:
             file.write(response.content)
     except exceptions.RequestException as e:
         return
@@ -54,7 +56,7 @@ def download_and_unzip(url, file_to_extract, verify=True, retry=True):
     except exceptions.SSLError:
         renew_certificate(verify)
         if retry:
-            download_and_unzip(url, file_to_extract, verify=verify, retry=False)
+            return download_and_unzip(url, file_to_extract, verify=verify, retry=False)
     except exceptions.RequestException as e:
         return
     except BadZipFile as e:
