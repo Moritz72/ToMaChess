@@ -11,7 +11,7 @@ class Window_MS_Tournament_New(QMainWindow):
 
     def __init__(self):
         super().__init__()
-        self.setWindowTitle("New Multi Stage Tournament")
+        self.setWindowTitle("New Multi-Stage Tournament")
         self.name_line = None
         self.draw_lots_check = None
         self.new_tournament = None
@@ -57,31 +57,39 @@ class Window_MS_Tournament_New(QMainWindow):
 
     def remove_stage(self):
         if self.layout_inner.count() != 0:
-            self.layout_inner.takeAt(self.layout_inner.count()-1).widget().setParent(None)
+            self.layout_inner.takeAt(self.layout_inner.count() - 1).widget().setParent(None)
 
     def create_tournament(self):
-        self.new_tournament = MS_Tournament(
-            self.name_line.text(), [], [], self.draw_lots_check.checkState() == Qt.Checked
-        )
+        participants = []
+        stages_tournaments = []
+        stages_advance_lists = []
+
         for i in range(self.layout_inner.count()):
-            stage_tounaments = self.layout_inner.itemAt(i).widget().tournaments
-            self.new_tournament.add_stage_tournaments(stage_tounaments)
+            stage_tournaments = self.layout_inner.itemAt(i).widget().tournaments
+            participants.extend(
+                [participant for tournament in stage_tournaments for participant in tournament.get_participants()]
+            )
+            stages_tournaments.append(stage_tournaments)
             if i == 0:
                 continue
 
             stage_advance_lists = [
-                [
-                    (self.new_tournament.stages_tournaments[-2].index(tournament), placement)
-                    for tournament, placement in advance_list
-                ]
+                [(stages_tournaments[-2].index(tournament), placement) for tournament, placement in advance_list]
                 for advance_list in self.layout_inner.itemAt(i).widget().advance_lists
             ]
-            self.new_tournament.add_stage_advance_lists(stage_advance_lists)
+            stages_advance_lists.append(stage_advance_lists)
+
+        unique_participants = {participant.get_uuid(): participant for participant in participants}
+        participants = list(unique_participants.values())
+        self.new_tournament = MS_Tournament(
+            participants, stages_tournaments, self.name_line.text(), stages_advance_lists=stages_advance_lists,
+            draw_lots=self.draw_lots_check.checkState() == Qt.Checked
+        )
 
         if self.new_tournament.is_valid():
+            self.new_tournament.possess_participants_and_tournaments()
             for tournament in self.new_tournament.get_current_tournaments():
                 tournament.seat_participants()
-            self.new_tournament.save()
             self.added_tournament.emit()
             self.close()
 

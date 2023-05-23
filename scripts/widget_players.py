@@ -1,94 +1,56 @@
-from PyQt5.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout, QHeaderView, QTableWidget
+from PyQt5.QtWidgets import QHeaderView
 from PyQt5.QtCore import Qt
 from .class_player import Player
-from .functions_player import load_players_all
-from .functions_gui import add_content_to_table, add_button_to_table, make_headers_bold_horizontal,\
-    make_headers_bold_vertical, add_widgets_in_layout, get_button, clear_table, size_table
+from .table_widget_search import Table_Widget_Search
+from .widget_default_generic import Widget_Default_Generic
+from .functions_player import load_players_like, update_players, add_players, remove_players
+from .functions_gui import add_content_to_table, add_button_to_table, make_headers_bold_horizontal, \
+    make_headers_bold_vertical, get_button
 
 
-class Widget_Players(QWidget):
+class Widget_Players(Widget_Default_Generic):
     def __init__(self):
-        super().__init__()
-        self.players = load_players_all()
-        self.deleted_players = []
+        super().__init__("Players", load_players_like, update_players, remove_players, add_players)
 
-        self.layout = QHBoxLayout()
-        self.setLayout(self.layout)
-        self.layout.addWidget(QWidget())
-        self.table = QTableWidget()
-        self.fill_in_table()
-        layout = QVBoxLayout()
-        layout.setAlignment(Qt.AlignTop)
-        add_widgets_in_layout(self.layout, layout, (self.table,))
-        self.set_buttons()
+    @staticmethod
+    def get_table():
+        table = Table_Widget_Search(7, 3.5, 55, [None, 3.5, 5, 4.5, 4, 5, 3.5])
+        table.setHorizontalHeaderLabels(["Name", "Sex", "Birth", "Fed.", "Title", "Rating", ""])
+        make_headers_bold_horizontal(table)
+        make_headers_bold_vertical(table)
 
-    def add_player_row(self, row, first_name, last_name, rating):
-        add_content_to_table(self.table, first_name, row, 0)
-        add_content_to_table(self.table, last_name, row, 1, bold=True)
-        add_content_to_table(self.table, rating, row, 2, align=Qt.AlignCenter)
-        add_button_to_table(self.table, row, 3, "medium", None, '-', connect_function=self.add_player_to_be_removed)
-
-    def resize_table(self):
-        size_table(self.table, len(self.players), 4, 3.5, max_width=55, widths=[None, None, 4.5, 3.5])
-
-    def fill_in_table(self):
-        self.resize_table()
-        self.table.setHorizontalHeaderLabels(["First Name", "Last Name", "ELO", ""])
-        make_headers_bold_horizontal(self.table)
-        make_headers_bold_vertical(self.table)
-
-        header_horizontal = self.table.horizontalHeader()
+        header_horizontal = table.horizontalHeader()
         header_horizontal.setSectionResizeMode(0, QHeaderView.Stretch)
-        header_horizontal.setSectionResizeMode(1, QHeaderView.Stretch)
-        header_vertical = self.table.verticalHeader()
+        header_vertical = table.verticalHeader()
         header_vertical.setDefaultAlignment(Qt.AlignCenter)
+        return table
 
-        for i, player in enumerate(self.players):
-            self.add_player_row(i, player.get_first_name(), player.get_last_name(), player.get_rating())
+    def get_buttons(self):
+        add_button = get_button("large", (12, 5), "Add\nPlayer", connect_function=self.add_new_row)
+        save_button = get_button("large", (12, 5), "Save", connect_function=self.update_database)
+        return add_button, save_button
 
-    def set_buttons(self):
-        add_button = get_button("large", (12, 5), "Add\nPlayer", connect_function=self.add_new_player_row)
-        save_button = get_button("large", (12, 5), "Save", connect_function=self.update_players)
-        layout_buttons = QVBoxLayout()
-        layout_buttons.setAlignment(Qt.AlignTop | Qt.AlignLeft)
-        add_widgets_in_layout(self.layout, layout_buttons, (add_button, save_button))
+    def get_object_from_values(self, values):
+        return Player(*values[:6], uuid_associate=self.collection_current.get_uuid())
 
-    def add_new_player_row(self):
-        self.players.append(Player(""))
-        self.fill_in_table()
+    def edit_object_by_values(self, values, obj):
+        obj.set_name(values[0])
+        obj.set_sex(values[1])
+        obj.set_birthday(values[2])
+        obj.set_country(values[3])
+        obj.set_title(values[4])
+        obj.set_rating(values[5])
+        obj.set_uuid_associate(self.collection_current.get_uuid())
 
-    def add_player_to_be_removed(self):
-        row = self.table.currentRow()
-        if self.players[row].is_valid():
-            self.deleted_players.append(self.players[row])
-        del self.players[row]
-        self.table.removeRow(row)
-        self.resize_table()
-
-    def remove_players(self):
-        while self.deleted_players:
-            self.deleted_players.pop().remove()
-
-    def get_table_text(self, row, column):
-        if self.table.item(row, column) is None:
-            return ""
-        return self.table.item(row, column).text()
-
-    def save_players(self):
-        for i, player in enumerate(self.players):
-            player.set_first_name(self.get_table_text(i, 0))
-            player.set_last_name(self.get_table_text(i, 1))
-            try:
-                player.set_rating(int(self.get_table_text(i, 2)))
-            except (ValueError, AttributeError):
-                player.set_rating(0)
-
-            if player.is_valid():
-                player.save()
-
-    def update_players(self):
-        self.save_players()
-        self.remove_players()
-        clear_table(self.table)
-        self.players = load_players_all()
-        self.fill_in_table()
+    def fill_in_row(self, row, obj=None):
+        if obj is None:
+            name = sex = birthday = country = title = rating = ""
+        else:
+            name, sex, birthday, country, title, rating = obj.get_data()[:6]
+        add_content_to_table(self.table, name, row, 0, bold=True)
+        add_content_to_table(self.table, sex, row, 1, align=Qt.AlignCenter)
+        add_content_to_table(self.table, birthday, row, 2, align=Qt.AlignCenter)
+        add_content_to_table(self.table, country, row, 3, align=Qt.AlignCenter)
+        add_content_to_table(self.table, title, row, 4, align=Qt.AlignCenter)
+        add_content_to_table(self.table, rating, row, 5, align=Qt.AlignCenter)
+        add_button_to_table(self.table, row, 6, "medium", None, '-', connect_function=self.table.delete_current_row)

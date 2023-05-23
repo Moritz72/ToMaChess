@@ -72,14 +72,8 @@ func_args_display = {
 
 class Tiebreak:
     def __init__(self, args=None, args_display=None):
-        if args is None:
-            self.args = {}
-        else:
-            self.args = args
-        if args_display is None:
-            self.args_display = {}
-        else:
-            self.args_display = args_display
+        self.args = args or {}
+        self.args_display = args_display or {}
         if "functions" not in self.args:
             self.args["functions"] = "Buchholz"
         if "functions" not in self.args_display:

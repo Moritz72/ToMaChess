@@ -3,6 +3,7 @@ from PyQt5.QtCore import pyqtSignal
 from .widget_tournament_standings import Widget_Tournament_Standings
 from .widget_tournament_cross_table import Widget_Tournament_Cross_Table
 from .widget_tournament_round import Widget_Tournament_Round
+from .functions_ms_tournament import update_ms_tournament
 
 
 class Stacked_Widget_MS_Tournament(QStackedWidget):
@@ -14,7 +15,7 @@ class Stacked_Widget_MS_Tournament(QStackedWidget):
         self.ms_tournament = ms_tournament
         self.stage = stage
         self.tournaments = [
-            tournament for tournament in self.ms_tournament.get_tournaments(self.stage) if tournament.is_valid()
+            tournament for tournament in self.ms_tournament.get_stage_tournaments(self.stage) if tournament.is_valid()
         ]
 
         self.standings_widgets = []
@@ -57,7 +58,7 @@ class Stacked_Widget_MS_Tournament(QStackedWidget):
             self.insertWidget(self.start_widget_indicies[index+1], widget)
         else:
             self.insertWidget(self.count(), widget)
-        for i in range(index+1, len(self.start_widget_indicies)):
+        for i in range(index + 1, len(self.start_widget_indicies)):
             self.start_widget_indicies[i] += 1
 
     def add_round_widgets(self, tournament):
@@ -133,14 +134,14 @@ class Stacked_Widget_MS_Tournament(QStackedWidget):
         self.window_main.set_stacked_widget("Default")
 
     def load_next_round(self, i):
-        self.tournaments[i].add_results(self.sender().results)
-        self.ms_tournament.save_tournament(self.stage, i)
+        self.tournaments[i].add_results(self.sender().get_results())
+        update_ms_tournament("", self.ms_tournament)
         self.standings_widgets[i].update_table()
         self.cross_table_widgets[i].update_table()
 
         if self.ms_tournament.current_stage_is_done() and self.stage + 1 < self.ms_tournament.get_stages():
             self.ms_tournament.advance_stage()
-            self.ms_tournament.save()
+            update_ms_tournament("", self.ms_tournament)
             self.move_up_stage()
         else:
             self.add_new_round(i)

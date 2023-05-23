@@ -27,6 +27,9 @@ class Widget_Tournament_Round(QWidget):
     def is_current(self):
         return any(score_1 is None or score_2 is None for (_, score_1), (_, score_2) in self.results)
 
+    def get_results(self):
+        return self.results
+
     def add_pairing_row_participant(self, row, column, participant):
         if len(participant) == 1:
             add_content_to_table(
@@ -49,13 +52,13 @@ class Widget_Tournament_Round(QWidget):
             )
 
     def add_pairing_row(self, row, participant_1, participant_2, score_1=None, score_2=None):
-        add_content_to_table(self.table, row+1, row, 0, edit=False, bold=True, align=Qt.AlignCenter)
+        add_content_to_table(self.table, row + 1, row, 0, edit=False, bold=True, align=Qt.AlignCenter)
         self.add_pairing_row_participant(row, 1, participant_1)
         self.add_pairing_row_result(row, 2, score_1, score_2, len(participant_1+participant_2) > 2)
         self.add_pairing_row_participant(row, 3, participant_2)
 
     def add_last_row(self, choose_players):
-        row = self.table.rowCount()-1
+        row = self.table.rowCount() - 1
         add_content_to_table(self.table, '', row, 0, edit=False, color_bg=(200, 200, 200))
         add_content_to_table(self.table, '', row, 1, edit=False, color_bg=(200, 200, 200))
         add_content_to_table(self.table, '', row, 2, edit=False, color_bg=(200, 200, 200))
@@ -97,7 +100,7 @@ class Widget_Tournament_Round(QWidget):
                 uuid_2 = [uuid_2]
             participant_1 = [self.uuid_to_participant_dict[uuid] for uuid in uuid_1]
             participant_2 = [self.uuid_to_participant_dict[uuid] for uuid in uuid_2]
-            if len(participant_1+participant_2) > 2:
+            if len(participant_1 + participant_2) > 2:
                 choose_pairing = True
             if participant_1 == [None] and participant_2 == [None]:
                 score_1, score_2 = '-', '-'

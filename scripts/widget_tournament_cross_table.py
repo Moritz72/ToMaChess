@@ -16,7 +16,7 @@ def get_line_breaked_entry(entry):
 
 
 def get_results_matrix(results, participant_number, id_to_index):
-    results_matrix = [['' for _ in range(participant_number)] for _ in range(participant_number)]
+    results_matrix = [["" for _ in range(participant_number)] for _ in range(participant_number)]
     for roun in results:
         for (uuid_1, score_1), (uuid_2, score_2) in roun:
             if uuid_1 is not None and uuid_2 is not None:
@@ -26,7 +26,9 @@ def get_results_matrix(results, participant_number, id_to_index):
 
 
 def get_appropriate_width_for_matrix(results_matrix):
-    return 2*max([1.5]+[entry.index('\n') if '\n' in entry else len(entry) for row in results_matrix for entry in row])
+    return 2 * max([1.5] + [
+        entry.index('\n') if '\n' in entry else len(entry) for row in results_matrix for entry in row
+    ])
 
 
 class Widget_Tournament_Cross_Table(QWidget):

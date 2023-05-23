@@ -1,3 +1,4 @@
+from os.path import exists
 from json import loads, dumps
 from .functions_util import read_file, write_file, get_root_directory
 
@@ -8,7 +9,7 @@ defaults = {
 
 settings_valid = {
     "font_size": lambda x: 2 < x < 40,
-    "bbp_path": lambda x: True
+    "bbp_path": lambda x: exists(f"{x}/bbpPairings.exe")
 }
 
 settings_display = {
@@ -18,6 +19,8 @@ settings_display = {
 
 
 def get_settings():
+    if not exists(f"{get_root_directory()}/settings.json"):
+        reset_settings()
     settings = defaults | loads(read_file(f"{get_root_directory()}/settings.json"))
     save_settings(settings)
     return settings

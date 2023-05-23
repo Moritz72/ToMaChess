@@ -1,9 +1,9 @@
 from PyQt5.QtWidgets import QMainWindow, QWidget, QHBoxLayout
-from PyQt5.QtCore import Qt, pyqtSignal
-from .window_add_players import Window_Add_Players
+from PyQt5.QtCore import pyqtSignal
+from .window_choice_table import Window_Choice_Table
 from .window_team_remove_members import Window_Team_Remove_Members
 from .window_team_line_up import Window_Line_Up
-from .functions_player import load_players_all
+from .functions_player import load_players_list
 from .functions_gui import get_button, add_widgets_to_layout
 
 
@@ -14,7 +14,6 @@ class Window_Team_Edit(QMainWindow):
         super().__init__()
         self.setWindowTitle("Edit Team")
         self.team = team
-        self.players = load_players_all()
         self.window_add_members = None
         self.window_remove_members = None
         self.window_line_up = None
@@ -45,8 +44,9 @@ class Window_Team_Edit(QMainWindow):
 
     def open_window_add_members(self):
         self.close_windows()
-        self.window_add_members = Window_Add_Players(
-            [player for player in self.players if player.get_uuid() not in self.team.get_uuid_to_member_dict()]
+        self.window_add_members = Window_Choice_Table(
+            "Add Members", "Players",
+            [(member.get_uuid(), member.get_uuid_associate()) for member in self.team.get_members()]
         )
         self.window_add_members.window_closed.connect(self.add_members)
         self.window_add_members.show()
@@ -64,15 +64,16 @@ class Window_Team_Edit(QMainWindow):
         self.window_line_up.show()
 
     def add_members(self):
-        self.team.add_members(sorted([
-            self.players[row] for row in range(self.window_add_members.table.rowCount())
-            if self.window_add_members.table.cellWidget(row, 3).checkState() == Qt.Checked
-        ], key=lambda x: x.get_rating(), reverse=True))
+        self.team.add_members(sorted(
+            load_players_list("", *self.window_add_members.get_checked_uuids()),
+            key=lambda x: 0 if x.get_rating() is None else x.get_rating(), reverse=True
+        ))
         self.window_add_members = None
 
     def remove_members(self):
         for member in self.window_remove_members.removed_members:
             self.team.remove_member(member)
+            self.team.set_shallow_member_count(self.team.get_shallow_member_count() - 1)
         self.window_remove_members = None
 
     def line_up(self):

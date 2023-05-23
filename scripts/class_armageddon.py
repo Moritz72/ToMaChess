@@ -17,14 +17,8 @@ def determine_color_choice(participant_1, participant_2):
 
 class Armageddon:
     def __init__(self, args=None, args_display=None):
-        if args is None:
-            self.args = {}
-        else:
-            self.args = args
-        if args_display is None:
-            self.args_display = {}
-        else:
-            self.args_display = args_display
+        self.args = args or {}
+        self.args_display = args_display or {}
         if "enabled" not in self.args:
             self.args["enabled"] = False
         if "enabled" not in self.args_display:
@@ -53,7 +47,7 @@ class Armageddon:
         return self.args, self.args_display
 
     def is_armageddon(self, games, games_per_tiebreak, roun):
-        return self.args["enabled"] and roun-games-games_per_tiebreak*self.args["after_rounds"] >= 1
+        return self.args["enabled"] and roun-games-games_per_tiebreak * self.args["after_rounds"] >= 1
 
     def determine_color(self, participant_1, participant_2):
         if self.args["determine_color"][0] == "In Order":

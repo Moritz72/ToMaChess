@@ -42,11 +42,9 @@ class Window_Advance_Players(QMainWindow):
     def set_window_height(self):
         self.setFixedHeight(
             min(
-                max(
-                    self.table.maximumHeight(),
-                    int(QApplication.primaryScreen().size().height()*.3)
-                ),
-                int(QApplication.primaryScreen().size().height()*.8))
+                max(self.table.maximumHeight(), int(QApplication.primaryScreen().size().height() * .3)),
+                int(QApplication.primaryScreen().size().height() * .8)
+            )
         )
 
     def resize_table(self):
@@ -55,8 +53,8 @@ class Window_Advance_Players(QMainWindow):
 
     def get_seatings_choices(self, tournament):
         if tournament is None:
-            return [str(i+1) for i in range(self.player_counts[0])]
-        return [str(i+1) for i in range(self.player_counts[self.tournaments.index(tournament)])]
+            return [str(i + 1) for i in range(self.player_counts[0])]
+        return [str(i + 1) for i in range(self.player_counts[self.tournaments.index(tournament)])]
 
     def add_player_row(self, tournament=None, placement=None):
         row = self.table.rowCount()

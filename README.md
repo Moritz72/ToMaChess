@@ -35,21 +35,25 @@ The possible tiebreak criteria are
 ### Armageddon  
 For the *Armageddon* parameter the user can specifiy additionaly parameters *With Armageddon*, *After Tiebreak* and *Color Determination* (In Order, Random or Choice).  
   
-## Multi Stage Tournaments  
-One can also combine multiple tournaments to a multi stage tournament.  
-A multi stage tournament consists of a first stage with a number of tournaments where the participants are predetermined.  
-Furthermore, it has an arbitrary number of further stages where the participants of the stage tournaments are the participants that got a certain placement in  a certain tournament of the previous stage.  
-  
-For example one could have *Round Robin* tournaments *Group A* up to *Group H* with four players each in the first stage and then in the second stage a *Knockout* tournament *Finals* with the participants who placed first or second in their respective group.  
-If the option *Draw Lots in Case of Tie* is disabled, it is also possible to create a regular tournament with play-offs in case of a tie for first place by creating a Multi Stage tournament with only the desired regular tournament as the first stage and adding a *Knockout* tournament as a second stage with only the first place as a participant.  
+## Players
+Players can be manually added and one can use the FIDE Standard rating list as well as the German national rating list after creating them by clicking the corresponding buttons in the settings.  
   
 ## Teams  
-Teams are an ordered collection of players.
+Teams are ordered sets of players.
 You can add players to a team, remove players from a team an change the lineup.  
   
 ### Team Tournaments  
 Team tournaments work like regular tournaments, except for some restrictions and changes e.g. for tiebreaks or Armageddon.  
 There is an additional parameter *Boards* which specifies on how many boards the matches are played and there are two tiebreak criteria exclusive to team tournaments; *Board Points* and *Berliner Wertung*.  
   
+## Multi Stage Tournaments  
+One can also combine multiple tournaments to a multi stage tournament.  
+A multi stage tournament consists of a first stage with a number of tournaments where the participants are predetermined.  
+Furthermore, it has an arbitrary number of further stages where the participants of the stage tournaments are the participants that got a certain placement in  a certain tournament of the previous stage.  
+  
+For example one could have *Round Robin* tournaments *Group A* up to *Group H* with four players each in the first stage and then in the second stage a *Knockout* tournament *Finals* with the participants who placed first or second in their respective group.  
+  
+If the option *Draw Lots in Case of Tie* is disabled, it is also possible to create a regular tournament with play-offs in case of a tie for first place by creating a Multi Stage tournament with only the desired regular tournament as the first stage and adding a *Knockout* tournament as a second stage with only the first place as a participant.  
+  
 ## Settings  
-Currently only font size and the path for bbpPairings.  
+One can change the font size and the path for bbpPairings as well as update rating lists.  

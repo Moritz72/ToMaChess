@@ -1,29 +1,32 @@
 from .class_tournament_swiss import Tournament_Swiss
 from .class_tiebreak import Tiebreak, tiebreak_list_team
-from .functions_team import load_team_from_file
-from .functions_tournament_2 import get_standings_with_tiebreaks, get_team_result, is_valid_team_seatings,\
-    get_score_dict_by_point_system
+from .functions_tournament_util import get_standings_with_tiebreaks, get_score_dict_by_point_system
 
 
 class Tournament_Swiss_Team(Tournament_Swiss):
-    def __init__(self, name, participants, uuid=None):
-        super().__init__(name, participants, uuid)
+    def __init__(
+            self, participants, name, shallow_particpant_count=None, parameters=None, variables=None, order=None,
+            uuid=None, uuid_associate="00000000-0000-0000-0000-000000000002"
+    ):
+        super().__init__(
+            participants, name, shallow_particpant_count, parameters, variables, order, uuid, uuid_associate
+        )
         self.mode = "Swiss (Team)"
-        self.parameters = {
+        self.parameters = parameters or {
             "boards": 8,
             "rounds": 4,
             "point_system": ["2 - 1 - 0", "1 - ½ - 0", "3 - 1 - 0"],
             "point_system_game": ["1 - ½ - 0", "2 - 1 - 0", "3 - 1 - 0"],
-            "tiebreak 1": Tiebreak(
+            "tiebreak_1": Tiebreak(
                 args={"functions": sorted(tiebreak_list_team, key=lambda x: x != "Board Points")}
             ),
-            "tiebreak 2": Tiebreak(
+            "tiebreak_2": Tiebreak(
                 args={"functions": sorted(tiebreak_list_team, key=lambda x: x != "Buchholz")}
             ),
-            "tiebreak 3": Tiebreak(
+            "tiebreak_3": Tiebreak(
                 args={"functions": sorted(tiebreak_list_team, key=lambda x: x != "Buchholz Sum")}
             ),
-            "tiebreak 4": Tiebreak(
+            "tiebreak_4": Tiebreak(
                 args={"functions": sorted(tiebreak_list_team, key=lambda x: x != "None")}
             )
         }
@@ -32,15 +35,12 @@ class Tournament_Swiss_Team(Tournament_Swiss):
             "rounds": "Rounds",
             "point_system": "Point System (Match)",
             "point_system_game": "Point System (Game)",
-            "tiebreak 1": "Tiebreak (1)",
-            "tiebreak 2": "Tiebreak (2)",
-            "tiebreak 3": "Tiebreak (3)",
-            "tiebreak 4": "Tiebreak (4)"
+            "tiebreak_1": "Tiebreak (1)",
+            "tiebreak_2": "Tiebreak (2)",
+            "tiebreak_3": "Tiebreak (3)",
+            "tiebreak_4": "Tiebreak (4)"
         }
-        self.variables = self.variables | {"results_individual": []}
-
-    def load_from_json(self, directory, json, load_participants_function=load_team_from_file):
-        super().load_from_json(directory, json, load_participants_function)
+        self.variables = variables or self.variables | {"results_individual": []}
 
     def seat_participants(self):
         return
@@ -48,29 +48,8 @@ class Tournament_Swiss_Team(Tournament_Swiss):
     def get_score_dict_game(self):
         return get_score_dict_by_point_system(self.get_parameter("point_system_game")[0])
 
-    def get_uuid_to_individual_dict(self):
-        return {
-            uuid: individual for participant in self.get_participants()
-            for uuid, individual in participant.get_uuid_to_member_dict().items()
-        }
-
-    def add_results(self, results):
-        self.variables["results_individual"].append(results)
-        results_team = [
-            tuple((uuid, score) for uuid, score in zip(pairing, get_team_result(result, self.get_score_dict())))
-            for pairing, result in zip(self.get_pairings(), results)
-        ]
-        super().add_results(results_team)
-
     def is_valid_parameters(self):
         return super().is_valid_parameters() and self.get_parameter("boards") > 0
-
-    def is_valid_pairings_match(self, team_uuids, results_match):
-        team_member_lists = tuple(
-            None if uuid is None
-            else list(self.get_uuid_to_participant_dict()[uuid].get_uuid_to_member_dict()) for uuid in team_uuids
-        )
-        return is_valid_team_seatings(team_uuids, team_member_lists, results_match)
 
     def get_standings(self):
         return get_standings_with_tiebreaks(self, {

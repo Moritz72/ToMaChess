@@ -1,7 +1,7 @@
 from .class_tournament import Tournament
 from .class_armageddon import Armageddon
 from .functions_util import shorten_float
-from .functions_tournament_2 import get_standings_header_vertical
+from .functions_tournament_util import get_standings_header_vertical
 
 
 def move_on(uuid_1, uuid_2, participant_standings):
@@ -65,7 +65,7 @@ def get_uuids_in_current_level(participant_standings):
 
 
 def get_end_rounds(participant_standings, games, games_per_tiebreak, armageddon):
-    levels_max = {}
+    levels_max = dict()
     for standing in participant_standings.values():
         if standing["level"] not in levels_max or levels_max[standing["level"]] < standing["score"]:
             levels_max[standing["level"]] = standing["score"]
@@ -86,10 +86,15 @@ def get_end_rounds(participant_standings, games, games_per_tiebreak, armageddon)
 
 
 class Tournament_Knockout(Tournament):
-    def __init__(self, name, pariticipants, uuid=None):
-        super().__init__(name, pariticipants, uuid)
+    def __init__(
+            self, participants, name, shallow_particpant_count=None, parameters=None, variables=None, order=None,
+            uuid=None, uuid_associate="00000000-0000-0000-0000-000000000002"
+    ):
+        super().__init__(
+            participants, name, shallow_particpant_count, parameters, variables, order, uuid, uuid_associate
+        )
         self.mode = "Knockout"
-        self.parameters = {
+        self.parameters = parameters or {
             "games": 2,
             "games_per_tiebreak": 2,
             "armageddon": Armageddon()
@@ -99,36 +104,33 @@ class Tournament_Knockout(Tournament):
             "games_per_tiebreak": "Games per Tiebreak",
             "armageddon": "Armageddon"
         }
-        variables = {
-            "participant_standings": None
-        }
-        self.variables = self.variables | variables
+        self.variables = variables or self.variables | {"participant_standings": None}
 
     def seat_participants(self):
-        self.set_participants(sorted(self.get_participants(), key=lambda x: x.get_rating(), reverse=True))
+        self.set_participants(sorted(
+            self.get_participants(), key=lambda x: 0 if x.get_rating() is None else x.get_rating(), reverse=True
+        ))
 
     @staticmethod
     def get_globals():
         return globals()
 
     def set_participants(self, participants):
-        self.participants = participants
-        if len(participants) < 2:
+        super().set_participants(participants)
+        participant_uuids = self.get_participant_uuids()
+        if len(participant_uuids) < 2 or self.get_round() > 1:
             return
-        participant_uuids = self.get_participants_uuids()
         through = 2 * (1 << (len(participant_uuids).bit_length() - 1)) - len(participant_uuids)
         self.set_variable(
             "participant_standings",
-            {uuid: {
-                "level": 1 if i < through else 0, "score": 0, "alive": True, "seating": i+1
-            } for i, uuid in enumerate(participant_uuids)}
+            {
+                uuid: {"level": 1 if i < through else 0, "score": 0, "alive": True, "seating": i+1}
+                for i, uuid in enumerate(participant_uuids)
+            }
         )
 
     def is_valid_parameters(self):
         return self.get_parameter("games") > 0 and self.get_parameter("games_per_tiebreak") > 0
-
-    def is_valid(self):
-        return self.is_valid_parameters() and self.get_name() and len(self.get_participants()) > 1
 
     def is_done(self):
         return sum((standing["alive"] for standing in self.get_variable("participant_standings").values())) == 1
@@ -161,7 +163,7 @@ class Tournament_Knockout(Tournament):
         return f"Round {counter}.T{r - games}"
 
     def get_standings(self):
-        header_horizontal = ["Name", "M", "MP"]
+        header_horizontal = ["Name", "M", "MaPo"]
         participant_standings = self.get_variable("participant_standings")
 
         table = sorted((
@@ -178,7 +180,7 @@ class Tournament_Knockout(Tournament):
     def load_pairings(self):
         if self.get_pairings() is not None or self.is_done():
             return
-        participant_uuids = self.get_participants_uuids()
+        participant_uuids = self.get_participant_uuids()
         games = self.get_parameter("games")
         games_per_tiebreak = self.get_parameter("games_per_tiebreak")
         armageddon = self.get_parameter("armageddon")
@@ -187,10 +189,10 @@ class Tournament_Knockout(Tournament):
         uuids = sorted(
             get_uuids_in_current_level(participant_standings), key=lambda x: participant_standings[x]["seating"]
         )
-        pairings = [(uuids[i], uuids[i+int(len(uuids)/2)]) for i in range(int(len(uuids)/2))]
+        pairings = [(uuids[i], uuids[i+int(len(uuids)/2)]) for i in range(int(len(uuids) / 2))]
         score_sum = participant_standings[pairings[0][0]]["score"]+participant_standings[pairings[0][1]]["score"]
 
-        if armageddon.is_armageddon(games, games_per_tiebreak, score_sum+1):
+        if armageddon.is_armageddon(games, games_per_tiebreak, score_sum + 1):
             self.set_pairings([armageddon.determine_color(uuid_1, uuid_2) for uuid_1, uuid_2 in pairings])
         elif score_sum % games_per_tiebreak:
             self.set_pairings([(uuid_2, uuid_1) for uuid_1, uuid_2 in pairings])

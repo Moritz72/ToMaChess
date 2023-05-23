@@ -1,10 +1,20 @@
 from PyQt5.QtWidgets import QComboBox, QLineEdit, QCheckBox, QSpinBox, QTableWidgetItem, QPushButton, QLabel, \
-    QScrollArea, QMainWindow, QVBoxLayout, QWidget, QHeaderView, QApplication
-from PyQt5.QtCore import Qt, pyqtSignal
+    QScrollArea, QMainWindow, QVBoxLayout, QWidget, QHeaderView, QApplication, QSizePolicy
+from PyQt5.QtCore import Qt, QThread, pyqtSignal
 from PyQt5.QtGui import QColor, QFont
-from .class_size_handler import Size_Handler
+from .class_size_handler import size_handler
 
-size_handler = Size_Handler()
+
+class Function_Worker(QThread):
+    finished = pyqtSignal()
+
+    def __init__(self, function, parent):
+        super().__init__(parent=parent)
+        self.function = function
+
+    def run(self):
+        self.function()
+        self.finished.emit()
 
 
 class Options_Button(QPushButton):
@@ -51,13 +61,11 @@ class Options_Window(QMainWindow):
         parameter_widgets = []
         for _, display, widget in self.args_widget_data:
             connect_widget(widget, lambda _: self.update_widget_data(self.get_new_args()))
-            parameter_widgets = parameter_widgets + [get_label(display, "large"), widget, QLabel()]
+            parameter_widgets.extend([get_label(display, "large"), widget, QLabel()])
 
         widget = QWidget()
         layout = QVBoxLayout()
-        get_scroll_area_widgets_and_layouts(
-            layout, parameter_widgets[:-1], margins=(20, 20, 40, 20), spacing=10
-        )
+        get_scroll_area_widgets_and_layouts(layout, parameter_widgets[:-1], margins=(20, 20, 40, 20), spacing=10)
         widget.setLayout(layout)
         self.setCentralWidget(widget)
         self.setFixedWidth(layout.sizeHint().width())
@@ -86,10 +94,9 @@ def clear_layout(layout, s=0):
         if layout.itemAt(i) is not None:
             if layout.itemAt(i).scroll_area():
                 layout.itemAt(i).scroll_area().setParent(None)
-                layout.removeItem(layout.itemAt(i))
             else:
                 clear_layout(layout.itemAt(i))
-                layout.removeItem(layout.itemAt(i))
+            layout.removeItem(layout.itemAt(i))
 
 
 def get_scroll_area_widgets_and_layouts(layout, widgets_in_scroll_area, margins=(0, 0, 0, 0), spacing=0):
@@ -169,6 +176,7 @@ def get_label(text, size, bold=False):
 
 def get_lineedit(size, widget_size, text="", connect_function=None, bold=False):
     lineedit = QLineEdit(text)
+    lineedit.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Fixed)
     set_fixed_size(lineedit, size_handler, size, widget_size)
     set_font(lineedit, size_handler, size, bold)
     if connect_function is not None:
@@ -184,6 +192,32 @@ def get_button(size, widget_size, text="", connect_function=None, bold=False, ch
     button.setEnabled(enabled)
     if connect_function is not None:
         button.clicked.connect(connect_function)
+    return button
+
+
+def get_button_threaded(
+        parent, size, widget_size, text="", load_text="", connect_function=None, bold=False, checkable=True,
+        enabled=True
+):
+    button = get_button(size, widget_size, text, None, bold, checkable, enabled)
+
+    def threaded_function():
+        button.setEnabled(False)
+        button.setChecked(True)
+        button.setText(load_text)
+        worker = Function_Worker(connect_function, parent)
+        worker.finished.connect(on_finish)
+        worker.start()
+
+    def on_finish():
+        try:
+            button.setEnabled(True)
+            button.setChecked(False)
+            button.setText(text)
+        except RuntimeError:
+            pass
+
+    button.clicked.connect(threaded_function)
     return button
 
 
@@ -269,14 +303,14 @@ def clear_table(table):
 
 def get_suitable_widget(var, size="medium", widget_size_factors=(1, 1)):
     if isinstance(var, str):
-        return get_lineedit(size, (15*widget_size_factors[0], 3*widget_size_factors[1]), text=var)
+        return get_lineedit(size, (15 * widget_size_factors[0], 3 * widget_size_factors[1]), text=var)
     if isinstance(var, bool):
-        return get_check_box(var, (3*widget_size_factors[0], 3*widget_size_factors[1]))
+        return get_check_box(var, (3 * widget_size_factors[0], 3 * widget_size_factors[1]))
     if isinstance(var, int):
-        return get_spin_box(var, size, (5*widget_size_factors[0], 3*widget_size_factors[1]), align=Qt.AlignCenter)
+        return get_spin_box(var, size, (5 * widget_size_factors[0], 3 * widget_size_factors[1]), align=Qt.AlignCenter)
     if isinstance(var, list):
-        return get_combo_box(var, size, (15*widget_size_factors[0], 3*widget_size_factors[1]))
-    return Options_Button(var, size, (15*widget_size_factors[0], 3*widget_size_factors[1]), text="Options")
+        return get_combo_box(var, size, (15 * widget_size_factors[0], 3 * widget_size_factors[1]))
+    return Options_Button(var, size, (15 * widget_size_factors[0], 3 * widget_size_factors[1]), text="Options")
 
 
 def get_value_from_suitable_widget(widget):
@@ -287,8 +321,9 @@ def get_value_from_suitable_widget(widget):
     if isinstance(widget, QSpinBox):
         return widget.value()
     if isinstance(widget, QComboBox):
-        return sorted([widget.itemText(i) for i in range(widget.count())], key=lambda x: x != widget.currentText())
-    return widget.give_back()
+        return sorted((widget.itemText(i) for i in range(widget.count())), key=lambda x: x != widget.currentText())
+    if isinstance(widget, Options_Button):
+        return widget.give_back()
 
 
 def connect_widget(widget, function):

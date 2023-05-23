@@ -8,7 +8,7 @@ def shorten_floats(scores):
 def median(scores):
     half, rest = divmod(len(scores), 2)
     if half:
-        return (scores[half]+scores[half+1])/2
+        return (scores[half]+scores[half+1]) / 2
     return scores[half]
 
 
@@ -51,13 +51,13 @@ def get_scores_and_opponents_with_scores_and_virtuals(uuids, results, score_dict
         for (uuid_1, score_1), (uuid_2, score_2) in roun:
             if uuid_1 in scores:
                 if uuid_2 is None:
-                    virtuals[uuid_1].append(scores[uuid_1]+(len(results)-i-1)*score_default)
+                    virtuals[uuid_1].append(scores[uuid_1] + (len(results) - i - 1) * score_default)
                 else:
                     opponents_with_scores[uuid_1].append((uuid_2, score_dict[score_1]))
                 scores[uuid_1] += score_dict[score_1]
             if uuid_2 in scores:
                 if uuid_1 is None:
-                    virtuals[uuid_2].append(scores[uuid_2]+(len(results)-i-1)*score_default)
+                    virtuals[uuid_2].append(scores[uuid_2] + (len(results) - i - 1) * score_default)
                 else:
                     opponents_with_scores[uuid_2].append((uuid_1, score_dict[score_2]))
                 scores[uuid_2] += score_dict[score_2]
@@ -75,15 +75,16 @@ def get_buchholz(uuids, results, score_dict, all_participants, cut_up=0, cut_dow
         uuid: [scores_corrected[opponent] for opponent, _ in opponents_with_scores[uuid]] + virtuals[uuid]
         for uuid in uuids
     }
-    return shorten_floats(
-        {uuid: sum(cut_list(score_collection, cut_up, cut_down))
-         for uuid, score_collection in score_collections.items()}
-    )
+    return shorten_floats({
+        uuid: sum(cut_list(score_collection, cut_up, cut_down)) for uuid, score_collection in score_collections.items()
+    })
 
 
 def get_buchholz_sum(uuids, results, score_dict, all_participants, cut_up=0, cut_down=0, virtual=True):
-    buchholzs = get_buchholz([participant.get_uuid() for participant in all_participants],
-                             results, score_dict, all_participants, cut_up, cut_down, virtual)
+    buchholzs = get_buchholz(
+        [participant.get_uuid() for participant in all_participants],
+        results, score_dict, all_participants, cut_up, cut_down, virtual
+    )
     opponents = {participant.get_uuid(): [] for participant in all_participants}
 
     for roun in results:
@@ -109,10 +110,9 @@ def get_sonneborn_berger(uuids, results, score_dict, all_participants, cut_up=0,
             [scores_corrected[opponent] * score for opponent, score in opponents_with_scores[uuid]] + virtuals[uuid]
         for uuid in uuids
     }
-    return shorten_floats(
-        {uuid: sum(cut_list(score_collection, cut_up, cut_down))
-         for uuid, score_collection in score_collections.items()}
-    )
+    return shorten_floats({
+        uuid: sum(cut_list(score_collection, cut_up, cut_down)) for uuid, score_collection in score_collections.items()
+    })
 
 
 def get_blacks(uuids, results):
@@ -156,31 +156,28 @@ def get_number_of_black_wins(uuids, results, score_dict):
 def get_opponent_average_rating(uuids, results, score_dict, all_participants, cut_up=0, cut_down=0):
     id_to_rating_dict = {participant.get_uuid(): participant.get_rating() for participant in all_participants}
     opponents_ratings = {uuid: [] for uuid in uuids}
-    excluded = False
+    byes = {uuid: 0 for uuid in uuids}
 
     for roun in results:
         for (uuid_1, score_1), (uuid_2, score_2) in roun:
-            if (uuid_1 is None or uuid_2 is None) and (not excluded or cut_up+cut_down == 0):
-                excluded = True
-                continue
             if uuid_1 in opponents_ratings:
                 if uuid_2 is None:
-                    opponents_ratings[uuid_1].append(0)
+                    byes[uuid_1] += 1
                 else:
                     opponents_ratings[uuid_1].append(id_to_rating_dict[uuid_2])
             if uuid_2 in opponents_ratings:
                 if uuid_1 is None:
-                    opponents_ratings[uuid_2].append(0)
+                    byes[uuid_2] += 1
                 else:
                     opponents_ratings[uuid_2].append(id_to_rating_dict[uuid_1])
 
     opponents_ratings = {
-        uuid: cut_list(ratings, cut_up, cut_down) for uuid, ratings in opponents_ratings.items()
+        uuid: cut_list(ratings, cut_up, max(0, cut_down - byes[uuid])) for uuid, ratings in opponents_ratings.items()
     }
     average_ratings = {
         uuid:
             0 if len(opponents_ratings[uuid]) == 0
-            else int(sum(opponents_ratings[uuid])/len(opponents_ratings[uuid]))
+            else int(sum(opponents_ratings[uuid]) / len(opponents_ratings[uuid]))
         for uuid in uuids
     }
     return average_ratings
@@ -194,11 +191,11 @@ def get_cumulative_score(uuids, results, score_dict, all_participants, cut_up=0,
         for (uuid_1, score_1), (uuid_2, score_2) in roun:
             if uuid_1 in scores:
                 scores[uuid_1] += score_dict[score_1]
-                if cut_down <= i < len(results)-cut_up:
+                if cut_down <= i < len(results) - cut_up:
                     progressive_scores[uuid_1] += scores[uuid_1]
             if uuid_2 in scores:
                 scores[uuid_2] += score_dict[score_2]
-                if cut_down <= i < len(results)-cut_up:
+                if cut_down <= i < len(results) - cut_up:
                     progressive_scores[uuid_2] += scores[uuid_2]
     return shorten_floats(progressive_scores)
 

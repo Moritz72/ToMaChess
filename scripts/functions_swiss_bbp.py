@@ -20,15 +20,11 @@ def get_data_from_player_results(players, results):
 
 
 def convert_side(side):
-    if side:
-        return 'w'
-    return 'b'
+    return 'w' if side else 'b'
 
 
 def convert_points(points):
-    if points == '½':
-        return '='
-    return points
+    return '=' if points == '½' else points
 
 
 def write_input_file(player_ratings, player_results, rounds, score_dict, bbp_directory):
@@ -39,14 +35,14 @@ def write_input_file(player_ratings, player_results, rounds, score_dict, bbp_dir
             for opponent, side, points in results
         ] for results in player_results
     ]
-    player_ranks = sorted(((i+1, points) for i, points in enumerate(player_points)), key=lambda x: x[1], reverse=True)
+    player_ranks = sorted(((i + 1, points) for i, points in enumerate(player_points)), key=lambda x: x[1], reverse=True)
     player_ranks = [rank for rank, _ in player_ranks]
 
     lines = "012 AutoTest Tournament 1110065304\r\n"
     for i, (rating, points, rank, results) in \
             enumerate(zip(player_ratings, player_points, player_ranks, player_results)):
         lines = lines + (
-            f"001{str(i+1).rjust(5)}      Test{str(i+1).zfill(4)} Player{str(i+1).zfill(4)}"
+            f"001{str(i + 1).rjust(5)}      Test{str(i + 1).zfill(4)} Player{str(i + 1).zfill(4)}"
             f"{str(rating).rjust(19)}{str(points).rjust(32)}{str(rank).rjust(5)}{''.join(results)}\r\n"
         )
     lines = lines + f"XXR {rounds}\r\n"
@@ -62,7 +58,7 @@ def write_input_file(player_ratings, player_results, rounds, score_dict, bbp_dir
 
 
 def process_pairings(pairings_raw, players):
-    index_to_uuid_dict = {0: None} | {i+1: player.get_uuid() for i, player in enumerate(players)}
+    index_to_uuid_dict = {0: None} | {i + 1: player.get_uuid() for i, player in enumerate(players)}
     pairings = [
         tuple(index_to_uuid_dict[int(ind)] for ind in pairing.split(' '))
         for pairing in pairings_raw.split("\r\n")[1:-1]
@@ -74,8 +70,9 @@ def get_pairings_bbp(players, results, rounds, score_dict):
     bbp_directory = get_settings()["bbp_path"]
     player_ratings, player_results = get_data_from_player_results(players, results)
     write_input_file(player_ratings, player_results, rounds, score_dict, bbp_directory)
-    command = [f"{bbp_directory}/bbpPairings.exe", "--dutch",
-               f"{bbp_directory}/input.txt", "-p", f"{bbp_directory}/output.txt"]
+    command = [
+        f"{bbp_directory}/bbpPairings.exe", "--dutch", f"{bbp_directory}/input.txt", "-p", f"{bbp_directory}/output.txt"
+    ]
     run(command, check=True)
     pairings_raw = read_file(f"{bbp_directory}/output.txt")
     pairings = process_pairings(pairings_raw, players)
