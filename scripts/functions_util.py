@@ -22,7 +22,7 @@ def get_root_directory():
 
 
 def get_image(name):
-    return f"{get_root_directory()}/images/{name}.png"
+    return f"{get_root_directory()}/images/{name}"
 
 
 def remove_temporary_files():
