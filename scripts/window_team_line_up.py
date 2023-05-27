@@ -17,8 +17,6 @@ class Window_Line_Up(QMainWindow):
         self.widget = QWidget()
         self.layout = QHBoxLayout()
         self.layout.setAlignment(Qt.AlignTop)
-        self.layout.setSpacing(0)
-        self.layout.setContentsMargins(0, 0, 0, 0)
         self.widget.setLayout(self.layout)
         self.setCentralWidget(self.widget)
 
@@ -26,9 +24,6 @@ class Window_Line_Up(QMainWindow):
         self.fill_in_table()
         self.layout.addWidget(self.table)
 
-        layout = QHBoxLayout()
-        layout.setAlignment(Qt.AlignCenter)
-        self.layout.addLayout(layout)
         self.setFixedWidth(self.table.maximumWidth())
         self.setFixedHeight(int(QApplication.primaryScreen().size().height() * .8))
 
@@ -46,9 +41,8 @@ class Window_Line_Up(QMainWindow):
         make_headers_bold_horizontal(self.table)
         make_headers_bold_vertical(self.table)
 
-        header_horizontal = self.table.horizontalHeader()
+        header_horizontal, header_vertical = self.table.horizontalHeader(), self.table.verticalHeader()
         header_horizontal.setSectionResizeMode(0, QHeaderView.Stretch)
-        header_vertical = self.table.verticalHeader()
         header_vertical.setDefaultAlignment(Qt.AlignCenter)
 
         for i, member in enumerate(self.members):

@@ -12,20 +12,22 @@ class Window_MS_Tournament_New(QMainWindow):
     def __init__(self):
         super().__init__()
         self.setWindowTitle("New Multi-Stage Tournament")
+
         self.name_line = None
         self.draw_lots_check = None
         self.new_tournament = None
 
         self.widget = QWidget()
         self.layout = QVBoxLayout()
+        self.widget.setLayout(self.layout)
+        self.setCentralWidget(self.widget)
+
         self.add_top_line()
         _, _, self.layout_inner = get_scroll_area_widgets_and_layouts(self.layout, [])
         self.add_buttons()
         self.add_stage()
         self.add_stage()
 
-        self.widget.setLayout(self.layout)
-        self.setCentralWidget(self.widget)
         self.setFixedWidth(int(QApplication.primaryScreen().size().height()*.8))
         self.setFixedHeight(int(QApplication.primaryScreen().size().height()*.8))
 
@@ -34,6 +36,7 @@ class Window_MS_Tournament_New(QMainWindow):
         self.name_line = get_lineedit("medium", (15, 2.5))
         draw_lots_label = get_label("Draw Lots in Case of Tie", "large")
         self.draw_lots_check = get_check_box(True, (3, 3))
+
         layout = QHBoxLayout()
         layout.addStretch()
         add_widgets_to_layout(layout, (name_label, self.name_line))
@@ -60,9 +63,7 @@ class Window_MS_Tournament_New(QMainWindow):
             self.layout_inner.takeAt(self.layout_inner.count() - 1).widget().setParent(None)
 
     def create_tournament(self):
-        participants = []
-        stages_tournaments = []
-        stages_advance_lists = []
+        participants, stages_tournaments, stages_advance_lists = [], [], []
 
         for i in range(self.layout_inner.count()):
             stage_tournaments = self.layout_inner.itemAt(i).widget().tournaments
@@ -79,8 +80,7 @@ class Window_MS_Tournament_New(QMainWindow):
             ]
             stages_advance_lists.append(stage_advance_lists)
 
-        unique_participants = {participant.get_uuid(): participant for participant in participants}
-        participants = list(unique_participants.values())
+        participants = list({participant.get_uuid(): participant for participant in participants}.values())
         self.new_tournament = MS_Tournament(
             participants, stages_tournaments, self.name_line.text(), stages_advance_lists=stages_advance_lists,
             draw_lots=self.draw_lots_check.checkState() == Qt.Checked

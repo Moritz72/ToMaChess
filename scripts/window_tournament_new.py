@@ -7,6 +7,11 @@ from .functions_gui import add_widgets_to_layout, get_suitable_widget, get_value
     get_button, get_label, get_lineedit, get_combo_box, get_scroll_area_widgets_and_layouts
 from .window_choice_table import Window_Choice_Table
 
+type_to_modes = {"player": modes, "team": modes_team}
+type_to_mode_default = {"player": mode_default, "team": mode_default_team}
+type_to_load_functon = {"player": load_players_list, "team": load_teams_list}
+type_to_add_participant_window_args = {"player": ("Add Player", "Players"), "team": ("Add Teams", "Teams")}
+
 
 class Window_Tournament_New(QMainWindow):
     added_tournament = pyqtSignal()
@@ -16,16 +21,10 @@ class Window_Tournament_New(QMainWindow):
         self.setWindowTitle("New Tournament")
 
         self.add_participants = add_participants
-        if participant_type == "player":
-            self.modes = modes
-            self.default_mode = mode_default
-            self.load_function = load_players_list
-            self.add_participants_window = Window_Choice_Table("Add Players", "Players")
-        else:
-            self.modes = modes_team
-            self.default_mode = mode_default_team
-            self.load_function = load_teams_list
-            self.add_participants_window = Window_Choice_Table("Add Teams", "Teams")
+        self.modes = type_to_modes[participant_type]
+        self.mode_default = type_to_mode_default[participant_type]
+        self.load_function = type_to_load_functon[participant_type]
+        self.add_participants_window = Window_Choice_Table(*type_to_add_participant_window_args[participant_type])
         self.parameter_widget_data = None
         self.new_tournament = None
         self.name_line = None
@@ -41,7 +40,7 @@ class Window_Tournament_New(QMainWindow):
 
         self.set_left_side()
         self.splitter.addWidget(QWidget())
-        self.set_right_side(self.default_mode)
+        self.set_right_side(self.mode_default)
         self.setFixedSize(self.layout.sizeHint())
 
     def set_left_side(self):
@@ -54,7 +53,7 @@ class Window_Tournament_New(QMainWindow):
             add_participants_button.setVisible(False)
         mode_label = get_label("Mode", "large")
         combo_box = get_combo_box(list(self.modes), "medium", (15, 3), mode_default)
-        combo_box.activated[str].connect(lambda _: self.set_right_side(list(self.modes)[combo_box.currentIndex()]))
+        combo_box.activated[str].connect(lambda: self.set_right_side(list(self.modes)[combo_box.currentIndex()]))
         create_button = get_button("large", (11, 4), "Create", connect_function=self.create_tournament)
 
         widget = QWidget()
@@ -79,13 +78,11 @@ class Window_Tournament_New(QMainWindow):
 
         parameter_widgets = []
         for _, display, widget in self.parameter_widget_data:
-            parameter_widgets = parameter_widgets+[get_label(display, "large"), widget, QLabel()]
+            parameter_widgets.extend([get_label(display, "large"), widget, QLabel()])
 
         widget = QWidget()
         layout = QVBoxLayout()
-        get_scroll_area_widgets_and_layouts(
-            layout, parameter_widgets[:-1], margins=(20, 20, 40, 20), spacing=10
-        )
+        get_scroll_area_widgets_and_layouts(layout, parameter_widgets[:-1], margins=(20, 20, 40, 20), spacing=10)
         widget.setLayout(layout)
         self.splitter.addWidget(widget)
 

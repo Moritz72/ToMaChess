@@ -1,7 +1,7 @@
+import os
+import os.path
 from requests import get, exceptions
 from zipfile import ZipFile, BadZipFile
-from os import remove, rename
-from os.path import exists
 from xml.etree.ElementTree import parse
 from csv import reader
 from .class_database_handler import database_handler
@@ -49,9 +49,9 @@ def download_and_unzip(url, file_to_extract, verify=True, retry=True):
     try:
         response = get(url, verify=verify)
         response.raise_for_status()
-        with open(f"{get_root_directory()}/zip_file.zip", 'wb') as file:
+        with open(os.path.join(get_root_directory(), "zip_file.zip"), 'wb') as file:
             file.write(response.content)
-        with ZipFile(f"{get_root_directory()}/zip_file.zip", 'r') as zip_file:
+        with ZipFile(os.path.join(get_root_directory(), "zip_file.zip"), 'r') as zip_file:
             return zip_file.extract(file_to_extract)
     except exceptions.SSLError:
         renew_certificate(verify)
@@ -62,10 +62,13 @@ def download_and_unzip(url, file_to_extract, verify=True, retry=True):
     except BadZipFile as e:
         return
     finally:
-        if exists(f"{get_root_directory()}/zip_file.zip"):
-            remove(f"{get_root_directory()}/zip_file.zip")
-        if exists(f"{get_root_directory()}/{file_to_extract}"):
-            rename(f"{get_root_directory()}/{file_to_extract}", f"{get_root_directory()}/extracted_file")
+        if os.path.exists(os.path.join(get_root_directory(), "zip_file.zip")):
+            os.remove(os.path.join(get_root_directory(), "zip_file.zip"))
+        if os.path.exists(os.path.join(get_root_directory(), file_to_extract)):
+            os.rename(
+                os.path.join(get_root_directory(), file_to_extract),
+                os.path.join(get_root_directory(), "extracted_file")
+            )
 
 
 def update_list(name, number, get_list):
@@ -99,31 +102,31 @@ def get_fide_standard_list():
     if unzipped_file is None:
         return
     player_list = process_xml(
-        f"{get_root_directory()}/extracted_file",
+        os.path.join(get_root_directory(), "extracted_file"),
         {
             "name": "name", "sex": "sex", "birthday": "birthday", "country": "country", "title": "title",
             "rating": "rating", "fideid": "id"
         }
     )
-    remove(f"{get_root_directory()}/extracted_file")
+    os.remove(os.path.join(get_root_directory(), "extracted_file"))
     return player_list
 
 
 def get_dsb_list():
     unzipped_file = download_and_unzip(
         "https://dwz.svw.info/services/files/export/csv/LV-0-csv_v2.zip", "spieler.csv",
-        verify=f"{get_root_directory()}/certificates/svw-info-certificate.pem"
+        verify=os.path.join(get_root_directory(), "certificates", "svw-info-certificate.pem")
     )
     if unzipped_file is None:
         return
     player_list = process_csv(
-        f"{get_root_directory()}/extracted_file",
+        os.path.join(get_root_directory(), "extracted_file"),
         {
             "ID": "id", "Spielername": "name", "Geschlecht": "sex", "Geburtsjahr": "birthday", "FIDE-Land": "country",
             "FIDE-Titel": "title", "DWZ": "rating"
         }
     )
-    remove(f"{get_root_directory()}/extracted_file")
+    os.remove(os.path.join(get_root_directory(), "extracted_file"))
     for i in range(len(player_list)):
         player_list[i]["name"] = player_list[i]["name"].replace(",", ", ")
         if player_list[i]["rating"] == "":

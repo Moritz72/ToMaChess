@@ -6,9 +6,7 @@ def get_score_dict_by_point_system(point_system):
     win, draw, loss = point_system.split(' - ')
     if draw == '½':
         draw = '.5'
-    win = shorten_float(float(win))
-    draw = shorten_float(float(draw))
-    loss = shorten_float(float(loss))
+    win, draw, loss = shorten_float(float(win)), shorten_float(float(draw)), shorten_float(float(loss))
     return {'1': win, '½': draw, '0': loss, '+': win, '-': loss}
 
 
@@ -26,17 +24,10 @@ def get_standings_header_vertical(table):
 
 def get_standings_with_tiebreaks(tournament, tiebreak_args):
     uuid_to_participant_dict = tournament.get_uuid_to_participant_dict()
-    tiebreaks = []
-    i = 1
-    while True:
-        try:
-            tiebreaks.append(tournament.get_parameter(f"tiebreak_{i}"))
-            i += 1
-        except:
-            break
-
+    tiebreaks = [value for key, value in tournament.get_parameters().items() if key.startswith("tiebreak_")]
     header_horizontal = ["Name", "P"]
     rank_functions = [lambda x: tournament.get_simple_scores()]
+
     for tb in tiebreaks:
         if tb.get_abbreviation() is None:
             continue

@@ -47,7 +47,7 @@ class Widget_Tournament_Cross_Table(QWidget):
     def fill_in_table(self):
         participants = [entry[0] for entry in self.tournament.get_standings()[2]]
         results = self.tournament.get_results()
-        id_to_index = {player.get_uuid(): i for i, player in enumerate(participants)}
+        id_to_index = {participant.get_uuid(): i for i, participant in enumerate(participants)}
         participant_number = len(participants)
         results_matrix = get_results_matrix(results, participant_number, id_to_index)
         width = get_appropriate_width_for_matrix(results_matrix)
@@ -60,9 +60,8 @@ class Widget_Tournament_Cross_Table(QWidget):
         make_headers_bold_horizontal(self.table)
         make_headers_bold_vertical(self.table)
 
-        header = self.table.horizontalHeader()
-        header = self.table.verticalHeader()
-        header.setDefaultAlignment(Qt.AlignCenter)
+        header_vertical = self.table.verticalHeader()
+        header_vertical.setDefaultAlignment(Qt.AlignCenter)
 
         for i, participant in enumerate(participants):
             add_content_to_table(self.table, participant, i, 0, edit=False)

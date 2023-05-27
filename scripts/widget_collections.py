@@ -20,10 +20,9 @@ class Widget_Collections(Widget_Default_Generic):
         make_headers_bold_horizontal(table)
         make_headers_bold_vertical(table)
 
-        header_horizontal = table.horizontalHeader()
+        header_horizontal, header_vertical = table.horizontalHeader(), table.verticalHeader()
         header_horizontal.setSectionResizeMode(0, QHeaderView.Stretch)
         header_horizontal.setSectionResizeMode(1, QHeaderView.Stretch)
-        header_vertical = table.verticalHeader()
         header_vertical.setDefaultAlignment(Qt.AlignCenter)
         return table
 
@@ -54,8 +53,7 @@ class Widget_Collections(Widget_Default_Generic):
         add_content_to_table(self.table, name, row, 0, bold=True)
         if name == "":
             add_combobox_to_table(
-                self.table, ["Players", "Tournaments", "Teams", "Multi-Stage Tournaments"],
-                row, 1, "medium", (None, None)
+                self.table, ["Players", "Tournaments", "Teams", "Multi-Stage Tournaments"], row, 1, "medium", None
             )
         else:
             add_content_to_table(self.table, object_type, row, 1, edit=False)

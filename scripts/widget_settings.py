@@ -1,6 +1,6 @@
 from PyQt5.QtWidgets import QWidget, QGridLayout, QHBoxLayout
 from PyQt5.QtCore import Qt
-from .functions_settings import get_settings, save_settings, reset_settings, settings_display, settings_valid
+from .class_settings_handler import save_settings, reset_settings, settings_display, settings_valid, settings_handler
 from .functions_gui import get_suitable_widget, get_value_from_suitable_widget, get_button, get_label,\
     get_button_threaded
 from .functions_rating_lists import update_list_by_name
@@ -25,7 +25,7 @@ def get_update_lists_widget(parent):
 class Widget_Settings(QWidget):
     def __init__(self, window_main):
         super().__init__()
-        self.settings = get_settings()
+        self.settings = settings_handler.settings
         self.window_main = window_main
 
         self.layout = QGridLayout()
@@ -53,6 +53,7 @@ class Widget_Settings(QWidget):
 
     def reset_settings(self):
         reset_settings()
+        settings_handler.reload()
         self.window_main.reload(5)
 
     def save_settings(self):
@@ -61,4 +62,5 @@ class Widget_Settings(QWidget):
             if settings_valid[key](value):
                 self.settings[key] = value
         save_settings(self.settings)
+        settings_handler.reload()
         self.window_main.reload(5)

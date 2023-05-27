@@ -26,7 +26,7 @@ class Stacked_Widget_Default(QStackedWidget):
         self.addWidget(Widget_Collections(window_main))
         self.addWidget(Widget_Settings(window_main))
 
-    def get_button_args(self):
+    def get_buttons_args(self):
         return (
             {"text": "Tournaments", "connect_function": lambda _: self.setCurrentIndex(0), "checkable": True},
             {"text": "Players", "connect_function": lambda _: self.setCurrentIndex(1), "checkable": True},

@@ -1,5 +1,5 @@
 from PyQt5.QtWidgets import QApplication
-from .functions_settings import get_settings
+from .class_settings_handler import settings_handler
 
 
 def get_dp():
@@ -20,12 +20,12 @@ def get_widget_size_factor(font_size, dp):
 class Size_Handler:
     def __init__(self):
         self.dp = get_dp()
-        font_size = get_settings()["font_size"]
+        font_size = settings_handler.settings["font_size"]
         self.font_sizes = get_font_sizes(font_size)
         self.widget_size_factor = get_widget_size_factor(font_size, self.dp)
 
     def refresh(self):
-        font_size = get_settings()["font_size"]
+        font_size = settings_handler.settings["font_size"]
         self.font_sizes = get_font_sizes(font_size)
         self.widget_size_factor = get_widget_size_factor(font_size, self.dp)
 

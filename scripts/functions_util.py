@@ -1,5 +1,5 @@
-from os import pardir, remove
-from os.path import dirname, abspath, join, exists
+import os
+import os.path
 from codecs import open
 from itertools import groupby
 
@@ -18,17 +18,17 @@ def write_file(path, content):
 
 
 def get_root_directory():
-    return abspath(join(dirname(abspath(__file__)), pardir))
+    return os.path.abspath(os.path.join(os.path.dirname(os.path.abspath(__file__)), os.pardir))
 
 
 def get_image(name):
-    return f"{get_root_directory()}/images/{name}"
+    return os.path.join(get_root_directory(), "images", name)
 
 
 def remove_temporary_files():
     for file in ("zip_file.zip", "extracted_file"):
-        if exists(f"{get_root_directory()}/{file}"):
-            remove(f"{get_root_directory()}/{file}")
+        if os.path.exists(os.path.join(get_root_directory(), file)):
+            os.remove(os.path.join(get_root_directory(), file))
 
 
 def recursive_buckets(lis, functions, reverse=True):

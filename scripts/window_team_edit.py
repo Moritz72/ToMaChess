@@ -14,28 +14,23 @@ class Window_Team_Edit(QMainWindow):
         super().__init__()
         self.setWindowTitle("Edit Team")
         self.team = team
-        self.window_add_members = None
-        self.window_remove_members = None
-        self.window_line_up = None
+        self.window_add_members, self.window_remove_members, self.window_line_up = None, None, None
 
         self.widget = QWidget()
         self.layout = QHBoxLayout()
-        self.set_buttons()
-
         self.widget.setLayout(self.layout)
         self.setCentralWidget(self.widget)
 
+        self.set_buttons()
+
     def set_buttons(self):
-        button_add_members = get_button(
-            "large", (12, 6), text="Add\nMembers", connect_function=self.open_window_add_members
+        add_widgets_to_layout(
+            self.layout, (
+                get_button("large", (12, 6), text="Add\nMembers", connect_function=self.open_window_add_members),
+                get_button("large", (12, 6), text="Remove\nMembers", connect_function=self.open_window_remove_members),
+                get_button("large", (12, 6), text="Change\nLineup", connect_function=self.open_window_line_up)
+            )
         )
-        button_remove_members = get_button(
-            "large", (12, 6), text="Remove\nMembers", connect_function=self.open_window_remove_members
-        )
-        button_line_up = get_button(
-            "large", (12, 6), text="Change\nLineup", connect_function=self.open_window_line_up
-        )
-        add_widgets_to_layout(self.layout, (button_add_members, button_remove_members, button_line_up))
 
     def close_windows(self):
         for window in (self.window_add_members, self.window_remove_members, self.window_line_up):

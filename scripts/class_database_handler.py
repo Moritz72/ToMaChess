@@ -1,14 +1,15 @@
-from os import mkdir
-from os.path import exists
+import os
+import os.path
 from sqlite3 import connect
 from .functions_util import get_root_directory
 
 
 class Database_Handler:
     def __init__(self):
-        if not exists(f"{get_root_directory()}/data"):
-            mkdir(f"{get_root_directory()}/data")
-        self.conn = connect(f"{get_root_directory()}/data/database.db", check_same_thread=False)
+        data_path = os.path.join(get_root_directory(), "data")
+        if not os.path.exists(data_path):
+            os.mkdir(data_path)
+        self.conn = connect(os.path.join(data_path, "database.db"), check_same_thread=False)
         self.conn.execute("PRAGMA foreign_keys = ON;")
         self.cursor = self.conn.cursor()
         self.create_tables()

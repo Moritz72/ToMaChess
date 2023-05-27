@@ -87,21 +87,20 @@ class MS_Tournament:
         return len(self.get_participants()) or self.shallow_participant_count
 
     def get_data(self):
+        tournament_uuids = [
+            [tournament.get_uuid() for tournament in stage_tournaments]
+            for stage_tournaments in self.get_stages_tournaments()
+        ]
         return self.get_name(), self.get_participant_count(), dumps(self.get_stages_advance_list()),\
-               self.get_draw_lots(), self.get_stage(),\
-               dumps([
-                   [tournament.get_uuid() for tournament in stage_tournaments]
-                   for stage_tournaments in self.get_stages_tournaments()
-               ]),\
-               self.get_uuid(), self.get_uuid_associate()
+            self.get_draw_lots(), self.get_stage(), dumps(tournament_uuids), self.get_uuid(), self.get_uuid_associate()
 
     def is_valid(self):
         return (
                 self.get_name() != "" and self.get_stages() > 0 and
-                all(len(self.get_stage_tournaments(i)) > 0 for i in range(self.get_stage(), self.get_stages())) and
+                all(len(self.get_stage_tournaments(i)) > 0 for i in range(self.get_stages())) and
                 all(tournament.is_valid() for tournament in self.get_current_tournaments()) and
                 all(
-                    len(advance_list) > 0 for i in range(self.get_stages(), self.get_stages())
+                    len(advance_list) > 0 for i in range(self.get_stages() - 1)
                     for advance_list in self.get_stage_advance_list(i)
                 )
         )

@@ -27,10 +27,9 @@ class Table_Widget_Search(QTableWidget):
 
     def mark_object_as_updated(self, row):
         obj = self.objects[row]
-        if obj is not None:
-            self.updated_objects_dict[id(obj)] = [
-                self.get_table_value(row, column) for column in range(self.columnCount())
-            ]
+        if obj is None:
+            return
+        self.updated_objects_dict[id(obj)] = [self.get_table_value(row, column) for column in range(self.columnCount())]
 
     def resize_table(self):
         size_table(

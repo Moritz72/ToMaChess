@@ -16,13 +16,13 @@ class Window_Team_Remove_Members(QMainWindow):
         self.widget = QWidget()
         self.layout = QHBoxLayout()
         self.layout.setAlignment(Qt.AlignTop)
-        self.layout.setContentsMargins(0, 0, 0, 0)
-        self.table = QTableWidget()
-        self.fill_in_table()
-
-        self.layout.addWidget(self.table)
         self.widget.setLayout(self.layout)
         self.setCentralWidget(self.widget)
+
+        self.table = QTableWidget()
+        self.fill_in_table()
+        self.layout.addWidget(self.table)
+
         self.setFixedWidth(self.table.maximumWidth())
         self.setFixedHeight(int(QApplication.primaryScreen().size().height() * .8))
 
@@ -37,7 +37,6 @@ class Window_Team_Remove_Members(QMainWindow):
 
     def resize_table(self):
         size_table(self.table, len(self.members), 7, 3.5, max_width=55, widths=[None, 3.5, 5, 4.5, 4, 5, 3.5])
-        self.setFixedHeight(min(self.table.maximumHeight(), int(QApplication.primaryScreen().size().height() * .8)))
 
     def fill_in_table(self):
         self.resize_table()
@@ -45,9 +44,8 @@ class Window_Team_Remove_Members(QMainWindow):
         make_headers_bold_horizontal(self.table)
         make_headers_bold_vertical(self.table)
 
-        header_horizontal = self.table.horizontalHeader()
+        header_horizontal, header_vertical = self.table.horizontalHeader(), self.table.verticalHeader()
         header_horizontal.setSectionResizeMode(0, QHeaderView.Stretch)
-        header_vertical = self.table.verticalHeader()
         header_vertical.setDefaultAlignment(Qt.AlignCenter)
 
         for i, member in enumerate(self.members):

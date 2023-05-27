@@ -24,12 +24,10 @@ def add_result_to_participant_standings(
         participant_standings[uuid_1]["score"] += score_dict[score_1]
         participant_standings[uuid_2]["score"] += score_dict[score_2]
     participant_standings[uuid_1]["board_points"] += sum(
-        .5 if score_1 == '-' == score_2 else score_dict[score_1]
-        for i, ((_, score_1), (_, score_2)) in enumerate(individual)
+        .5 if score_1 == '-' == score_2 else score_dict[score_1] for (_, score_1), (_, score_2) in individual
     )
     participant_standings[uuid_2]["board_points"] += sum(
-        .5 if score_1 == '-' == score_2 else score_dict[score_2]
-        for i, ((_, score_1), (_, score_2)) in enumerate(individual)
+        .5 if score_1 == '-' == score_2 else score_dict[score_2] for (_, score_1), (_, score_2) in individual
     )
     participant_standings[uuid_1]["bewe"] += sum(
         .5 * (len(individual) - i) if score_1 == '-' == score_2 else score_dict[score_1] * (len(individual) - i)
@@ -42,10 +40,8 @@ def add_result_to_participant_standings(
 
 
 def get_value_tuple(participant_standings, uuid):
-    return (
-                participant_standings[uuid]["score"], participant_standings[uuid]["board_points"],
-                participant_standings[uuid]["bewe"]
-            )
+    return participant_standings[uuid]["score"], participant_standings[uuid]["board_points"], \
+           participant_standings[uuid]["bewe"]
 
 
 def update_participant_standings(

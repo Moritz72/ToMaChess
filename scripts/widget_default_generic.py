@@ -28,7 +28,6 @@ class Widget_Default_Generic(QWidget):
         self.setLayout(self.layout)
         self.layout.addWidget(QWidget())
         self.table = self.get_table()
-        self.search_bar = None
         layout = QVBoxLayout()
         layout.setAlignment(Qt.AlignTop)
         add_widgets_in_layout(self.layout, layout, (self.table,))
@@ -96,6 +95,7 @@ class Widget_Default_Generic(QWidget):
         objects_update = tuple(obj for obj in objects_update if obj.is_valid())
         objects_add = tuple(self.get_object_from_values(values) for values in objects_add_values)
         objects_add = tuple(obj for obj in objects_add if obj.is_valid())
+
         if objects_update:
             self.update_function("", objects_update)
         if objects_remove:

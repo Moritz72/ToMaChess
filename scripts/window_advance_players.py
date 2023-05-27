@@ -10,6 +10,7 @@ class Window_Advance_Players(QMainWindow):
     def __init__(self, advance_list, tournaments, player_counts):
         super().__init__()
         self.setWindowTitle("Add Players")
+
         self.advance_list = advance_list
         self.tournaments = [
             tournament for tournament, player_count in zip(tournaments, player_counts) if player_count > 0
@@ -18,8 +19,6 @@ class Window_Advance_Players(QMainWindow):
 
         self.widget = QWidget()
         self.layout = QHBoxLayout()
-        self.layout.setSpacing(0)
-        self.layout.setContentsMargins(0, 0, 0, 0)
         self.widget.setLayout(self.layout)
         self.setCentralWidget(self.widget)
 
@@ -30,26 +29,19 @@ class Window_Advance_Players(QMainWindow):
         layout.addWidget(self.table)
         self.layout.addLayout(layout)
 
-        add_row_button = get_button("large", (8, 6), "Add\nPlayer", connect_function=lambda _: self.add_player_row())
+        add_row_button = get_button("large", (8, 6), "Add\nPlayer", connect_function=lambda: self.add_player_row())
         if len(self.tournaments) == 0:
             add_row_button.setVisible(False)
         layout = QVBoxLayout()
         layout.setAlignment(Qt.AlignTop)
         layout.addWidget(add_row_button)
         self.layout.addLayout(layout)
-        self.setFixedWidth(self.table.maximumWidth()+add_row_button.width())
 
-    def set_window_height(self):
-        self.setFixedHeight(
-            min(
-                max(self.table.maximumHeight(), int(QApplication.primaryScreen().size().height() * .3)),
-                int(QApplication.primaryScreen().size().height() * .8)
-            )
-        )
+        self.setFixedWidth(self.table.maximumWidth() + add_row_button.width())
+        self.setFixedHeight(int(QApplication.primaryScreen().size().height() * .5))
 
     def resize_table(self):
         size_table(self.table, self.table.rowCount(), 3, 3.5, max_width=30, widths=[None, 8, 3.5])
-        self.set_window_height()
 
     def get_seatings_choices(self, tournament):
         if tournament is None:
@@ -74,9 +66,8 @@ class Window_Advance_Players(QMainWindow):
         make_headers_bold_horizontal(self.table)
         make_headers_bold_vertical(self.table)
 
-        header_horizontal = self.table.horizontalHeader()
+        header_horizontal, header_vertical = self.table.horizontalHeader(), self.table.verticalHeader()
         header_horizontal.setSectionResizeMode(0, QHeaderView.Stretch)
-        header_vertical = self.table.verticalHeader()
         header_vertical.setDefaultAlignment(Qt.AlignCenter)
 
         for tournament, placement in self.advance_list:

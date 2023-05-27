@@ -28,9 +28,8 @@ class Widget_Tournament_Standings(QWidget):
         make_headers_bold_horizontal(self.table)
         make_headers_bold_vertical(self.table)
 
-        header_horizontal = self.table.horizontalHeader()
+        header_horizontal, header_vertical = self.table.horizontalHeader(), self.table.verticalHeader()
         header_horizontal.setSectionResizeMode(0, QHeaderView.Stretch)
-        header_vertical = self.table.verticalHeader()
         header_vertical.setDefaultAlignment(Qt.AlignCenter)
 
         for i, row in enumerate(table):

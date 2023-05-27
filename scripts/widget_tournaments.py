@@ -26,10 +26,9 @@ class Widget_Tournaments(Widget_Default_Generic):
         make_headers_bold_horizontal(table)
         make_headers_bold_vertical(table)
 
-        header_horizontal = table.horizontalHeader()
+        header_horizontal, header_vertical = table.horizontalHeader(), table.verticalHeader()
         header_horizontal.setSectionResizeMode(0, QHeaderView.Stretch)
         header_horizontal.setSectionResizeMode(1, QHeaderView.Stretch)
-        header_vertical = table.verticalHeader()
         header_vertical.setDefaultAlignment(Qt.AlignCenter)
         return table
 

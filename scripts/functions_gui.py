@@ -124,10 +124,9 @@ def size_table(table, rows, columns, row_height, max_width=None, widths=[], head
     table.setColumnCount(columns)
     table.setFont(get_font(font_size))
 
-    horizontal_header = table.horizontalHeader()
+    horizontal_header, vertical_header = table.horizontalHeader(), table.verticalHeader()
     horizontal_header.setMinimumSectionSize(0)
     horizontal_header.setFixedHeight(int(row_height * size_factor))
-    vertical_header = table.verticalHeader()
     vertical_header.setSectionResizeMode(QHeaderView.Fixed)
     vertical_header.setDefaultSectionSize(int(row_height * size_factor))
 

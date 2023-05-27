@@ -122,7 +122,7 @@ class Tournament_Round_Robin(Tournament):
 
         if roun == 1:
             if self.get_parameter("choose_seating"):
-                pairings = [(uuids, uuids) for _ in range(int(participant_number / 2))]
+                pairings = int(participant_number / 2) * [(uuids, uuids)]
                 if participant_number % 2:
                     pairings.append((uuids, None))
                 self.set_pairings(pairings)

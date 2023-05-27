@@ -21,10 +21,9 @@ class Widget_Teams(Widget_Default_Generic):
         make_headers_bold_horizontal(table)
         make_headers_bold_vertical(table)
 
-        header = table.horizontalHeader()
-        header.setSectionResizeMode(0, QHeaderView.Stretch)
-        header = table.verticalHeader()
-        header.setDefaultAlignment(Qt.AlignCenter)
+        header_horizontal, header_vertical = table.horizontalHeader(), table.verticalHeader()
+        header_horizontal.setSectionResizeMode(0, QHeaderView.Stretch)
+        header_vertical.setDefaultAlignment(Qt.AlignCenter)
         return table
 
     def get_buttons(self):

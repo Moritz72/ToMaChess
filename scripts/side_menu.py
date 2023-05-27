@@ -20,7 +20,7 @@ class Side_Menu(QDockWidget):
         self.make_side_menu()
 
     def fill_buttons(self):
-        for args in self.stacked_widget.get_button_args():
+        for args in self.stacked_widget.get_buttons_args():
             button = get_button("large", (None, 2.5), **args)
             button.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
             button.setMinimumWidth(0)
@@ -37,7 +37,7 @@ class Side_Menu(QDockWidget):
         widget = QWidget()
         layout = QVBoxLayout()
         layout.setContentsMargins(0, 0, 0, 0)
-        get_scroll_area_widgets_and_layouts(layout, [get_dummy_button()]+self.buttons)
+        get_scroll_area_widgets_and_layouts(layout, [get_dummy_button()] + self.buttons)
         widget.setLayout(layout)
         self.setWidget(widget)
         self.set_button_clicked(self.stacked_widget.get_active_button_index())
@@ -49,10 +49,9 @@ class Side_Menu(QDockWidget):
         self.buttons[index].setChecked(False)
 
     def set_button_clicked_states(self):
-        sender = self.sender()
-        if not sender.isChecked():
-            sender.setChecked(True)
+        if not self.sender().isChecked():
+            self.sender().setChecked(True)
             return
         for button in self.buttons:
-            if button is not sender:
+            if button is not self.sender():
                 button.setChecked(False)

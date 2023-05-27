@@ -1,5 +1,6 @@
+import os.path
 from subprocess import run
-from .functions_settings import get_settings
+from .class_settings_handler import settings_handler
 from .functions_util import read_file, write_file
 
 
@@ -54,7 +55,7 @@ def write_input_file(player_ratings, player_results, rounds, score_dict, bbp_dir
     lines = lines + f"BBF  {float(score_dict['-'])}\r\n"
     lines = lines + f"BBU  {float(score_dict['+'])}\r\n"
 
-    write_file(f"{bbp_directory}/input.txt", lines)
+    write_file(os.path.join(bbp_directory, "input.txt"), lines)
 
 
 def process_pairings(pairings_raw, players):
@@ -67,13 +68,14 @@ def process_pairings(pairings_raw, players):
 
 
 def get_pairings_bbp(players, results, rounds, score_dict):
-    bbp_directory = get_settings()["bbp_path"]
+    bbp_directory = settings_handler.settings["bbp_path"]
     player_ratings, player_results = get_data_from_player_results(players, results)
     write_input_file(player_ratings, player_results, rounds, score_dict, bbp_directory)
     command = [
-        f"{bbp_directory}/bbpPairings.exe", "--dutch", f"{bbp_directory}/input.txt", "-p", f"{bbp_directory}/output.txt"
+        os.path.join(bbp_directory, "bbpPairings.exe"), "--dutch",
+        os.path.join(bbp_directory, "input.txt"), "-p", os.path.join(bbp_directory, "output.txt")
     ]
     run(command, check=True)
-    pairings_raw = read_file(f"{bbp_directory}/output.txt")
+    pairings_raw = read_file(os.path.join(bbp_directory, "output.txt"))
     pairings = process_pairings(pairings_raw, players)
     return pairings

@@ -5,6 +5,8 @@ from .widget_tournament_cross_table import Widget_Tournament_Cross_Table
 from .widget_tournament_round import Widget_Tournament_Round
 from .widget_tournament_round_team import Widget_Tournament_Round_Team
 from .functions_tournament import update_tournament
+from .functions_export import tournament_standings_to_pdf, tournament_participants_to_pdf, tournament_pairings_to_pdf,\
+    tournament_results_to_pdf
 
 
 def get_round_widget(tournament, roun, current):
@@ -32,10 +34,10 @@ def get_round_widget_team(tournament, roun, current):
                 (get_team_members_from_uuid(uuid_1, uuid_to_participant_dict), None),
                 (get_team_members_from_uuid(uuid_2, uuid_to_participant_dict), None)
             ) for _ in range(boards)
-        ] for (uuid_1, _), (uuid_2, _) in results]
+        ] for uuid_1, uuid_2 in tournament.get_pairings()]
     else:
         results = tournament.get_results()[roun - 1]
-        results_individual = tournament.get_variable("results_individual")[roun - 1]
+        results_individual = tournament.get_results_individual()[roun - 1]
     return Widget_Tournament_Round_Team(
         results, uuid_to_participant_dict, tournament.get_possible_scores(),
         tournament.is_valid_pairings_match, boards, results_individual,
@@ -46,14 +48,12 @@ def get_round_widget_team(tournament, roun, current):
 class Stacked_Widget_Tournament(QStackedWidget):
     make_side_menu = pyqtSignal()
 
-    def __init__(self, window_main, tournament):
+    def __init__(self, window_main, tournament, sub_folder=""):
         super().__init__()
         self.window_main = window_main
         self.tournament = tournament
-        if self.tournament.is_team_tournament():
-            self.get_round_widget = get_round_widget_team
-        else:
-            self.get_round_widget = get_round_widget
+        self.sub_folder = sub_folder
+        self.get_round_widget = get_round_widget_team if self.tournament.is_team_tournament() else get_round_widget
         self.round_widgets = []
 
         self.standings_widget = Widget_Tournament_Standings(self.tournament)
@@ -63,13 +63,17 @@ class Stacked_Widget_Tournament(QStackedWidget):
 
         self.add_round_widgets()
         self.set_index()
+        tournament_participants_to_pdf(self.tournament, self.sub_folder)
 
     def add_round_widget(self, roun, current):
         widget = self.get_round_widget(self.tournament, roun, current)
         self.round_widgets.append(widget)
         self.addWidget(widget)
         if current:
-            widget.confirmed_round.connect(self.load_next_round)
+            widget.confirmed_pairings.connect(self.pairings_confirmed)
+            widget.confirmed_results.connect(self.load_next_round)
+            if self.tournament.is_team_tournament():
+                tournament_pairings_to_pdf(self.tournament, self.sub_folder)
 
     def add_round_widgets(self):
         rounds = self.tournament.get_round()
@@ -85,13 +89,13 @@ class Stacked_Widget_Tournament(QStackedWidget):
         else:
             self.setCurrentIndex(self.count() - 1)
 
-    def get_button_args(self):
+    def get_buttons_args(self):
         texts = ["Standings", "Crosstable"] + \
                 [self.tournament.get_round_name(i + 1) for i in range(len(self.round_widgets))] + \
                 ["Back"]
         functions = [lambda _, index=i: self.setCurrentIndex(index) for i in range(len(self.round_widgets) + 2)] + \
                     [self.open_default]
-        return (
+        return tuple(
             {"text": text, "connect_function": function, "checkable": True} for text, function in zip(texts, functions)
         )
 
@@ -101,8 +105,15 @@ class Stacked_Widget_Tournament(QStackedWidget):
     def open_default(self):
         self.window_main.set_stacked_widget("Default")
 
+    def pairings_confirmed(self):
+        self.tournament.set_pairings(self.sender().get_pairings())
+        if not self.tournament.is_team_tournament():
+            tournament_pairings_to_pdf(self.tournament, self.sub_folder)
+
     def load_next_round(self):
         self.tournament.add_results(self.sender().get_results())
+        tournament_results_to_pdf(self.tournament, self.sub_folder)
+        tournament_standings_to_pdf(self.tournament, self.sub_folder)
         self.update_rounds()
 
     def update_rounds(self):

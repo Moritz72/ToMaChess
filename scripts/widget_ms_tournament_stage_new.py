@@ -20,10 +20,8 @@ class Widget_MS_Tournament_Stage_New(QWidget):
         self.tournaments = []
         self.advance_lists = []
         self.new_tournament_window = None
-        self.add_players_window = None
-        self.add_players_tournament = None
-        self.advance_players_window = None
-        self.advance_players_tournament = None
+        self.add_players_window, self.add_players_tournament = None, None
+        self.advance_players_window, self.advance_players_tournament = None, None
 
         self.layout = QHBoxLayout()
         self.setLayout(self.layout)
@@ -54,10 +52,9 @@ class Widget_MS_Tournament_Stage_New(QWidget):
         make_headers_bold_horizontal(self.table)
         make_headers_bold_vertical(self.table)
 
-        header_horizontal = self.table.horizontalHeader()
+        header_horizontal, header_vertical = self.table.horizontalHeader(), self.table.verticalHeader()
         header_horizontal.setSectionResizeMode(0, QHeaderView.Stretch)
         header_horizontal.setSectionResizeMode(1, QHeaderView.Stretch)
-        header_vertical = self.table.verticalHeader()
         header_vertical.setDefaultAlignment(Qt.AlignCenter)
 
         for i, tournament in enumerate(self.tournaments):
@@ -85,8 +82,7 @@ class Widget_MS_Tournament_Stage_New(QWidget):
         self.advance_lists = [self.advance_lists[i] for i in self.table.permutation]
 
     def change_names(self, item):
-        column = item.column()
-        if column == 0 and item.text():
+        if item.column() == 0 and item.text():
             self.tournaments[item.row()].set_name(item.text())
 
     def swap_table(self):
@@ -125,7 +121,6 @@ class Widget_MS_Tournament_Stage_New(QWidget):
     def validate_advance_lists(self):
         lower_tournaments = self.get_lower_tournaments()
         lower_player_counts = self.get_lower_player_counts()
-        unique_elements = []
 
         for i in range(len(self.advance_lists)):
             self.advance_lists[i] = [
@@ -133,14 +128,7 @@ class Widget_MS_Tournament_Stage_New(QWidget):
                 if tournament in lower_tournaments
                 and placement <= lower_player_counts[lower_tournaments.index(tournament)]
             ]
-            delete_later = []
-            for j, (tournament, placement) in enumerate(self.advance_lists[i]):
-                if (id(tournament), placement) in unique_elements:
-                    delete_later.append(j)
-                else:
-                    unique_elements.append((id(tournament), placement))
-            for index in delete_later[::-1]:
-                self.advance_lists[i].pop(index)
+            self.advance_lists[i] = list({entry: None for entry in self.advance_lists[i]}.keys())
 
         self.fill_in_table()
 
@@ -149,8 +137,8 @@ class Widget_MS_Tournament_Stage_New(QWidget):
         self.add_players_tournament.set_participants(players)
         index = self.tournaments.index(self.add_players_tournament)
         self.advance_lists[index] = [(None, i + 1) for i in range(len(self.tournaments[index].get_participants()))]
-        self.add_players_window = None
-        self.add_players_tournament = None
+
+        self.add_players_window, self.add_players_tournament = None, None
         self.fill_in_table()
         self.update_necessary.emit()
 
@@ -159,13 +147,11 @@ class Widget_MS_Tournament_Stage_New(QWidget):
         if self.add_players_window is not None:
             self.add_players_window.close()
         self.add_players_tournament = self.tournaments[row]
-        self.add_players_window = Window_Choice_Table(
-            "Add Players", "Players",
-            checked_uuids=[
-                (participant.get_uuid(), participant.get_uuid_associate())
-                for participant in self.add_players_tournament.get_participants()
-            ]
-        )
+        checked_uuids = [
+            (participant.get_uuid(), participant.get_uuid_associate())
+            for participant in self.add_players_tournament.get_participants()
+        ]
+        self.add_players_window = Window_Choice_Table("Add Players", "Players", checked_uuids=checked_uuids)
         self.add_players_window.window_closed.connect(self.update_added_players)
         self.add_players_window.show()
 
@@ -179,8 +165,8 @@ class Widget_MS_Tournament_Stage_New(QWidget):
         ]
         index = self.tournaments.index(self.advance_players_tournament)
         self.advance_lists[index] = list_entries
-        self.advance_players_window = None
-        self.advance_players_tournament = None
+
+        self.advance_players_window, self.advance_players_tournament = None, None
         self.fill_in_table()
         self.update_necessary.emit()
 

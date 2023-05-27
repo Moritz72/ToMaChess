@@ -30,7 +30,7 @@ class Tournament:
         return deepcopy(self)
 
     def is_team_tournament(self):
-        return len(self.get_mode()) > 7 and self.get_mode()[-7:] == " (Team)"
+        return self.get_mode().endswith(" (Team)")
 
     def convert_object_parameters(self):
         for parameter, value in self.get_parameters().items():
@@ -165,6 +165,10 @@ class Tournament:
 
     def get_results(self):
         return self.get_variable("results")
+
+    def get_results_individual(self):
+        if self.is_team_tournament():
+            return self.get_variable("results_individual")
 
     def add_results(self, results):
         if self.is_team_tournament():

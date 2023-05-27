@@ -1,14 +1,16 @@
 from PyQt5.QtWidgets import QWidget, QVBoxLayout, QHeaderView, QComboBox, QTableWidget
-from PyQt5.QtCore import Qt, pyqtSignal
+from PyQt5.QtCore import Qt, QTimer, pyqtSignal
 from .functions_gui import add_content_to_table, add_button_to_table, add_combobox_to_table, clear_table,\
     make_headers_bold_horizontal, size_table
 
 
 class Widget_Tournament_Round(QWidget):
-    confirmed_round = pyqtSignal()
+    confirmed_pairings = pyqtSignal()
+    confirmed_results = pyqtSignal()
 
-    def __init__(self, results, uuid_to_participant_dict, possible_scores, is_valid_pairings,
-                 headers=("White", "Black")):
+    def __init__(
+            self, results, uuid_to_participant_dict, possible_scores, is_valid_pairings, headers=("White", "Black")
+    ):
         super().__init__()
         self.results = results
         self.uuid_to_participant_dict = uuid_to_participant_dict | {None: None}
@@ -26,6 +28,9 @@ class Widget_Tournament_Round(QWidget):
 
     def is_current(self):
         return any(score_1 is None or score_2 is None for (_, score_1), (_, score_2) in self.results)
+
+    def get_pairings(self):
+        return [(uuid_1, uuid_2) for (uuid_1, _), (uuid_2, _) in self.results]
 
     def get_results(self):
         return self.results
@@ -47,21 +52,19 @@ class Widget_Tournament_Round(QWidget):
             add_content_to_table(self.table, f":", row, column, edit=False, align=Qt.AlignCenter, bold=True)
         else:
             add_combobox_to_table(
-                self.table, [" : "] + [":".join(score) for score in self.possible_scores],
-                row, column, "medium", None
+                self.table, [" : "] + [":".join(score) for score in self.possible_scores], row, column, "medium", None
             )
 
     def add_pairing_row(self, row, participant_1, participant_2, score_1=None, score_2=None):
         add_content_to_table(self.table, row + 1, row, 0, edit=False, bold=True, align=Qt.AlignCenter)
         self.add_pairing_row_participant(row, 1, participant_1)
-        self.add_pairing_row_result(row, 2, score_1, score_2, len(participant_1+participant_2) > 2)
+        self.add_pairing_row_result(row, 2, score_1, score_2, len(participant_1 + participant_2) > 2)
         self.add_pairing_row_participant(row, 3, participant_2)
 
     def add_last_row(self, choose_players):
         row = self.table.rowCount() - 1
-        add_content_to_table(self.table, '', row, 0, edit=False, color_bg=(200, 200, 200))
-        add_content_to_table(self.table, '', row, 1, edit=False, color_bg=(200, 200, 200))
-        add_content_to_table(self.table, '', row, 2, edit=False, color_bg=(200, 200, 200))
+        for i in range(3):
+            add_content_to_table(self.table, "", row, i, edit=False, color_bg=(200, 200, 200))
         if choose_players:
             add_button_to_table(
                 self.table, row, 3, "medium", None, "Confirm Pairings", connect_function=self.confirm_pairings
@@ -72,27 +75,27 @@ class Widget_Tournament_Round(QWidget):
             )
 
     def fill_in_table(self):
-        size_table(self.table, len(self.results)+self.is_current(), 4, 3.5, max_width=55, widths=[3.5, None, 7, None])
+        size_table(self.table, len(self.results) + self.is_current(), 4, 3.5, max_width=55, widths=[3.5, None, 7, None])
         self.table.setHorizontalHeaderLabels(["", self.headers[0], "", self.headers[1]])
         make_headers_bold_horizontal(self.table)
-        self.table.verticalHeader().setVisible(False)
 
-        header_horizontal = self.table.horizontalHeader()
+        header_horizontal, header_vertical = self.table.horizontalHeader(), self.table.verticalHeader()
         header_horizontal.setSectionResizeMode(1, QHeaderView.Stretch)
         header_horizontal.setSectionResizeMode(3, QHeaderView.Stretch)
-        header_vertical = self.table.verticalHeader()
-        header_vertical.setDefaultAlignment(Qt.AlignCenter)
+        header_vertical.setVisible(False)
 
         choose_pairing, choose_result = self.fill_in_pairings()
         if self.is_current():
+            if choose_result and not choose_pairing:
+                QTimer.singleShot(0, self.confirmed_pairings)
             if choose_result or choose_pairing:
                 self.add_last_row(choose_pairing)
             else:
                 self.confirm_results()
 
     def fill_in_pairings(self):
-        choose_pairing = False
-        choose_result = False
+        choose_pairing, choose_result = False, False
+
         for i, ((uuid_1, score_1), (uuid_2, score_2)) in enumerate(self.results):
             if not isinstance(uuid_1, (list, tuple)):
                 uuid_1 = [uuid_1]
@@ -111,33 +114,24 @@ class Widget_Tournament_Round(QWidget):
             else:
                 choose_result = True
             self.add_pairing_row(i, participant_1, participant_2, score_1, score_2)
+
         return choose_pairing, choose_result
+
+    def enter_data_in_results(self, index_1, index_2, index_3, data):
+        temp = [list(entry) for entry in self.results[index_1]]
+        temp[index_2][index_3] = data
+        self.results[index_1] = temp
 
     def enter_participant_in_results(self, row, column):
         widget = self.table.cellWidget(row, column)
         if not isinstance(widget, QComboBox):
             return True
-        if widget.currentText() == "Choose...":
+        if widget.currentText() == "Choose..." or column not in (1, 3):
             return False
-        participant = widget.currentData()
-        if column == 1:
-            self.results[row] = (
-                (None if participant is None else participant.get_uuid(), self.results[row][0][1]), self.results[row][1]
-            )
-            return True
-        if column == 3:
-            self.results[row] = (
-                self.results[row][0], (None if participant is None else participant.get_uuid(), self.results[row][1][1])
-            )
-            return True
 
-    def confirm_pairings(self):
-        all_pairings_confirmed = all(
-            self.enter_participant_in_results(row, column)
-            for row in range(self.table.rowCount()-1) for column in (1, 3)
-        )
-        if all_pairings_confirmed and self.is_valid_pairings(self.results):
-            self.update_table()
+        participant = widget.currentData()
+        self.enter_data_in_results(row, column == 3, 0, None if participant is None else participant.get_uuid())
+        return True
 
     def enter_score_in_results(self, row):
         if self.table.cellWidget(row, 2) is None:
@@ -146,13 +140,21 @@ class Widget_Tournament_Round(QWidget):
             score_1, score_2 = self.table.cellWidget(row, 2).currentText().split(':')
         if score_1 == " " or score_2 == " ":
             return False
-        self.results[row] = ((self.results[row][0][0], score_1), (self.results[row][1][0], score_2))
+        self.enter_data_in_results(row, 0, 1, score_1)
+        self.enter_data_in_results(row, 1, 1, score_2)
         return True
 
+    def confirm_pairings(self):
+        all_pairings_confirmed = all(
+            self.enter_participant_in_results(row, column)
+            for row in range(self.table.rowCount() - 1) for column in (1, 3)
+        )
+        if all_pairings_confirmed and self.is_valid_pairings(self.results):
+            self.update_table()
+
     def confirm_results(self):
-        all_results_confirmed = all(self.enter_score_in_results(row) for row in range(self.table.rowCount()-1))
-        if all_results_confirmed:
-            self.confirmed_round.emit()
+        if all(self.enter_score_in_results(row) for row in range(self.table.rowCount()-1)):
+            self.confirmed_results.emit()
             self.update_table()
 
     def update_table(self):

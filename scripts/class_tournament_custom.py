@@ -54,6 +54,4 @@ class Tournament_Custom(Tournament):
         if self.get_pairings() is not None or self.is_done():
             return
         participant_uuids = self.get_participant_uuids() + [None]
-        self.set_pairings(
-            [(participant_uuids, participant_uuids) for _ in range(self.get_parameter("games_per_round"))]
-        )
+        self.set_pairings(self.get_parameter("games_per_round") * [(participant_uuids, participant_uuids)])

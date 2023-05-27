@@ -27,9 +27,8 @@ class Widget_Choice_Players(Widget_Default_Generic):
         make_headers_bold_horizontal(table)
         make_headers_bold_vertical(table)
 
-        header_horizontal = table.horizontalHeader()
+        header_horizontal, header_vertical = table.horizontalHeader(), table.verticalHeader()
         header_horizontal.setSectionResizeMode(0, QHeaderView.Stretch)
-        header_vertical = table.verticalHeader()
         header_vertical.setDefaultAlignment(Qt.AlignCenter)
         return table
 
@@ -73,10 +72,9 @@ class Widget_Choice_Teams(Widget_Default_Generic):
         make_headers_bold_horizontal(table)
         make_headers_bold_vertical(table)
 
-        header = table.horizontalHeader()
-        header.setSectionResizeMode(0, QHeaderView.Stretch)
-        header = table.verticalHeader()
-        header.setDefaultAlignment(Qt.AlignCenter)
+        header_horizontal, header_vertical = table.horizontalHeader(), table.verticalHeader()
+        header_horizontal.setSectionResizeMode(0, QHeaderView.Stretch)
+        header_vertical.setDefaultAlignment(Qt.AlignCenter)
         return table
 
     def get_buttons(self):
@@ -103,6 +101,9 @@ class Widget_Choice_Teams(Widget_Default_Generic):
             self.checked_uuids.remove((obj.get_uuid(), obj.get_uuid_associate()))
 
 
+type_to_widget = {"Players": Widget_Choice_Players, "Teams": Widget_Choice_Teams}
+
+
 class Window_Choice_Table(QMainWindow):
     window_closed = pyqtSignal()
 
@@ -112,11 +113,10 @@ class Window_Choice_Table(QMainWindow):
 
         excluded_uuids = excluded_uuids or []
         checked_uuids = checked_uuids or []
-        if object_type == "Players":
-            self.widget = Widget_Choice_Players(excluded_uuids, checked_uuids)
-        else:
-            self.widget = Widget_Choice_Teams(excluded_uuids, checked_uuids)
+
+        self.widget = type_to_widget[object_type](excluded_uuids, checked_uuids)
         self.setCentralWidget(self.widget)
+
         self.setFixedWidth(self.widget.table.maximumWidth() + 120)
         self.setFixedHeight(int(QApplication.primaryScreen().size().height() * .8))
 
