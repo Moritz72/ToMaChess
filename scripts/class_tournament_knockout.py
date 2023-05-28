@@ -2,6 +2,7 @@ from .class_tournament import Tournament
 from .class_armageddon import Armageddon
 from .functions_util import shorten_float
 from .functions_tournament_util import get_standings_header_vertical
+from .functions_categories import filter_list_by_category_range
 
 
 def move_on(uuid_1, uuid_2, participant_standings):
@@ -162,16 +163,19 @@ class Tournament_Knockout(Tournament):
             return f"Round {counter}.{r}"
         return f"Round {counter}.T{r - games}"
 
-    def get_standings(self):
+    def get_standings(self, category_range=None):
         header_horizontal = ["Name", "M", "MaPo"]
         participant_standings = self.get_variable("participant_standings")
+        participants = self.get_participants()
+        if category_range is not None:
+            participants = filter_list_by_category_range(participants, *category_range)
 
         table = sorted((
             (
                 participant,
                 participant_standings[participant.get_uuid()]["level"]-1,
                 shorten_float(participant_standings[participant.get_uuid()]["score"])
-            ) for participant in self.get_participants()
+            ) for participant in participants
         ), key=lambda x: x[1:], reverse=True)
 
         header_vertical = get_standings_header_vertical(table)

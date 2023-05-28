@@ -77,6 +77,6 @@ class Widget_Tournament_Cross_Table(QWidget):
                         self.table, results_matrix[i][j], i, j + 1, edit=False, align=Qt.AlignCenter, bold=True
                     )
 
-    def update_table(self):
+    def update(self):
         clear_table(self.table)
         self.fill_in_table()

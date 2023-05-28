@@ -1,5 +1,5 @@
 from PyQt5.QtWidgets import QTableWidget
-from .functions_gui import size_table, get_value_from_suitable_widget
+from .functions_gui import size_table, get_table_value
 
 
 class Table_Widget_Search(QTableWidget):
@@ -29,7 +29,9 @@ class Table_Widget_Search(QTableWidget):
         obj = self.objects[row]
         if obj is None:
             return
-        self.updated_objects_dict[id(obj)] = [self.get_table_value(row, column) for column in range(self.columnCount())]
+        self.updated_objects_dict[id(obj)] = [
+            get_table_value(self, row, column) for column in range(self.columnCount())
+        ]
 
     def resize_table(self):
         size_table(
@@ -49,19 +51,12 @@ class Table_Widget_Search(QTableWidget):
         self.objects.append(None)
         self.resize_table()
 
-    def get_table_value(self, row, column):
-        if self.cellWidget(row, column) is not None:
-            return get_value_from_suitable_widget(self.cellWidget(row, column))
-        if self.item(row, column) is None:
-            return ""
-        return self.item(row, column).text()
-
     def retrieve_changes(self):
         new_objects_count = self.objects.count(None)
         return tuple(obj for obj in self.objects if id(obj) in self.updated_objects_dict),\
             tuple(self.deleted_objects),\
             tuple(values for ids, values in self.updated_objects_dict.items()),\
             tuple(
-                [self.get_table_value(row, column) for column in range(self.columnCount())]
+                [get_table_value(self, row, column) for column in range(self.columnCount())]
                 for row in range(self.rowCount() - new_objects_count, self.rowCount())
             )

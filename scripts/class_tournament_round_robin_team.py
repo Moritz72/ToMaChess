@@ -50,9 +50,9 @@ class Tournament_Round_Robin_Team(Tournament_Round_Robin):
     def is_valid_parameters(self):
         return super().is_valid_parameters() and self.get_parameter("boards") > 0
 
-    def get_standings(self):
+    def get_standings(self, category_range=None):
         return get_standings_with_tiebreaks(self, {
             "results": self.get_results(), "score_dict": self.get_score_dict(),
             "score_dict_game": self.get_score_dict_game(), "all_participants": self.get_participants(),
             "results_individual": self.get_variable("results_individual")
-        })
+        }, category_range)

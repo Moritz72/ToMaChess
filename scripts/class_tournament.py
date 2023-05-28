@@ -219,8 +219,8 @@ class Tournament:
     def is_done():
         return False
 
-    def get_standings(self):
-        return get_standings_with_tiebreaks(self, dict())
+    def get_standings(self, category_range=None):
+        return get_standings_with_tiebreaks(self, dict(), category_range)
 
     def load_pairings(self):
         if self.get_pairings() is not None or self.is_done():

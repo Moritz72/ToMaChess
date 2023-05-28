@@ -2,6 +2,7 @@ from PyQt5.QtWidgets import QStackedWidget
 from PyQt5.QtCore import pyqtSignal
 from .widget_tournament_standings import Widget_Tournament_Standings
 from .widget_tournament_cross_table import Widget_Tournament_Cross_Table
+from .widget_tournament_standings_categories import Widget_Tournament_Standings_Categories
 from .widget_tournament_round import Widget_Tournament_Round
 from .widget_tournament_round_team import Widget_Tournament_Round_Team
 from .functions_tournament import update_tournament
@@ -56,10 +57,13 @@ class Stacked_Widget_Tournament(QStackedWidget):
         self.get_round_widget = get_round_widget_team if self.tournament.is_team_tournament() else get_round_widget
         self.round_widgets = []
 
-        self.standings_widget = Widget_Tournament_Standings(self.tournament)
-        self.cross_table_widget = Widget_Tournament_Cross_Table(self.tournament)
-        self.addWidget(self.standings_widget)
-        self.addWidget(self.cross_table_widget)
+        self.table_widgets = [
+            Widget_Tournament_Standings(self.tournament), Widget_Tournament_Cross_Table(self.tournament)
+        ]
+        if "category_ranges" in self.tournament.get_parameters() and self.tournament.get_parameter("category_ranges"):
+            self.table_widgets.append(Widget_Tournament_Standings_Categories(self.tournament))
+        for table_widget in self.table_widgets:
+            self.addWidget(table_widget)
 
         self.add_round_widgets()
         self.set_index()
@@ -93,7 +97,9 @@ class Stacked_Widget_Tournament(QStackedWidget):
         texts = ["Standings", "Crosstable"] + \
                 [self.tournament.get_round_name(i + 1) for i in range(len(self.round_widgets))] + \
                 ["Back"]
-        functions = [lambda _, index=i: self.setCurrentIndex(index) for i in range(len(self.round_widgets) + 2)] + \
+        if len(self.table_widgets) == 3:
+            texts.insert(2, "Categories")
+        functions = [lambda _, index=i: self.setCurrentIndex(index) for i in range(len(texts) - 1)] + \
                     [self.open_default]
         return tuple(
             {"text": text, "connect_function": function, "checkable": True} for text, function in zip(texts, functions)
@@ -118,8 +124,8 @@ class Stacked_Widget_Tournament(QStackedWidget):
 
     def update_rounds(self):
         update_tournament("", self.tournament)
-        self.standings_widget.update_table()
-        self.cross_table_widget.update_table()
+        for table_widget in self.table_widgets:
+            table_widget.update()
         self.add_new_round()
         self.make_side_menu.emit()
 

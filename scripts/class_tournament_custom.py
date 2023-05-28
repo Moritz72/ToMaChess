@@ -44,11 +44,11 @@ class Tournament_Custom(Tournament):
     def is_done(self):
         return self.get_round() > self.get_parameter("rounds")
 
-    def get_standings(self):
+    def get_standings(self, category_range=None):
         return get_standings_with_tiebreaks(self, {
             "results": self.get_results(), "score_dict": self.get_score_dict(),
             "all_participants": self.get_participants()
-        })
+        }, category_range)
 
     def load_pairings(self):
         if self.get_pairings() is not None or self.is_done():

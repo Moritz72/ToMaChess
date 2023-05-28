@@ -6,6 +6,7 @@ from reportlab.lib.units import inch
 from reportlab.pdfgen import canvas
 from reportlab.pdfbase.pdfmetrics import stringWidth
 from .class_settings_handler import settings_handler
+from .functions_categories import get_category_range_string
 
 FONT = "Helvetica"
 FONT_BOLD = "Helvetica-Bold"
@@ -31,6 +32,8 @@ def make_new_folder(tournament, sub_folder=""):
             os.mkdir(os.path.join(folder_path, "standings"))
             os.mkdir(os.path.join(folder_path, "pairings"))
             os.mkdir(os.path.join(folder_path, "results"))
+            if "category_ranges" in tournament.get_parameters() and tournament.get_parameter("category_ranges"):
+                os.mkdir(os.path.join(folder_path, "standings_categories"))
     except:
         return False
     return True
@@ -151,7 +154,7 @@ def add_table_to_pdf(
         text_on_top=[]
 ):
     if len(table) == 0 or len(table[0]) == 0:
-        return
+        return top_row - 2 * ROW_HEIGHT
 
     vertical_header_width = get_vertical_header_width(vertical_header)
     if column_widths is None:
@@ -240,6 +243,20 @@ def tournament_standings_to_pdf(tournament, sub_folder=""):
     aligns = ["LEFT"] + (len(header_horizontal) - 1) * ["CENTER"]
     table_data = (table, header_horizontal, header_vertical, column_widths, aligns, [f"Standings after {round_name}"])
     make_pdf_from_tables(filename, (table_data,))
+    if "category_ranges" not in tournament.get_parameters() or not tournament.get_parameter("category_ranges"):
+        return
+    filename = os.path.join(
+        settings_handler.settings['pdf_path'], sub_folder, tournament.get_name(), "standings_categories",
+        f"{round_name}.pdf"
+    )
+    tables_data = tuple(
+        (
+            tournament.get_standings(category_range)[2], header_horizontal, tournament.get_standings(category_range)[1],
+            column_widths, aligns, [f"Standings after {round_name} ({get_category_range_string(*category_range)})"]
+        )
+        for category_range in tournament.get_parameter("category_ranges")
+    )
+    make_pdf_from_tables(filename, tables_data)
 
 
 def tournament_pairings_to_pdf(tournament, sub_folder=""):

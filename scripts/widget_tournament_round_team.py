@@ -33,7 +33,7 @@ class Widget_Tournament_Round_Team(QWidget):
         self.layout.setContentsMargins(0, 0, 0, 0)
         self.setLayout(self.layout)
         _, widget_inner, _ = get_scroll_area_widgets_and_layouts(self.layout, self.round_widgets)
-        widget_inner.setFixedHeight(sum(round_widget.table.maximumHeight() + 20 for round_widget in self.round_widgets))
+        widget_inner.setFixedHeight(sum(round_widget.maximumHeight() for round_widget in self.round_widgets))
 
     def confirm_result(self):
         self.confirmed_results_counter += 1

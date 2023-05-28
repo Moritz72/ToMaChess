@@ -107,11 +107,11 @@ class Tournament_Round_Robin(Tournament):
         cycle, modulo_round = divmod(r - 1, participant_number - 1)
         return f"Round {cycle + 1}.{modulo_round + 1}"
 
-    def get_standings(self):
+    def get_standings(self, category_range=None):
         return get_standings_with_tiebreaks(self, {
             "results": self.get_results(), "score_dict": self.get_score_dict(),
             "all_participants": self.get_participants()
-        })
+        }, category_range)
 
     def load_pairings(self):
         if self.get_pairings() is not None or self.is_done():

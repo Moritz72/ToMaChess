@@ -325,6 +325,14 @@ def get_value_from_suitable_widget(widget):
         return widget.give_back()
 
 
+def get_table_value(table, row, column):
+    if table.cellWidget(row, column) is not None:
+        return get_value_from_suitable_widget(table.cellWidget(row, column))
+    if table.item(row, column) is None:
+        return ""
+    return table.item(row, column).text()
+
+
 def connect_widget(widget, function):
     if isinstance(widget, QLineEdit):
         widget.textChanged.connect(function)

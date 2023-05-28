@@ -1,5 +1,6 @@
 from random import shuffle
 from .functions_util import recursive_buckets, shorten_float
+from .functions_categories import filter_list_by_category_range
 
 
 def get_score_dict_by_point_system(point_system):
@@ -22,8 +23,13 @@ def get_standings_header_vertical(table):
     return header_vertical
 
 
-def get_standings_with_tiebreaks(tournament, tiebreak_args):
+def get_standings_with_tiebreaks(tournament, tiebreak_args, category_range=None):
     uuid_to_participant_dict = tournament.get_uuid_to_participant_dict()
+    if category_range is not None:
+        filtered_values = filter_list_by_category_range(uuid_to_participant_dict.values(), *category_range)
+        uuid_to_participant_dict = {
+            key: value for key, value in uuid_to_participant_dict.items() if value in filtered_values
+        }
     tiebreaks = [value for key, value in tournament.get_parameters().items() if key.startswith("tiebreak_")]
     header_horizontal = ["Name", "P"]
     rank_functions = [lambda x: tournament.get_simple_scores()]

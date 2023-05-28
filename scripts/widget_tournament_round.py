@@ -26,6 +26,10 @@ class Widget_Tournament_Round(QWidget):
         self.fill_in_table()
         self.layout.addWidget(self.table)
 
+        self.setMaximumHeight(
+            self.table.maximumHeight() + self.layout.contentsMargins().top() + self.layout.contentsMargins().bottom()
+        )
+
     def is_current(self):
         return any(score_1 is None or score_2 is None for (_, score_1), (_, score_2) in self.results)
 
