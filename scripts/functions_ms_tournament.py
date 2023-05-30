@@ -2,6 +2,7 @@ from json import loads
 from .class_database_handler import database_handler
 from .class_ms_tournament import MS_Tournament
 from .functions_player import load_players_all, add_players
+from .functions_team import load_teams_all, add_teams
 from .functions_tournament import load_tournaments_shallow_all, add_tournaments_shallow, update_tournaments
 
 
@@ -34,13 +35,16 @@ def load_ms_tournament(table_root, uuid, uuid_associate):
     )[0])
     json_loads_entry(entry)
     tournaments = load_tournaments_shallow_all(f"{table_root}ms_tournaments_", uuid)
-    players = load_players_all(f"{table_root}ms_tournaments_", uuid)
+    if tournaments[0].is_team_tournament():
+        participants = load_teams_all(f"{table_root}ms_tournaments_", uuid)
+    else:
+        participants = load_players_all(f"{table_root}ms_tournaments_", uuid)
     for tournament in tournaments:
-        tournament.set_participants(players)
-    return MS_Tournament(players, tournaments, *entry)
+        tournament.set_participants(participants)
+    return MS_Tournament(participants, tournaments, *entry)
 
 
-def load_ms_tournaments_like_shallow(table_root, uuid_associate, name, limit):
+def load_ms_tournaments_shallow_like(table_root, uuid_associate, name, limit):
     entries = [
         list(entry) for entry in database_handler.get_entries_like(
             f"{table_root}ms_tournaments", ("uuid_associate",), (uuid_associate,),
@@ -68,7 +72,15 @@ def add_ms_tournament(table_root, ms_tournament):
             for stage_tournaments in ms_tournament.get_stages_tournaments() for tournament in stage_tournaments
         )
     )
-    add_players(f"{table_root}ms_tournaments_", ms_tournament.get_participants())
+    if ms_tournament.is_team_tournament():
+        unique_members = list({
+            member.get_uuid(): member for member in
+            [member for team in ms_tournament.get_participants() for member in team.get_members()]
+        }.values())
+        add_players(f"{table_root}ms_tournaments_", unique_members)
+        add_teams(f"{table_root}ms_tournaments_", ms_tournament.get_participants())
+    else:
+        add_players(f"{table_root}ms_tournaments_", ms_tournament.get_participants())
 
 
 def add_ms_tournaments(table_root, ms_tournaments):
@@ -87,10 +99,16 @@ def add_ms_tournaments(table_root, ms_tournaments):
             for stage_tournaments in ms_tournament.get_stages_tournaments() for tournament in stage_tournaments
         ]
     )
-    add_players(
-        f"{table_root}ms_tournaments_",
-        tuple(participant for ms_tournament in ms_tournaments for participant in ms_tournament.get_participants())
-    )
+    players = []
+    teams = []
+    for ms_tournament in ms_tournaments:
+        if ms_tournament.is_team_tournament():
+            players.extend([member for team in ms_tournament.get_participants() for member in team.get_members()])
+            teams.extend(ms_tournament.get_participants())
+        else:
+            players.extend(ms_tournament.get_participants())
+    add_players(f"{table_root}ms_tournaments_", players)
+    add_teams(f"{table_root}ms_tournaments_", teams)
 
 
 def update_ms_tournament_shallow(table_root, ms_tournament):

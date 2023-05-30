@@ -112,7 +112,6 @@ class Stacked_Widget_Tournament(QStackedWidget):
         self.window_main.set_stacked_widget("Default")
 
     def pairings_confirmed(self):
-        self.tournament.set_pairings(self.sender().get_pairings())
         if not self.tournament.is_team_tournament():
             tournament_pairings_to_pdf(self.tournament, self.sub_folder)
 

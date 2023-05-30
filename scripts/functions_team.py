@@ -76,7 +76,7 @@ def load_teams_list(table_root, uuid_list, uuid_associate_list):
     return list(team_dict.values())
 
 
-def load_teams_like_shallow(table_root, uuid_associate, name, limit):
+def load_teams_shallow_like(table_root, uuid_associate, name, limit):
     entries = database_handler.get_entries_like(
         f"{table_root}teams", ("uuid_associate",), (uuid_associate,), ("name",), (name,), ("name",), (True,), limit
     )

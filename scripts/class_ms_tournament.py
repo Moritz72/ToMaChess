@@ -25,9 +25,15 @@ class MS_Tournament:
     def __str__(self):
         return self.name
 
+    def is_team_tournament(self):
+        return self.get_stage_tournaments(0)[0].is_team_tournament()
+
     def possess_participants_and_tournaments(self):
         for participant in self.get_participants():
             participant.set_uuid_associate(self.get_uuid())
+            if self.is_team_tournament():
+                for member in participant.get_members():
+                    member.set_uuid_associate(self.get_uuid())
         for stage_tournaments in self.get_stages_tournaments():
             for tournament in stage_tournaments:
                 tournament.set_uuid_associate(self.get_uuid())

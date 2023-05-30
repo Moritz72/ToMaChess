@@ -3,8 +3,8 @@ from PyQt5.QtCore import Qt, pyqtSignal
 from .table_widget_drag import Table_Widget_Drag_Light
 from .window_tournament_new import Window_Tournament_New
 from .window_choice_table import Window_Choice_Table
-from .window_advance_players import Window_Advance_Players
-from .functions_player import load_players_list
+from .window_advance_participants import Window_Advance_Participants
+from .functions_type import type_to_add_participant_window_args, get_function
 from .functions_gui import add_content_to_table, add_button_to_table, size_table, make_headers_bold_vertical,\
     make_headers_bold_horizontal, get_button, add_widgets_in_layout
 
@@ -12,16 +12,18 @@ from .functions_gui import add_content_to_table, add_button_to_table, size_table
 class Widget_MS_Tournament_Stage_New(QWidget):
     update_necessary = pyqtSignal()
 
-    def __init__(self, stage, parent_window):
+    def __init__(self, stage, parent_window, participant_type="player"):
         super().__init__()
         self.stage = stage
         self.parent_window = parent_window
+        self.participant_type = participant_type
 
+        self.load_function = get_function(participant_type, "load", multiple=True, specification="list")
         self.tournaments = []
         self.advance_lists = []
         self.new_tournament_window = None
-        self.add_players_window, self.add_players_tournament = None, None
-        self.advance_players_window, self.advance_players_tournament = None, None
+        self.add_participants_window, self.add_particiapants_tournament = None, None
+        self.advance_participants_window, self.advance_participants_tournament = None, None
 
         self.layout = QHBoxLayout()
         self.setLayout(self.layout)
@@ -41,7 +43,7 @@ class Widget_MS_Tournament_Stage_New(QWidget):
         add_content_to_table(self.table, participants, row, 2, edit=False, align=Qt.AlignCenter)
         add_button_to_table(
             self.table, row, 3, "medium", None, "Part.",
-            connect_function=self.open_add_players if self.stage == 0 else self.open_advance_players
+            connect_function=self.open_add_participants if self.stage == 0 else self.open_advance_participants
         )
         add_button_to_table(self.table, row, 4, "medium", None, "Copy", connect_function=self.copy_tournament)
         add_button_to_table(self.table, row, 5, "medium", None, '-', connect_function=self.remove_tournament)
@@ -74,7 +76,7 @@ class Widget_MS_Tournament_Stage_New(QWidget):
     def get_lower_tournaments(self):
         return self.parent_window.get_stage_widget(self.stage - 1).tournaments
 
-    def get_lower_player_counts(self):
+    def get_lower_participant_counts(self):
         return [len(advance_list) for advance_list in self.parent_window.get_stage_widget(self.stage - 1).advance_lists]
 
     def update_tournament_order(self):
@@ -98,7 +100,9 @@ class Widget_MS_Tournament_Stage_New(QWidget):
         self.fill_in_table()
 
     def open_new_tournament_window(self):
-        self.new_tournament_window = Window_Tournament_New(add_participants=False)
+        self.new_tournament_window = Window_Tournament_New(
+            participant_type=self.participant_type, add_participants=False
+        )
         self.new_tournament_window.added_tournament.connect(self.add_tournament)
         self.new_tournament_window.show()
 
@@ -120,63 +124,65 @@ class Widget_MS_Tournament_Stage_New(QWidget):
 
     def validate_advance_lists(self):
         lower_tournaments = self.get_lower_tournaments()
-        lower_player_counts = self.get_lower_player_counts()
+        lower_participant_counts = self.get_lower_participant_counts()
 
         for i in range(len(self.advance_lists)):
             self.advance_lists[i] = [
                 (tournament, placement) for tournament, placement in self.advance_lists[i]
                 if tournament in lower_tournaments
-                and placement <= lower_player_counts[lower_tournaments.index(tournament)]
+                and placement <= lower_participant_counts[lower_tournaments.index(tournament)]
             ]
             self.advance_lists[i] = list({entry: None for entry in self.advance_lists[i]}.keys())
 
         self.fill_in_table()
 
-    def update_added_players(self):
-        players = load_players_list("", *self.add_players_window.get_checked_uuids())
-        self.add_players_tournament.set_participants(players)
-        index = self.tournaments.index(self.add_players_tournament)
+    def update_added_participants(self):
+        participants = self.load_function("", *self.add_participants_window.get_checked_uuids())
+        self.add_particiapants_tournament.set_participants(participants)
+        index = self.tournaments.index(self.add_particiapants_tournament)
         self.advance_lists[index] = [(None, i + 1) for i in range(len(self.tournaments[index].get_participants()))]
 
-        self.add_players_window, self.add_players_tournament = None, None
+        self.add_participants_window, self.add_particiapants_tournament = None, None
         self.fill_in_table()
         self.update_necessary.emit()
 
-    def open_add_players(self):
+    def open_add_participants(self):
         row = self.table.currentRow()
-        if self.add_players_window is not None:
-            self.add_players_window.close()
-        self.add_players_tournament = self.tournaments[row]
+        if self.add_participants_window is not None:
+            self.add_participants_window.close()
+        self.add_particiapants_tournament = self.tournaments[row]
         checked_uuids = [
             (participant.get_uuid(), participant.get_uuid_associate())
-            for participant in self.add_players_tournament.get_participants()
+            for participant in self.add_particiapants_tournament.get_participants()
         ]
-        self.add_players_window = Window_Choice_Table("Add Players", "Players", checked_uuids=checked_uuids)
-        self.add_players_window.window_closed.connect(self.update_added_players)
-        self.add_players_window.show()
+        self.add_participants_window = Window_Choice_Table(
+            *type_to_add_participant_window_args[self.participant_type], checked_uuids=checked_uuids
+        )
+        self.add_participants_window.window_closed.connect(self.update_added_participants)
+        self.add_participants_window.show()
 
-    def update_advance_players(self):
+    def update_advance_participants(self):
         list_entries = [
             (
-                self.advance_players_window.table.cellWidget(row, 0).currentData(),
-                int(self.advance_players_window.table.cellWidget(row, 1).currentText())
+                self.advance_participants_window.table.cellWidget(row, 0).currentData(),
+                int(self.advance_participants_window.table.cellWidget(row, 1).currentText())
             )
-            for row in range(self.advance_players_window.table.rowCount())
+            for row in range(self.advance_participants_window.table.rowCount())
         ]
-        index = self.tournaments.index(self.advance_players_tournament)
+        index = self.tournaments.index(self.advance_participants_tournament)
         self.advance_lists[index] = list_entries
 
-        self.advance_players_window, self.advance_players_tournament = None, None
+        self.advance_participants_window, self.advance_participants_tournament = None, None
         self.fill_in_table()
         self.update_necessary.emit()
 
-    def open_advance_players(self):
+    def open_advance_participants(self):
         row = self.table.currentRow()
-        if self.advance_players_window is not None:
-            self.advance_players_window.close()
-        self.advance_players_tournament = self.tournaments[row]
-        self.advance_players_window = Window_Advance_Players(
-            self.advance_lists[row], self.get_lower_tournaments(), self.get_lower_player_counts()
+        if self.advance_participants_window is not None:
+            self.advance_participants_window.close()
+        self.advance_participants_tournament = self.tournaments[row]
+        self.advance_participants_window = Window_Advance_Participants(
+            self.advance_lists[row], self.get_lower_tournaments(), self.get_lower_participant_counts()
         )
-        self.advance_players_window.window_closed.connect(self.update_advance_players)
-        self.advance_players_window.show()
+        self.advance_participants_window.window_closed.connect(self.update_advance_participants)
+        self.advance_participants_window.show()

@@ -3,7 +3,7 @@ from PyQt5.QtCore import Qt
 from .class_team import Team
 from .table_widget_search import Table_Widget_Search
 from .widget_default_generic import Widget_Default_Generic
-from .functions_team import load_teams_like_shallow, update_teams, remove_teams, add_teams, load_team
+from .functions_team import load_teams_shallow_like, update_teams, remove_teams, add_teams, load_team
 from .functions_gui import add_content_to_table, add_button_to_table, make_headers_bold_horizontal,\
     make_headers_bold_vertical, get_button
 from .window_team_edit import Window_Team_Edit
@@ -11,7 +11,7 @@ from .window_team_edit import Window_Team_Edit
 
 class Widget_Teams(Widget_Default_Generic):
     def __init__(self):
-        super().__init__("Teams", load_teams_like_shallow, update_teams, remove_teams, add_teams)
+        super().__init__("Teams", load_teams_shallow_like, update_teams, remove_teams, add_teams)
         self.window_team_edit = None
 
     @staticmethod

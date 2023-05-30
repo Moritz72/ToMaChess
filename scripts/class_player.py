@@ -6,7 +6,7 @@ titles = ("CM", "FM", "IM", "GM", "WCM", "WFM", "WIM", "WGM")
 
 class Player:
     def __init__(
-            self, name, sex=None, birthday=None, country=None, title=None, rating=0, uuid=None,
+            self, name, sex=None, birthday=None, country=None, title=None, rating=None, uuid=None,
             uuid_associate="00000000-0000-0000-0000-000000000000"
     ):
         self.name = self.sex = self.birthday = self.country = self.title = self.rating = None
@@ -61,7 +61,8 @@ class Player:
         return self.country
 
     def set_country(self, country):
-        self.country = country
+        if country:
+            self.country = country
 
     def get_title(self):
         return self.title

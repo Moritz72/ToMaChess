@@ -2,7 +2,7 @@ from PyQt5.QtWidgets import QHeaderView
 from PyQt5.QtCore import Qt, pyqtSignal
 from .table_widget_search import Table_Widget_Search
 from .widget_default_generic import Widget_Default_Generic
-from .functions_ms_tournament import load_ms_tournaments_like_shallow, update_ms_tournaments_shallow,\
+from .functions_ms_tournament import load_ms_tournaments_shallow_like, update_ms_tournaments_shallow,\
     remove_ms_tournaments, add_ms_tournament, load_ms_tournament
 from .functions_gui import add_content_to_table, add_button_to_table, make_headers_bold_horizontal,\
     make_headers_bold_vertical, get_button
@@ -15,7 +15,7 @@ class Widget_MS_Tournaments(Widget_Default_Generic):
     def __init__(self):
         super().__init__(
             "Multi-Stage Tournaments",
-            load_ms_tournaments_like_shallow, update_ms_tournaments_shallow, remove_ms_tournaments, None
+            load_ms_tournaments_shallow_like, update_ms_tournaments_shallow, remove_ms_tournaments, None
         )
         self.new_tournament_window = None
 
@@ -32,9 +32,15 @@ class Widget_MS_Tournaments(Widget_Default_Generic):
         return table
 
     def get_buttons(self):
-        add_button = get_button("large", (12, 5), "Add\nTournament", connect_function=self.open_new_tournament_window)
+        add_button = get_button(
+            "large", (12, 5), "Add\nTournament", connect_function=lambda: self.open_new_tournament_window({})
+        )
+        add_button_team = get_button(
+            "large", (12, 5), "Add Team\nTournament",
+            connect_function=lambda: self.open_new_tournament_window({"participant_type": "team"})
+        )
         save_button = get_button("large", (12, 5), "Save", connect_function=self.update_database)
-        return add_button, save_button
+        return add_button, add_button_team, save_button
 
     def get_object_from_values(self, values):
         pass
@@ -54,10 +60,10 @@ class Widget_MS_Tournaments(Widget_Default_Generic):
     def open_tournament(self):
         self.selected_tournament.emit()
 
-    def open_new_tournament_window(self):
+    def open_new_tournament_window(self, args):
         if self.new_tournament_window is not None:
             self.new_tournament_window.close()
-        self.new_tournament_window = Window_MS_Tournament_New()
+        self.new_tournament_window = Window_MS_Tournament_New(**args)
         self.new_tournament_window.added_tournament.connect(self.add_tournament)
         self.new_tournament_window.show()
 

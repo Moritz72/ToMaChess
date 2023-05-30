@@ -1,8 +1,10 @@
 from math import inf
 
 integer_categories = ("Rating", "Birth")
-type_to_categories = {"player": ("Rating", "Birth", "Sex"), "team": tuple()}
-category_to_method_string = {"Rating": "get_rating", "Birth": "get_birthday", "Sex": "get_sex"}
+type_to_categories = {"player": ("Rating", "Birth", "Sex", "Federation"), "team": tuple()}
+category_to_method_string = {
+    "Rating": "get_rating", "Birth": "get_birthday", "Sex": "get_sex", "Federation": "get_country"
+}
 
 
 def get_category_range_string(category, bottom, top):
@@ -20,7 +22,9 @@ def object_in_category_range(obj, category, bottom, top):
     if hasattr(obj, method_string):
         method = getattr(obj, method_string)
         if callable(method):
-            value = method() or (0 if category in integer_categories else "")
+            value = method()
+            if value is None:
+                return False
             return bottom <= value <= top
     return False
 

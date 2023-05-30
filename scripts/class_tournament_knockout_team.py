@@ -17,7 +17,8 @@ def move_on(uuid_1, uuid_2, participant_standings):
 
 
 def add_result_to_participant_standings(
-        uuid_1, uuid_2, score_1, score_2, participant_standings, score_dict, individual):
+        uuid_1, uuid_2, score_1, score_2, participant_standings, score_dict, individual
+):
     if score_1 == '-' == score_2:
         participant_standings[uuid_1]["score"] += .5
         participant_standings[uuid_2]["score"] += .5

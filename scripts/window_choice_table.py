@@ -3,7 +3,7 @@ from PyQt5.QtCore import Qt, pyqtSignal
 from .table_widget_search import Table_Widget_Search
 from .widget_default_generic import Widget_Default_Generic
 from .functions_player import load_players_like
-from .functions_team import load_teams_like_shallow
+from .functions_team import load_teams_shallow_like
 from .functions_gui import add_content_to_table, make_headers_bold_horizontal, make_headers_bold_vertical,\
     get_check_box
 
@@ -63,7 +63,7 @@ class Widget_Choice_Players(Widget_Default_Generic):
 class Widget_Choice_Teams(Widget_Default_Generic):
     def __init__(self, excluded_uuids, checked_uuids):
         self.checked_uuids = set(checked_uuids)
-        super().__init__("Teams", get_load_function_exclude(load_teams_like_shallow, excluded_uuids), None, None, None)
+        super().__init__("Teams", get_load_function_exclude(load_teams_shallow_like, excluded_uuids), None, None, None)
 
     @staticmethod
     def get_table():

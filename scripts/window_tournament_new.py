@@ -1,18 +1,11 @@
 from PyQt5.QtWidgets import QMainWindow, QWidget, QVBoxLayout, QHBoxLayout, QLabel, QSplitter
 from PyQt5.QtCore import pyqtSignal
-from .functions_player import load_players_list
-from .functions_team import load_teams_list
-from .functions_tournament import modes, modes_team, mode_default, mode_default_team
+from .functions_type import type_to_modes, type_to_mode_default, type_to_add_participant_window_args, get_function
 from .functions_categories import type_to_categories
 from .functions_gui import add_widgets_to_layout, get_suitable_widget, get_value_from_suitable_widget,\
     get_button, get_label, get_lineedit, get_combo_box, get_scroll_area_widgets_and_layouts
 from .window_choice_table import Window_Choice_Table
 from .window_add_categories import Window_Add_Categories
-
-type_to_modes = {"player": modes, "team": modes_team}
-type_to_mode_default = {"player": mode_default, "team": mode_default_team}
-type_to_load_functon = {"player": load_players_list, "team": load_teams_list}
-type_to_add_participant_window_args = {"player": ("Add Player", "Players"), "team": ("Add Teams", "Teams")}
 
 
 class Window_Tournament_New(QMainWindow):
@@ -25,7 +18,7 @@ class Window_Tournament_New(QMainWindow):
         self.add_participants = add_participants
         self.modes = type_to_modes[participant_type]
         self.mode_default = type_to_mode_default[participant_type]
-        self.load_function = type_to_load_functon[participant_type]
+        self.load_function = get_function(participant_type, "load", multiple=True, specification="list")
         self.add_participants_window = Window_Choice_Table(*type_to_add_participant_window_args[participant_type])
         self.categories = type_to_categories[participant_type]
         self.add_categories_window = Window_Add_Categories(self.categories)
@@ -56,7 +49,7 @@ class Window_Tournament_New(QMainWindow):
         if not self.add_participants:
             add_participants_button.setVisible(False)
         mode_label = get_label("Mode", "large")
-        combo_box = get_combo_box(list(self.modes), "medium", (15, 3), mode_default)
+        combo_box = get_combo_box(list(self.modes), "medium", (15, 3), self.mode_default)
         combo_box.activated[str].connect(lambda: self.set_right_side(list(self.modes)[combo_box.currentIndex()]))
         create_button = get_button("large", (11, 4), "Create", connect_function=self.create_tournament)
         add_categories_button = get_button(

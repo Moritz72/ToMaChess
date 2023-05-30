@@ -313,7 +313,7 @@ def tournament_results_to_pdf(tournament, sub_folder=""):
             ]
             tables_data.append((
                 table, header_horizontal, header_vertical, column_widths, aligns,
-                [f"Results of Round {round_name}"] if len(tables_data) == 0 else []
+                [f"Results of {round_name}"] if len(tables_data) == 0 else []
             ))
     else:
         header_horizontal = ("White", "", "Black")

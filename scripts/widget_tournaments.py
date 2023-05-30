@@ -2,7 +2,7 @@ from PyQt5.QtWidgets import QHeaderView
 from PyQt5.QtCore import Qt, pyqtSignal
 from .table_widget_search import Table_Widget_Search
 from .widget_default_generic import Widget_Default_Generic
-from .functions_tournament import load_tournaments_like_shallow, update_tournaments_shallow, remove_tournaments,\
+from .functions_tournament import load_tournaments_shallow_like, update_tournaments_shallow, remove_tournaments,\
     add_tournament, load_tournament
 from .functions_gui import add_content_to_table, add_button_to_table, make_headers_bold_horizontal,\
     make_headers_bold_vertical, get_button
@@ -15,7 +15,7 @@ class Widget_Tournaments(Widget_Default_Generic):
     def __init__(self):
         super().__init__(
             "Tournaments",
-            load_tournaments_like_shallow, update_tournaments_shallow, remove_tournaments, None
+            load_tournaments_shallow_like, update_tournaments_shallow, remove_tournaments, None
         )
         self.new_tournament_window = None
 

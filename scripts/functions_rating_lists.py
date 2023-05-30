@@ -78,7 +78,7 @@ def update_list(name, number, get_list):
     collection_uuid = get_uuid_from_numbers(number, 0)
     if collection_exists("", collection_uuid):
         uuids_to_delete = set(
-            tuple(entry[:-2])
+            tuple(entry[-2:])
             for entry in database_handler.get_entries("players", ("uuid_associate",), (collection_uuid,))
         ) - set((get_uuid_from_numbers(number, entry["id"]), collection_uuid) for entry in player_list)
     else:
@@ -92,6 +92,9 @@ def update_list(name, number, get_list):
                 get_uuid_from_numbers(number, entry["id"]), collection_uuid
             ) for entry in player_list
         )
+    )
+    database_handler.delete_entries_list(
+        "players", ("uuid", "uuid_associate"), [list(entry) for entry in zip(*uuids_to_delete)]
     )
 
 

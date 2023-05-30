@@ -59,13 +59,13 @@ def load_tournament(table_root, uuid, uuid_associate):
     )[0])
     json_loads_entry(entry)
     if entry[0] in modes:
-        participants = load_players_all(f"{table_root}tournaments_", entry[-2])
+        participants = load_players_all(f"{table_root}tournaments_", uuid)
     else:
-        participants = load_teams_all(f"{table_root}tournaments_", entry[-2])
+        participants = load_teams_all(f"{table_root}tournaments_", uuid)
     return get_tournament(participants, entry)
 
 
-def load_tournaments_like_shallow(table_root, uuid_associate, name, limit):
+def load_tournaments_shallow_like(table_root, uuid_associate, name, limit):
     entries = [
         list(entry) for entry in database_handler.get_entries_like(
             f"{table_root}tournaments", ("uuid_associate",), (uuid_associate,),

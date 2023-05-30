@@ -9,10 +9,11 @@ from .functions_gui import get_button, get_scroll_area_widgets_and_layouts, add_
 class Window_MS_Tournament_New(QMainWindow):
     added_tournament = pyqtSignal()
 
-    def __init__(self):
+    def __init__(self, participant_type="player"):
         super().__init__()
         self.setWindowTitle("New Multi-Stage Tournament")
 
+        self.participant_type = participant_type
         self.name_line = None
         self.draw_lots_check = None
         self.new_tournament = None
@@ -54,7 +55,7 @@ class Window_MS_Tournament_New(QMainWindow):
 
     def add_stage(self):
         stage = self.layout_inner.count()
-        widget = Widget_MS_Tournament_Stage_New(stage, self)
+        widget = Widget_MS_Tournament_Stage_New(stage, self, participant_type=self.participant_type)
         self.layout_inner.addWidget(widget)
         widget.update_necessary.connect(self.validate_advance_lists_signal)
 

@@ -15,41 +15,45 @@ class Database_Handler:
         self.create_tables()
 
     def add_entry(self, table, column_names, column_values):
-        query = f"INSERT INTO {table} ({', '.join(column_names)}) VALUES ({', '.join(['?']*len(column_names))})"
+        query = f"INSERT INTO {table} ({', '.join(column_names)}) VALUES ({', '.join(['?'] * len(column_names))})"
         self.cursor.execute(query, column_values)
         self.conn.commit()
 
     def add_entries(self, table, column_names, column_values_list):
         if not list(column_values_list):
             return
-        query = f"INSERT INTO {table} ({', '.join(column_names)}) VALUES ({', '.join(['?']*len(column_names))})"
+        query = f"INSERT INTO {table} ({', '.join(column_names)}) VALUES ({', '.join(['?'] * len(column_names))})"
         self.cursor.executemany(query, column_values_list)
         self.conn.commit()
 
     def add_or_update_entry(self, table, column_names, column_values):
+        self.conn.execute("PRAGMA foreign_keys = OFF;")
         query = (
             f"INSERT OR REPLACE INTO {table} "
-            f"({', '.join(column_names)}) VALUES ({', '.join(['?']*len(column_names))})"
+            f"({', '.join(column_names)}) VALUES ({', '.join(['?'] * len(column_names))})"
         )
         self.cursor.execute(query, column_values)
         self.conn.commit()
+        self.conn.execute("PRAGMA foreign_keys = ON;")
 
     def add_or_update_entries(self, table, column_names, column_values_list):
         if not list(column_values_list):
             return
+        self.conn.execute("PRAGMA foreign_keys = OFF;")
         query = (
             f"INSERT OR REPLACE INTO {table} "
-            f"({', '.join(column_names)}) VALUES ({', '.join(['?']*len(column_names))})"
+            f"({', '.join(column_names)}) VALUES ({', '.join(['?'] * len(column_names))})"
         )
         self.cursor.executemany(query, column_values_list)
         self.conn.commit()
+        self.conn.execute("PRAGMA foreign_keys = ON;")
 
     def update_entry(self, table, search_column_names, search_column_values, enter_column_names, enter_column_values):
         query = (
             f"UPDATE {table} SET {', '.join((column_name + ' = ?' for column_name in enter_column_names))} "
             f"WHERE {' AND '.join([column_name + ' = ?' for column_name in search_column_names])}"
         )
-        self.cursor.execute(query, list(enter_column_values)+list(search_column_values))
+        self.cursor.execute(query, list(enter_column_values) + list(search_column_values))
         self.conn.commit()
 
     def update_entries(
@@ -247,6 +251,26 @@ class Database_Handler:
             uuid_associate TEXT,
             FOREIGN KEY (uuid_associate) REFERENCES ms_tournaments(uuid) ON DELETE CASCADE,
             PRIMARY KEY (uuid, uuid_associate)
+        )
+        """)
+        self.cursor.execute("""
+        CREATE TABLE ms_tournaments_teams
+        (
+            name TEXT, members INTEGER, uuid TEXT, uuid_associate TEXT,
+            FOREIGN KEY (uuid_associate) REFERENCES ms_tournaments(uuid) ON DELETE CASCADE,
+            PRIMARY KEY (uuid, uuid_associate)
+        )
+        """)
+        self.cursor.execute("""
+        CREATE TABLE ms_tournaments_players_to_teams
+        (
+            uuid_player TEXT, uuid_associate_player TEXT, uuid_team TEXT, uuid_associate_team TEXT,
+            member_order INTEGER,
+            FOREIGN KEY (uuid_player, uuid_associate_player)
+            REFERENCES ms_tournaments_players(uuid, uuid_associate) ON DELETE CASCADE,
+            FOREIGN KEY (uuid_team, uuid_associate_team)
+            REFERENCES ms_tournaments_teams(uuid, uuid_associate) ON DELETE CASCADE,
+            PRIMARY KEY (uuid_player, uuid_associate_player, uuid_team, uuid_associate_team)
         )
         """)
         self.add_entries(
