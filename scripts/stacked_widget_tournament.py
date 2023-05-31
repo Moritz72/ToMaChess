@@ -5,6 +5,7 @@ from .widget_tournament_cross_table import Widget_Tournament_Cross_Table
 from .widget_tournament_standings_categories import Widget_Tournament_Standings_Categories
 from .widget_tournament_round import Widget_Tournament_Round
 from .widget_tournament_round_team import Widget_Tournament_Round_Team
+from .window_confirm import Window_Confirm
 from .functions_tournament import update_tournament
 from .functions_export import tournament_standings_to_pdf, tournament_participants_to_pdf, tournament_pairings_to_pdf,\
     tournament_results_to_pdf
@@ -55,7 +56,8 @@ class Stacked_Widget_Tournament(QStackedWidget):
         self.tournament = tournament
         self.sub_folder = sub_folder
         self.get_round_widget = get_round_widget_team if self.tournament.is_team_tournament() else get_round_widget
-        self.round_widgets = []
+        self.window_confirm = Window_Confirm("Undo Last Round")
+        self.window_confirm.confirmed.connect(self.undo_last_round)
 
         self.table_widgets = [
             Widget_Tournament_Standings(self.tournament), Widget_Tournament_Cross_Table(self.tournament)
@@ -71,7 +73,6 @@ class Stacked_Widget_Tournament(QStackedWidget):
 
     def add_round_widget(self, roun, current):
         widget = self.get_round_widget(self.tournament, roun, current)
-        self.round_widgets.append(widget)
         self.addWidget(widget)
         if current:
             widget.confirmed_pairings.connect(self.pairings_confirmed)
@@ -94,16 +95,19 @@ class Stacked_Widget_Tournament(QStackedWidget):
             self.setCurrentIndex(self.count() - 1)
 
     def get_buttons_args(self):
-        texts = ["Standings", "Crosstable"] + \
-                [self.tournament.get_round_name(i + 1) for i in range(len(self.round_widgets))] + \
-                ["Back"]
+        texts = ["Standings", "Crosstable"]
         if len(self.table_widgets) == 3:
-            texts.insert(2, "Categories")
-        functions = [lambda _, index=i: self.setCurrentIndex(index) for i in range(len(texts) - 1)] + \
-                    [self.open_default]
-        return tuple(
-            {"text": text, "connect_function": function, "checkable": True} for text, function in zip(texts, functions)
-        )
+            texts.append("Categories")
+        texts.extend([self.tournament.get_round_name(i + 1) for i in range(self.count() - len(self.table_widgets))])
+
+        buttons_args = [
+            {"text": text, "connect_function": lambda _, index=i: self.setCurrentIndex(index), "checkable": True}
+            for i, text in enumerate(texts)
+        ]
+        buttons_args.append({"enabled": False})
+        buttons_args.append({"text": "Undo Last Round", "connect_function": self.undo_last_round_confirm})
+        buttons_args.append({"text": "Back", "connect_function": self.open_default, "bold": True})
+        return buttons_args
 
     def get_active_button_index(self):
         return self.currentIndex()
@@ -119,20 +123,31 @@ class Stacked_Widget_Tournament(QStackedWidget):
         self.tournament.add_results(self.sender().get_results())
         tournament_results_to_pdf(self.tournament, self.sub_folder)
         tournament_standings_to_pdf(self.tournament, self.sub_folder)
+        self.add_new_round()
+        self.update_rounds()
+
+    def undo_last_round_confirm(self):
+        if self.tournament.get_round() == 1:
+            return
+        self.window_confirm.show()
+
+    def undo_last_round(self):
+        self.window_confirm.close()
+        self.removeWidget(self.widget(self.count() - 1))
+        if not self.tournament.is_done():
+            self.removeWidget(self.widget(self.count() - 1))
+        self.tournament.remove_results()
+        self.add_new_round()
         self.update_rounds()
 
     def update_rounds(self):
         update_tournament("", self.tournament)
         for table_widget in self.table_widgets:
             table_widget.update()
-        self.add_new_round()
         self.make_side_menu.emit()
 
     def add_new_round(self):
         self.tournament.load_pairings()
-        if self.tournament.get_pairings() is None:
-            self.setCurrentIndex(0)
-        else:
-            roun = self.tournament.get_round()
-            self.add_round_widget(roun, True)
-            self.setCurrentIndex(self.count() - 1)
+        if self.tournament.get_pairings() is not None:
+            self.add_round_widget(self.tournament.get_round(), True)
+        self.set_index()

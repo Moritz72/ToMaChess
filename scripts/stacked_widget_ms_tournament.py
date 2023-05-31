@@ -32,7 +32,7 @@ class Stacked_Widget_MS_Tournament(QStackedWidget):
         ]
 
         for i, tournament_buttons_args in enumerate(tournaments_buttons_args):
-            for args in tournament_buttons_args:
+            for args in tournament_buttons_args[:-2]:
                 temp = args["connect_function"]
                 del args["connect_function"]
                 args["connect_function"] = lambda _, index=i, func=temp: (func(_), self.setCurrentIndex(index))
@@ -43,14 +43,10 @@ class Stacked_Widget_MS_Tournament(QStackedWidget):
             buttons_args.append({"enabled": False})
 
         if self.stage > 0:
-            buttons_args.append(
-                {"text": "Previous Stage", "connect_function": self.move_down_stage, "bold": True, "checkable": True}
-            )
+            buttons_args.append({"text": "Previous Stage", "connect_function": self.move_down_stage, "bold": True})
         if self.stage < self.ms_tournament.get_stage():
-            buttons_args.append(
-                {"text": "Next Stage", "connect_function": self.move_up_stage, "bold": True, "checkable": True}
-            )
-        buttons_args.append({"text": "Back", "connect_function": self.open_default, "bold": True, "checkable": True})
+            buttons_args.append({"text": "Next Stage", "connect_function": self.move_up_stage, "bold": True})
+        buttons_args.append({"text": "Back", "connect_function": self.open_default, "bold": True})
 
         return buttons_args
 

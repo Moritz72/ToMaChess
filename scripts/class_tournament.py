@@ -181,6 +181,13 @@ class Tournament:
         self.set_pairings(None)
         self.set_round(self.get_round() + 1)
 
+    def remove_results(self):
+        self.set_round(self.get_round() - 1)
+        self.set_pairings(None)
+        self.get_results().pop()
+        if self.is_team_tournament():
+            self.get_results_individual().pop()
+
     @staticmethod
     def get_round_name(r):
         return f"Round {r}"

@@ -1,90 +1,31 @@
+from .class_tournament import Tournament
 from .class_tournament_knockout import Tournament_Knockout
 from .class_armageddon import Armageddon
 from .functions_util import shorten_float
-from .functions_tournament_util import get_standings_header_vertical, get_team_result
+from .functions_tournament_knockout import get_end_rounds, update_participant_standings, reverse_participant_standings
+from .functions_tournament_util import get_standings_header_vertical
 from .functions_categories import filter_list_by_category_range
 
 
-def move_on(uuid_1, uuid_2, participant_standings):
-    participant_standings[uuid_1]["level"] += 1
-    participant_standings[uuid_1]["score"] = 0
-    participant_standings[uuid_1]["board_points"] = 0
-    participant_standings[uuid_1]["bewe"] = 0
-    participant_standings[uuid_1]["seating"] = min(
-        participant_standings[uuid_1]["seating"], participant_standings[uuid_2]["seating"]
-    )
-    participant_standings[uuid_2]["alive"] = False
+def get_totals(games, games_per_tiebreak, boards):
+    return [games, games * boards, games * boards * (boards + 1) / 2], \
+           [games_per_tiebreak, games_per_tiebreak * boards, games_per_tiebreak * boards * (boards + 1) / 2]
 
 
-def add_result_to_participant_standings(
-        uuid_1, uuid_2, score_1, score_2, participant_standings, score_dict, individual
-):
+def get_scores_mini(score_1, score_2, score_dict, factor=1):
     if score_1 == '-' == score_2:
-        participant_standings[uuid_1]["score"] += .5
-        participant_standings[uuid_2]["score"] += .5
-    else:
-        participant_standings[uuid_1]["score"] += score_dict[score_1]
-        participant_standings[uuid_2]["score"] += score_dict[score_2]
-    participant_standings[uuid_1]["board_points"] += sum(
-        .5 if score_1 == '-' == score_2 else score_dict[score_1] for (_, score_1), (_, score_2) in individual
-    )
-    participant_standings[uuid_2]["board_points"] += sum(
-        .5 if score_1 == '-' == score_2 else score_dict[score_2] for (_, score_1), (_, score_2) in individual
-    )
-    participant_standings[uuid_1]["bewe"] += sum(
-        .5 * (len(individual) - i) if score_1 == '-' == score_2 else score_dict[score_1] * (len(individual) - i)
+        return .5 * factor, .5 * factor
+    return score_dict[score_1] * factor, score_dict[score_2] * factor
+
+
+def get_scores(score_1, score_2, individual, score_dict, score_dict_game):
+    team_points = get_scores_mini(score_1, score_2, score_dict)
+    board_points = [get_scores_mini(score_1, score_2, score_dict_game) for (_, score_1), (_, score_2) in individual]
+    berlins = [
+        get_scores_mini(score_1, score_2, score_dict_game, factor=len(individual) - i)
         for i, ((_, score_1), (_, score_2)) in enumerate(individual)
-    )
-    participant_standings[uuid_2]["bewe"] += sum(
-        .5 * (len(individual) - i) if score_1 == '-' == score_2 else score_dict[score_2] * (len(individual) - i)
-        for i, ((_, score_1), (_, score_2)) in enumerate(individual)
-    )
-
-
-def get_value_tuple(participant_standings, uuid):
-    return participant_standings[uuid]["score"], participant_standings[uuid]["board_points"], \
-           participant_standings[uuid]["bewe"]
-
-
-def update_participant_standings(
-        results, results_individual, participant_standings, score_dict, games, games_per_tiebreak
-):
-    for ((uuid_1, score_1), (uuid_2, score_2)), individual in zip(results, results_individual):
-        add_result_to_participant_standings(
-            uuid_1, uuid_2, score_1, score_2, participant_standings, score_dict, individual
-        )
-        score_sum = participant_standings[uuid_1]["score"] + participant_standings[uuid_2]["score"]
-        if score_sum < games:
-            if participant_standings[uuid_1]["score"] > games / 2:
-                move_on(uuid_1, uuid_2, participant_standings)
-            elif participant_standings[uuid_2]["score"] > games / 2:
-                move_on(uuid_2, uuid_1, participant_standings)
-        elif (score_sum - games) % games_per_tiebreak == 0:
-            tuple_1 = get_value_tuple(participant_standings, uuid_1)
-            tuple_2 = get_value_tuple(participant_standings, uuid_2)
-            if tuple_1 > tuple_2:
-                move_on(uuid_1, uuid_2, participant_standings)
-            elif tuple_2 > tuple_1:
-                move_on(uuid_2, uuid_1, participant_standings)
-
-
-def get_end_rounds(participant_standings, games, games_per_tiebreak, boards):
-    levels_max = dict()
-    for standing in participant_standings.values():
-        value_tuple = (standing["score"], standing["board_points"], standing["bewe"])
-        if standing["level"] not in levels_max or levels_max[standing["level"]] < value_tuple:
-            levels_max[standing["level"]] = value_tuple
-    end_rounds = []
-    for level, (max_score, max_board_points, max_bewe) in sorted(levels_max.items()):
-        if max_score < games / 2:
-            end_rounds.append(int(games / 2 + max_score + 1))
-        else:
-            div, mod = divmod(max_score - games / 2, games_per_tiebreak / 2)
-            estimate = games + games_per_tiebreak * int(div)
-            if (max_board_points, max_bewe) >= (estimate * boards / 2, estimate * boards * (boards + 1) / 4):
-                estimate += int(games_per_tiebreak / 2 + mod + 1)
-            end_rounds.append(estimate)
-    return end_rounds
+    ]
+    return [[team_points[i], sum(bo[i] for bo in board_points), sum(be[i] for be in berlins)] for i in range(2)]
 
 
 class Tournament_Knockout_Team(Tournament_Knockout):
@@ -115,8 +56,7 @@ class Tournament_Knockout_Team(Tournament_Knockout):
         if len(self.get_participant_uuids()) < 2 or self.get_round() > 1:
             return
         for dictionary in self.get_variable("participant_standings").values():
-            dictionary["board_points"] = 0
-            dictionary["bewe"] = 0
+            dictionary["score"] = [0, 0, 0]
 
     def seat_participants(self):
         return
@@ -125,32 +65,44 @@ class Tournament_Knockout_Team(Tournament_Knockout):
         return super().is_valid_parameters() and self.get_parameter("boards") > 0
 
     def add_results(self, results):
-        self.variables["results_individual"].append(results)
-        results_team = [
-            tuple((uuid, score) for uuid, score in zip(pairing, get_team_result(result, self.get_score_dict())))
-            for pairing, result in zip(self.get_pairings(), results)
-        ]
-        self.variables["results"].append(results_team)
-        self.set_pairings(None)
-        self.set_round(self.get_round() + 1)
-        update_participant_standings(
-            self.get_variable("results")[-1], self.get_variable("results_individual")[-1],
-            self.get_variable("participant_standings"), self.get_score_dict(),
-            self.get_parameter("games"), self.get_parameter("games_per_tiebreak")
-        )
+        Tournament.add_results(self, results)
+        games, games_per_tiebreak = self.get_parameter("games"), self.get_parameter("games_per_tiebreak")
+        for ((uuid_1, score_1), (uuid_2, score_2)), individual \
+                in zip(self.get_results()[-1], self.get_results_individual()[-1]):
+            update_participant_standings(
+                uuid_1, uuid_2,
+                *get_scores(score_1, score_2, individual, self.get_score_dict(), self.get_score_dict_game()),
+                self.get_variable("participant_standings"), games, games_per_tiebreak, self.get_parameter("armageddon"),
+                *get_totals(games, games_per_tiebreak, self.get_parameter("boards"))
+            )
+
+    def remove_results(self):
+        games, games_per_tiebreak = self.get_parameter("games"), self.get_parameter("games_per_tiebreak")
+        for ((uuid_1, score_1), (uuid_2, score_2)), individual \
+                in zip(self.get_results()[-1], self.get_results_individual()[-1]):
+            reverse_participant_standings(
+                uuid_1, uuid_2,
+                *get_scores(score_1, score_2, individual, self.get_score_dict(), self.get_score_dict_game()),
+                self.get_variable("participant_standings"), games, games_per_tiebreak, self.get_parameter("armageddon"),
+                *get_totals(games, games_per_tiebreak, self.get_parameter("boards"))
+            )
+        Tournament.remove_results(self)
 
     def get_round_name(self, r):
-        games = self.get_parameter("games")
-        games_per_tiebreak = self.get_parameter("games_per_tiebreak")
-        participant_standings = self.get_variable("participant_standings")
-        boards = self.get_parameter("boards")
-        end_rounds = get_end_rounds(participant_standings, games, games_per_tiebreak, boards)
+        games, games_per_tiebreak = self.get_parameter("games"), self.get_parameter("games_per_tiebreak")
+        armageddon = self.get_parameter("armageddon")
+        end_rounds = get_end_rounds(
+            self.get_variable("participant_standings"), games, games_per_tiebreak, armageddon,
+            *get_totals(games, games_per_tiebreak, self.get_parameter("boards"))
+        )
 
         counter = 1
         while len(end_rounds) > 0 and r > end_rounds[0]:
             r -= end_rounds.pop(0)
             counter += 1
 
+        if armageddon.is_armageddon(games, games_per_tiebreak, r):
+            return f"Round {counter}.A"
         if r <= games:
             if games == 1:
                 return f"Round {counter}"
@@ -167,10 +119,10 @@ class Tournament_Knockout_Team(Tournament_Knockout):
         table = sorted((
             (
                 participant,
-                participant_standings[participant.get_uuid()]["level"]-1,
-                shorten_float(participant_standings[participant.get_uuid()]["score"]),
-                shorten_float(participant_standings[participant.get_uuid()]["board_points"]),
-                shorten_float(participant_standings[participant.get_uuid()]["bewe"])
+                participant_standings[participant.get_uuid()]["level"] - 1,
+                shorten_float(participant_standings[participant.get_uuid()]["score"][0]),
+                shorten_float(participant_standings[participant.get_uuid()]["score"][1]),
+                shorten_float(participant_standings[participant.get_uuid()]["score"][2])
             ) for participant in participants
         ), key=lambda x: x[1:], reverse=True)
 
