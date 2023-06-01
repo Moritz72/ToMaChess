@@ -12,6 +12,7 @@ class Stacked_Widget_MS_Tournament(QStackedWidget):
         self.window_main = window_main
         self.ms_tournament = ms_tournament
         self.stage = stage
+        self.is_current = (self.stage == self.ms_tournament.get_stage())
         self.tournament_widgets = []
 
         self.add_tournament_widgets()
@@ -27,8 +28,9 @@ class Stacked_Widget_MS_Tournament(QStackedWidget):
 
     def get_buttons_args(self):
         buttons_args = []
+        cut = 1 + 2 * (not self.is_current)
         tournaments_buttons_args = [
-            tournament_widget.get_buttons_args()[:-1] for tournament_widget in self.tournament_widgets
+            tournament_widget.get_buttons_args()[:-cut] for tournament_widget in self.tournament_widgets
         ]
 
         for i, tournament_buttons_args in enumerate(tournaments_buttons_args):
@@ -44,7 +46,7 @@ class Stacked_Widget_MS_Tournament(QStackedWidget):
 
         if self.stage > 0:
             buttons_args.append({"text": "Previous Stage", "connect_function": self.move_down_stage, "bold": True})
-        if self.stage < self.ms_tournament.get_stage():
+        if not self.is_current:
             buttons_args.append({"text": "Next Stage", "connect_function": self.move_up_stage, "bold": True})
         buttons_args.append({"text": "Back", "connect_function": self.open_default, "bold": True})
 
@@ -52,7 +54,7 @@ class Stacked_Widget_MS_Tournament(QStackedWidget):
 
     def get_active_button_index(self):
         offset = sum(tournament_widget.count() for tournament_widget in self.tournament_widgets[:self.currentIndex()])
-        offset += 1 + 2 * self.currentIndex()
+        offset += 1 + (2 + 2 * self.is_current) * self.currentIndex()
         return offset + self.tournament_widgets[self.currentIndex()].get_active_button_index()
 
     def open_default(self):

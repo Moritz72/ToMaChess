@@ -252,12 +252,13 @@ def get_combo_box(choices, size, widget_size, current=None, bold=False, item_lim
     set_fixed_size(combo_box, size_handler, size, widget_size)
     set_font(combo_box, size_handler, size, bold)
     for i, choice in enumerate(choices):
-        if isinstance(choice, str):
-            combo_box.addItem(choice)
-        elif isinstance(choice, type(None)):
-            combo_box.addItem("", choice)
-        else:
-            combo_box.addItem(str(choice), choice)
+        match choice:
+            case str():
+                combo_box.addItem(choice)
+            case None:
+                combo_box.addItem("", choice)
+            case _:
+                combo_box.addItem(str(choice), choice)
     if current is not None and current in choices:
         combo_box.setCurrentIndex(choices.index(current))
     return combo_box
@@ -301,28 +302,33 @@ def clear_table(table):
 
 
 def get_suitable_widget(var, size="medium", widget_size_factors=(1, 1)):
-    if isinstance(var, str):
-        return get_lineedit(size, (15 * widget_size_factors[0], 3 * widget_size_factors[1]), text=var)
-    if isinstance(var, bool):
-        return get_check_box(var, (3 * widget_size_factors[0], 3 * widget_size_factors[1]))
-    if isinstance(var, int):
-        return get_spin_box(var, size, (5 * widget_size_factors[0], 3 * widget_size_factors[1]), align=Qt.AlignCenter)
-    if isinstance(var, list):
-        return get_combo_box(var, size, (15 * widget_size_factors[0], 3 * widget_size_factors[1]))
-    return Options_Button(var, size, (15 * widget_size_factors[0], 3 * widget_size_factors[1]), text="Options")
+    match var:
+        case str():
+            return get_lineedit(size, (15 * widget_size_factors[0], 3 * widget_size_factors[1]), text=var)
+        case bool():
+            return get_check_box(var, (3 * widget_size_factors[0], 3 * widget_size_factors[1]))
+        case int():
+            return get_spin_box(
+                var, size, (5 * widget_size_factors[0], 3 * widget_size_factors[1]), align=Qt.AlignCenter
+            )
+        case list():
+            return get_combo_box(var, size, (15 * widget_size_factors[0], 3 * widget_size_factors[1]))
+        case _:
+            return Options_Button(var, size, (15 * widget_size_factors[0], 3 * widget_size_factors[1]), text="Options")
 
 
 def get_value_from_suitable_widget(widget):
-    if isinstance(widget, QLineEdit):
-        return widget.text()
-    if isinstance(widget, QCheckBox):
-        return widget.isChecked()
-    if isinstance(widget, QSpinBox):
-        return widget.value()
-    if isinstance(widget, QComboBox):
-        return sorted((widget.itemText(i) for i in range(widget.count())), key=lambda x: x != widget.currentText())
-    if isinstance(widget, Options_Button):
-        return widget.give_back()
+    match widget:
+        case QLineEdit():
+            return widget.text()
+        case QCheckBox():
+            return widget.isChecked()
+        case QSpinBox():
+            return widget.value()
+        case QComboBox():
+            return sorted((widget.itemText(i) for i in range(widget.count())), key=lambda x: x != widget.currentText())
+        case Options_Button():
+            return widget.give_back()
 
 
 def get_table_value(table, row, column):
@@ -334,11 +340,12 @@ def get_table_value(table, row, column):
 
 
 def connect_widget(widget, function):
-    if isinstance(widget, QLineEdit):
-        widget.textChanged.connect(function)
-    if isinstance(widget, QCheckBox):
-        widget.stateChanged.connect(function)
-    if isinstance(widget, QSpinBox):
-        widget.valueChanged.connect(function)
-    if isinstance(widget, QComboBox):
-        widget.currentIndexChanged.connect(function)
+    match widget:
+        case QLineEdit():
+            widget.textChanged.connect(function)
+        case QCheckBox():
+            widget.stateChanged.connect(function)
+        case QSpinBox():
+            widget.valueChanged.connect(function)
+        case QComboBox():
+            widget.currentIndexChanged.connect(function)

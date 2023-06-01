@@ -50,12 +50,13 @@ class Armageddon:
         return self.args["enabled"] and roun - games - games_per_tiebreak * self.args["after_rounds"] >= 1
 
     def determine_color(self, participant_1, participant_2):
-        if self.args["determine_color"][0] == "In Order":
-            return determine_color_default(participant_1, participant_2)
-        elif self.args["determine_color"][0] == "Random":
-            return determine_color_random(participant_1, participant_2)
-        elif self.args["determine_color"][0] == "Choice":
-            return determine_color_choice(participant_1, participant_2)
+        match self.args["determine_color"][0]:
+            case "In Order":
+                return determine_color_default(participant_1, participant_2)
+            case "Random":
+                return determine_color_random(participant_1, participant_2)
+            case "Choice":
+                return determine_color_choice(participant_1, participant_2)
 
     @staticmethod
     def is_valid():
