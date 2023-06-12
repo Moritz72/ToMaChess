@@ -5,8 +5,7 @@ from .window_tournament_new import Window_Tournament_New
 from .window_choice_table import Window_Choice_Table
 from .window_advance_participants import Window_Advance_Participants
 from .functions_type import type_to_add_participant_window_args, get_function
-from .functions_gui import add_content_to_table, add_button_to_table, size_table, make_headers_bold_vertical,\
-    make_headers_bold_horizontal, get_button, add_widgets_in_layout
+from .functions_gui import add_content_to_table, add_button_to_table, size_table, get_button, add_widgets_in_layout
 
 
 class Widget_MS_Tournament_Stage_New(QWidget):
@@ -51,8 +50,6 @@ class Widget_MS_Tournament_Stage_New(QWidget):
     def fill_in_table(self):
         size_table(self.table, len(self.tournaments), 6, 3.5, max_width=55, widths=[None, None, 5, 4, 4, 3.5])
         self.table.setHorizontalHeaderLabels(["Name", "Mode", "Part.", "", "", ""])
-        make_headers_bold_horizontal(self.table)
-        make_headers_bold_vertical(self.table)
 
         header_horizontal, header_vertical = self.table.horizontalHeader(), self.table.verticalHeader()
         header_horizontal.setSectionResizeMode(0, QHeaderView.Stretch)

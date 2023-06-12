@@ -4,8 +4,7 @@ from .class_collection import Collection
 from .table_widget_search import Table_Widget_Search
 from .widget_default_generic import Widget_Default_Generic
 from .functions_collection import load_collections_like, update_collections, remove_collections, add_collections
-from .functions_gui import add_content_to_table, add_button_to_table, make_headers_bold_horizontal, \
-    make_headers_bold_vertical, get_button, add_combobox_to_table
+from .functions_gui import add_content_to_table, add_button_to_table, get_button, add_combobox_to_table
 
 
 class Widget_Collections(Widget_Default_Generic):
@@ -17,8 +16,6 @@ class Widget_Collections(Widget_Default_Generic):
     def get_table():
         table = Table_Widget_Search(3, 3.5, 55, [None, None, 3.5])
         table.setHorizontalHeaderLabels(["Name", "Type", ""])
-        make_headers_bold_horizontal(table)
-        make_headers_bold_vertical(table)
 
         header_horizontal, header_vertical = table.horizontalHeader(), table.verticalHeader()
         header_horizontal.setSectionResizeMode(0, QHeaderView.Stretch)
@@ -33,7 +30,7 @@ class Widget_Collections(Widget_Default_Generic):
 
     def update_database(self):
         super().update_database()
-        self.window_main.reload(4)
+        self.window_main.load(4)
 
     def get_object_from_values(self, values):
         return Collection(values[0], values[1][0])

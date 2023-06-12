@@ -4,8 +4,7 @@ from .table_widget_search import Table_Widget_Search
 from .widget_default_generic import Widget_Default_Generic
 from .functions_ms_tournament import load_ms_tournaments_shallow_like, update_ms_tournaments_shallow,\
     remove_ms_tournaments, add_ms_tournament, load_ms_tournament
-from .functions_gui import add_content_to_table, add_button_to_table, make_headers_bold_horizontal,\
-    make_headers_bold_vertical, get_button
+from .functions_gui import add_content_to_table, add_button_to_table, get_button
 from .window_ms_tournament_new import Window_MS_Tournament_New
 
 
@@ -23,8 +22,6 @@ class Widget_MS_Tournaments(Widget_Default_Generic):
     def get_table():
         table = Table_Widget_Search(4, 3.5, 55, [None, 5, 7, 3.5])
         table.setHorizontalHeaderLabels(["Name", "Part.", "", ""])
-        make_headers_bold_horizontal(table)
-        make_headers_bold_vertical(table)
 
         header_horizontal, header_vertical = table.horizontalHeader(), table.verticalHeader()
         header_horizontal.setSectionResizeMode(0, QHeaderView.Stretch)

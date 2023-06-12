@@ -4,8 +4,7 @@ from .class_team import Team
 from .table_widget_search import Table_Widget_Search
 from .widget_default_generic import Widget_Default_Generic
 from .functions_team import load_teams_shallow_like, update_teams, remove_teams, add_teams, load_team
-from .functions_gui import add_content_to_table, add_button_to_table, make_headers_bold_horizontal,\
-    make_headers_bold_vertical, get_button
+from .functions_gui import add_content_to_table, add_button_to_table, get_button
 from .window_team_edit import Window_Team_Edit
 
 
@@ -18,8 +17,6 @@ class Widget_Teams(Widget_Default_Generic):
     def get_table():
         table = Table_Widget_Search(4, 3.5, 55, [None, 5, 9, 3.5])
         table.setHorizontalHeaderLabels(["Name", "Memb.", "", ""])
-        make_headers_bold_horizontal(table)
-        make_headers_bold_vertical(table)
 
         header_horizontal, header_vertical = table.horizontalHeader(), table.verticalHeader()
         header_horizontal.setSectionResizeMode(0, QHeaderView.Stretch)

@@ -1,7 +1,6 @@
 from PyQt5.QtWidgets import QMainWindow, QWidget, QHBoxLayout, QApplication, QTableWidget, QHeaderView
 from PyQt5.QtCore import Qt, pyqtSignal
-from .functions_gui import size_table, make_headers_bold_vertical, make_headers_bold_horizontal, add_content_to_table,\
-    add_button_to_table
+from .functions_gui import size_table, add_content_to_table, add_button_to_table
 
 
 class Window_Team_Remove_Members(QMainWindow):
@@ -41,8 +40,6 @@ class Window_Team_Remove_Members(QMainWindow):
     def fill_in_table(self):
         self.resize_table()
         self.table.setHorizontalHeaderLabels(["Name", "Sex", "Birth", "Fed.", "Title", "Rating", ""])
-        make_headers_bold_horizontal(self.table)
-        make_headers_bold_vertical(self.table)
 
         header_horizontal, header_vertical = self.table.horizontalHeader(), self.table.verticalHeader()
         header_horizontal.setSectionResizeMode(0, QHeaderView.Stretch)

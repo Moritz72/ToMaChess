@@ -1,8 +1,7 @@
 from math import ceil
 from PyQt5.QtWidgets import QWidget, QVBoxLayout, QTableWidget
 from PyQt5.QtCore import Qt
-from .functions_gui import add_content_to_table, make_headers_bold_horizontal, make_headers_bold_vertical, size_table,\
-    clear_table
+from .functions_gui import add_content_to_table, size_table, clear_table, add_blank_to_table
 
 
 def get_line_breaked_entry(entry):
@@ -57,8 +56,6 @@ class Widget_Tournament_Cross_Table(QWidget):
             max_width=3.5 + width * participant_number + 17, widths=[17] + participant_number * [width]
         )
         self.table.setHorizontalHeaderLabels(["Name"] + [str(i) for i in range(1, participant_number + 1)])
-        make_headers_bold_horizontal(self.table)
-        make_headers_bold_vertical(self.table)
 
         header_vertical = self.table.verticalHeader()
         header_vertical.setDefaultAlignment(Qt.AlignCenter)
@@ -69,9 +66,7 @@ class Widget_Tournament_Cross_Table(QWidget):
         for i in range(participant_number):
             for j in range(participant_number):
                 if i == j:
-                    add_content_to_table(
-                        self.table, ' ', i, j + 1, edit=False, align=Qt.AlignCenter, color_bg=(128, 128, 128)
-                    )
+                    add_blank_to_table(self.table, i, j + 1)
                 else:
                     add_content_to_table(
                         self.table, results_matrix[i][j], i, j + 1, edit=False, align=Qt.AlignCenter, bold=True

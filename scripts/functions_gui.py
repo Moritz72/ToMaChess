@@ -1,8 +1,9 @@
 from PyQt5.QtWidgets import QComboBox, QLineEdit, QCheckBox, QSpinBox, QTableWidgetItem, QPushButton, QLabel, \
-    QScrollArea, QMainWindow, QVBoxLayout, QWidget, QHeaderView, QApplication, QSizePolicy
+    QScrollArea, QMainWindow, QVBoxLayout, QWidget, QHeaderView, QApplication, QSizePolicy, QStyledItemDelegate
 from PyQt5.QtCore import Qt, QThread, pyqtSignal
-from PyQt5.QtGui import QColor, QFont
+from PyQt5.QtGui import QFont
 from .class_size_handler import size_handler
+from .class_settings_handler import settings_handler
 
 
 class Function_Worker(QThread):
@@ -69,7 +70,7 @@ class Options_Window(QMainWindow):
         widget.setLayout(layout)
         self.setCentralWidget(widget)
         self.setFixedWidth(layout.sizeHint().width())
-        self.setFixedHeight(min(layout.sizeHint().height(), int(QApplication.primaryScreen().size().height() * .4)))
+        self.setFixedHeight(min(layout.sizeHint().height() + 2, int(QApplication.primaryScreen().size().height() * .4)))
 
     def get_new_args(self):
         return {arg: get_value_from_suitable_widget(widget) for arg, _, widget in self.args_widget_data}
@@ -122,13 +123,17 @@ def size_table(table, rows, columns, row_height, max_width=None, widths=[], head
     size_factor = size_handler.widget_size_factor
     table.setRowCount(rows)
     table.setColumnCount(columns)
-    table.setFont(get_font(font_size))
+    set_font(table, size_handler, "medium")
 
     horizontal_header, vertical_header = table.horizontalHeader(), table.verticalHeader()
+    horizontal_header.setStyleSheet("QHeaderView {font-size: " + str(font_size) + "pt; font-weight: bold;}")
     horizontal_header.setMinimumSectionSize(0)
     horizontal_header.setFixedHeight(int(row_height * size_factor))
+    set_font(horizontal_header, size_handler, "medium")
+    vertical_header.setStyleSheet("QHeaderView {font-size: " + str(font_size) + "pt; font-weight: bold;}")
     vertical_header.setSectionResizeMode(QHeaderView.Fixed)
     vertical_header.setDefaultSectionSize(int(row_height * size_factor))
+    set_font(vertical_header, size_handler, "medium")
 
     if max_width is not None:
         table.setMaximumWidth(2 + int(max_width * size_factor))
@@ -138,7 +143,6 @@ def size_table(table, rows, columns, row_height, max_width=None, widths=[], head
     for column, width in enumerate(widths):
         if width is not None:
             table.setColumnWidth(column, int(width * size_factor))
-    return table
 
 
 def set_fixed_size(widget, size_handler, size, widget_size):
@@ -153,7 +157,7 @@ def set_fixed_size(widget, size_handler, size, widget_size):
 
 
 def get_font(font_size=None, bold=False):
-    font = QFont()
+    font = QFont(settings_handler.settings["font"][0])
     if font_size is not None:
         font.setPointSize(font_size)
     font.setBold(bold)
@@ -161,6 +165,8 @@ def get_font(font_size=None, bold=False):
 
 
 def set_font(widget, size_handler, size, bold=False):
+    if widget is None:
+        return
     if size is None:
         widget.setFont(get_font(None, bold))
     else:
@@ -220,22 +226,33 @@ def get_button_threaded(
     return button
 
 
-def get_check_box(boolean, widget_size):
+def get_check_box(boolean, size, widget_size):
     check_box = QCheckBox()
     check_box.setChecked(boolean)
-    if widget_size is not None:
-        size_factor = size_handler.widget_size_factor
-        check_box.setStyleSheet(
-            "QCheckBox::indicator {"
-            "width:  " + str(int(size_factor * widget_size[0])) + "px;"
-            "height: " + str(int(size_factor * widget_size[1])) + "px;"
-            "}"
-        )
+    size_factor = size_handler.widget_size_factor
+    check_box.setStyleSheet(
+        "QCheckBox::indicator {"
+        "width:  " + str(int(size_factor * widget_size[0])) + "px;"
+        "height: " + str(int(size_factor * widget_size[1])) + "px;"
+        "}"
+    )
     return check_box
 
 
 def get_spin_box(value, size, widget_size, bold=False, align=None):
     spin_box = QSpinBox()
+    spin_box.setStyleSheet(
+        "QAbstractSpinBox:up-button {width: " + str(1.3 * size_handler.font_sizes[size]) + "px;}"
+        "QAbstractSpinBox:down-button {width: " + str(1.3 * size_handler.font_sizes[size]) + "px;}"
+        "QAbstractSpinBox::down-arrow {"
+        "width: " + str(size_handler.font_sizes[size]) + "px;"
+        "height: " + str(size_handler.font_sizes[size]) + "px;"
+        "}"
+        "QAbstractSpinBox::up-arrow {"
+        "width: " + str(size_handler.font_sizes[size]) + "px;"
+        "height: " + str(size_handler.font_sizes[size]) + "px;"
+        "}"
+    )
     set_fixed_size(spin_box, size_handler, size, widget_size)
     set_font(spin_box, size_handler, size, bold)
     spin_box.setValue(value)
@@ -244,11 +261,19 @@ def get_spin_box(value, size, widget_size, bold=False, align=None):
     return spin_box
 
 
-def get_combo_box(choices, size, widget_size, current=None, bold=False, item_limit=None):
+def get_combo_box(choices, size, widget_size, current=None, bold=False, down_arrow=True):
     combo_box = QComboBox()
-    if item_limit is not None:
-        combo_box.setStyleSheet("combobox-popup: 0;")
-        combo_box.setMaxVisibleItems(item_limit)
+    combo_box.setItemDelegate(QStyledItemDelegate(combo_box))
+    if down_arrow:
+        combo_box.setStyleSheet(
+            "QComboBox::drop-down {width: " + str(1.3 * size_handler.font_sizes[size]) + "px;}"
+            "QComboBox::down-arrow {"
+            "width: " + str(size_handler.font_sizes[size]) + "px;"
+            "height: " + str(size_handler.font_sizes[size]) + "px;"
+            "}"
+        )
+    else:
+        combo_box.setStyleSheet("QComboBox::drop-down {width: 0px;} QComboBox::down-arrow {width: 0px;}")
     set_fixed_size(combo_box, size_handler, size, widget_size)
     set_font(combo_box, size_handler, size, bold)
     for i, choice in enumerate(choices):
@@ -264,17 +289,15 @@ def get_combo_box(choices, size, widget_size, current=None, bold=False, item_lim
     return combo_box
 
 
-def add_content_to_table(table, content, row, column, edit=True, align=None, bold=False, color_bg=None):
+def add_content_to_table(table, content, row, column, edit=True, align=None, bold=False):
     if content is None:
         content = ""
     item = QTableWidgetItem(str(content))
-    set_font(item, size_handler, None, bold)
+    set_font(item, size_handler, "medium", bold)
     if not edit:
         item.setFlags(item.flags() & ~Qt.ItemIsEditable)
     if align is not None:
         item.setTextAlignment(align)
-    if color_bg is not None:
-        item.setBackground(QColor(*color_bg))
     table.setItem(row, column, item)
 
 
@@ -283,17 +306,17 @@ def add_button_to_table(table, row, column, size, widget_size, text, connect_fun
     table.setCellWidget(row, column, button)
 
 
-def add_combobox_to_table(table, choices, row, column, size, widget_size, current=None, bold=False, item_limit=None):
-    combobox = get_combo_box(choices, size, widget_size, current, bold, item_limit)
+def add_combobox_to_table(
+        table, choices, row, column, size, widget_size, current=None, bold=False, down_arrow=True
+):
+    combobox = get_combo_box(choices, size, widget_size, current, bold, down_arrow)
     table.setCellWidget(row, column, combobox)
 
 
-def make_headers_bold_horizontal(table):
-    table.horizontalHeader().setFont(get_font(None, True))
-
-
-def make_headers_bold_vertical(table):
-    table.verticalHeader().setFont(get_font(None, True))
+def add_blank_to_table(table, row, column):
+    blank_widget = QWidget()
+    blank_widget.setObjectName("blank_widget")
+    table.setCellWidget(row, column, blank_widget)
 
 
 def clear_table(table):
@@ -306,7 +329,7 @@ def get_suitable_widget(var, size="medium", widget_size_factors=(1, 1)):
         case str():
             return get_lineedit(size, (15 * widget_size_factors[0], 3 * widget_size_factors[1]), text=var)
         case bool():
-            return get_check_box(var, (3 * widget_size_factors[0], 3 * widget_size_factors[1]))
+            return get_check_box(var, size, (3 * widget_size_factors[0], 3 * widget_size_factors[1]))
         case int():
             return get_spin_box(
                 var, size, (5 * widget_size_factors[0], 3 * widget_size_factors[1]), align=Qt.AlignCenter

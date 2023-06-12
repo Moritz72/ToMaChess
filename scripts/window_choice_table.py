@@ -4,8 +4,7 @@ from .table_widget_search import Table_Widget_Search
 from .widget_default_generic import Widget_Default_Generic
 from .functions_player import load_players_like
 from .functions_team import load_teams_shallow_like
-from .functions_gui import add_content_to_table, make_headers_bold_horizontal, make_headers_bold_vertical,\
-    get_check_box
+from .functions_gui import add_content_to_table, get_check_box
 
 
 def get_load_function_exclude(load_like_function, excluded_uuids):
@@ -24,8 +23,6 @@ class Widget_Choice_Players(Widget_Default_Generic):
     def get_table():
         table = Table_Widget_Search(7, 3.5, 55, [None, 3.5, 5, 4.5, 4, 5, 3.5])
         table.setHorizontalHeaderLabels(["Name", "Sex", "Birth", "Fed.", "Title", "Rating", ""])
-        make_headers_bold_horizontal(table)
-        make_headers_bold_vertical(table)
 
         header_horizontal, header_vertical = table.horizontalHeader(), table.verticalHeader()
         header_horizontal.setSectionResizeMode(0, QHeaderView.Stretch)
@@ -48,7 +45,9 @@ class Widget_Choice_Players(Widget_Default_Generic):
         add_content_to_table(self.table, obj.get_country(), row, 3, edit=False, align=Qt.AlignCenter)
         add_content_to_table(self.table, obj.get_title(), row, 4, edit=False, align=Qt.AlignCenter)
         add_content_to_table(self.table, obj.get_rating(), row, 5, edit=False, align=Qt.AlignCenter)
-        check_box = get_check_box((obj.get_uuid(), obj.get_uuid_associate()) in self.checked_uuids, (3.5, 3.5))
+        check_box = get_check_box(
+            (obj.get_uuid(), obj.get_uuid_associate()) in self.checked_uuids, "medium", (3.5, 3.5)
+        )
         check_box.stateChanged.connect(self.check_box_clicked)
         self.table.setCellWidget(row, 6, check_box)
 
@@ -69,8 +68,6 @@ class Widget_Choice_Teams(Widget_Default_Generic):
     def get_table():
         table = Table_Widget_Search(3, 3.5, 55, [None, 5, 3.5])
         table.setHorizontalHeaderLabels(["Name", "Memb.", ""])
-        make_headers_bold_horizontal(table)
-        make_headers_bold_vertical(table)
 
         header_horizontal, header_vertical = table.horizontalHeader(), table.verticalHeader()
         header_horizontal.setSectionResizeMode(0, QHeaderView.Stretch)
@@ -89,7 +86,9 @@ class Widget_Choice_Teams(Widget_Default_Generic):
     def fill_in_row(self, row, obj=None):
         add_content_to_table(self.table, obj.get_name(), row, 0, bold=False)
         add_content_to_table(self.table, obj.get_member_count(), row, 1, edit=False, align=Qt.AlignCenter)
-        check_box = get_check_box((obj.get_uuid(), obj.get_uuid_associate()) in self.checked_uuids, (3.5, 3.5))
+        check_box = get_check_box(
+            (obj.get_uuid(), obj.get_uuid_associate()) in self.checked_uuids, "medium", (3.5, 3.5)
+        )
         check_box.stateChanged.connect(self.check_box_clicked)
         self.table.setCellWidget(row, 2, check_box)
 

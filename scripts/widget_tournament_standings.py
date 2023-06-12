@@ -1,8 +1,7 @@
 from PyQt5.QtWidgets import QWidget, QVBoxLayout, QHeaderView, QTableWidget
 from PyQt5.QtCore import Qt
 from .functions_categories import get_category_range_string
-from .functions_gui import add_content_to_table, make_headers_bold_horizontal, make_headers_bold_vertical,\
-    size_table, clear_table
+from .functions_gui import add_content_to_table, size_table, clear_table
 
 
 class Widget_Tournament_Standings(QWidget):
@@ -33,8 +32,6 @@ class Widget_Tournament_Standings(QWidget):
         )
         self.table.setHorizontalHeaderLabels(header_horizontal)
         self.table.setVerticalHeaderLabels(header_vertical)
-        make_headers_bold_horizontal(self.table)
-        make_headers_bold_vertical(self.table)
 
         header_horizontal, header_vertical = self.table.horizontalHeader(), self.table.verticalHeader()
         header_horizontal.setSectionResizeMode(0, QHeaderView.Stretch)

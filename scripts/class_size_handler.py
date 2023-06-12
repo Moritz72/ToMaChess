@@ -3,10 +3,7 @@ from .class_settings_handler import settings_handler
 
 
 def get_dp():
-    app = QApplication([])
-    dp = app.primaryScreen().logicalDotsPerInch()
-    del app
-    return dp
+    return QApplication.instance().primaryScreen().logicalDotsPerInch()
 
 
 def get_font_sizes(font_size):
@@ -19,12 +16,10 @@ def get_widget_size_factor(font_size, dp):
 
 class Size_Handler:
     def __init__(self):
-        self.dp = get_dp()
-        font_size = settings_handler.settings["font_size"]
-        self.font_sizes = get_font_sizes(font_size)
-        self.widget_size_factor = get_widget_size_factor(font_size, self.dp)
+        self.dp, self.font_sizes, self.widget_size_factor = None, None, None
 
     def refresh(self):
+        self.dp = get_dp()
         font_size = settings_handler.settings["font_size"]
         self.font_sizes = get_font_sizes(font_size)
         self.widget_size_factor = get_widget_size_factor(font_size, self.dp)

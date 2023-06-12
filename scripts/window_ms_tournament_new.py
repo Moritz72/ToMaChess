@@ -36,7 +36,7 @@ class Window_MS_Tournament_New(QMainWindow):
         name_label = get_label("Name", "large")
         self.name_line = get_lineedit("medium", (15, 2.5))
         draw_lots_label = get_label("Draw Lots in Case of Tie", "large")
-        self.draw_lots_check = get_check_box(True, (3, 3))
+        self.draw_lots_check = get_check_box(True, "medium", (2.5, 2.5))
 
         layout = QHBoxLayout()
         layout.addStretch()

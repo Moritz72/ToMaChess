@@ -1,7 +1,7 @@
 # ToMaChess  
 ![Icon](./images/logo.png)  
 *ToMaChess* is a gui application to manage chess tournaments written in Python.  
-The most recent version (in form of an Executable) can be downloaded at [Releases](https://github.com/Moritz72/ToMaChess/releases).  
+The most recent release (in form of an executable) can be downloaded at [Releases](https://github.com/Moritz72/ToMaChess/releases).  
   
 ## Tournaments  
 There are currently four tournament modes available; *Swiss*, *Round Robin*, *Knockout* and *Custom*.  
@@ -21,7 +21,7 @@ If there is a tie after the number of games specified, the specified number of t
 The user can specify the parameter *Games per Round*, *Rounds*, *Point System* and four *Tiebreak* parameters.  
   
 ### Tiebreak Criteria  
-The possible tiebreak criteria are  
+The available tiebreak criteria are  
 - *Buchholz* (with additional parameters *Cut (bottom)*, *Cut (top)* and *Virtual Opponents*)  
 - *Buchholz Sum* (with additional parameters *Cut (bottom)*, *Cut (top)* and *Virtual Opponents*)  
 - *Sonneborn-Berger* (with additional parameters *Cut (bottom)*, *Cut (top)* and *Virtual Opponents*)  
@@ -55,5 +55,5 @@ For example one could have *Round Robin* tournaments *Group A* up to *Group H* w
   
 If the option *Draw Lots in Case of Tie* is disabled, it is also possible to create a regular tournament with play-offs in case of a tie for first place by creating a Multi Stage tournament with only the desired regular tournament as the first stage and adding a *Knockout* tournament as a second stage with only the first place as a participant.  
   
-## Settings  
-One can change the font size and the path for bbpPairings as well as update rating lists.  
+## License
+This project is licensed under the [Apache License 2.0](https://github.com/apache/.github/blob/main/LICENSE).  

@@ -1,7 +1,6 @@
 from PyQt5.QtWidgets import QMainWindow, QHBoxLayout, QWidget, QTableWidget, QApplication, QHeaderView, QVBoxLayout
 from PyQt5.QtCore import Qt, pyqtSignal
-from .functions_gui import get_button, add_button_to_table, add_combobox_to_table, make_headers_bold_horizontal,\
-    make_headers_bold_vertical, size_table
+from .functions_gui import get_button, add_button_to_table, add_combobox_to_table, size_table
 
 
 class Window_Advance_Participants(QMainWindow):
@@ -58,7 +57,7 @@ class Window_Advance_Participants(QMainWindow):
         self.table.cellWidget(row, 0).currentTextChanged.connect(self.update_placement_combobox)
         add_combobox_to_table(
             self.table, self.get_seatings_choices(tournament), row, 1, "medium", None,
-            current=placement if placement is None else str(placement), item_limit=20
+            current=placement if placement is None else str(placement)
         )
         add_button_to_table(self.table, row, 2, "medium", None, '-', connect_function=self.remove_row)
         self.resize_table()
@@ -66,8 +65,6 @@ class Window_Advance_Participants(QMainWindow):
     def fill_in_table(self):
         self.resize_table()
         self.table.setHorizontalHeaderLabels(["Tournament", "Placement", ""])
-        make_headers_bold_horizontal(self.table)
-        make_headers_bold_vertical(self.table)
 
         header_horizontal, header_vertical = self.table.horizontalHeader(), self.table.verticalHeader()
         header_horizontal.setSectionResizeMode(0, QHeaderView.Stretch)

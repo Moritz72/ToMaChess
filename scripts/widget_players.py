@@ -4,8 +4,7 @@ from .class_player import Player
 from .table_widget_search import Table_Widget_Search
 from .widget_default_generic import Widget_Default_Generic
 from .functions_player import load_players_like, update_players, add_players, remove_players
-from .functions_gui import add_content_to_table, add_button_to_table, make_headers_bold_horizontal, \
-    make_headers_bold_vertical, get_button
+from .functions_gui import add_content_to_table, add_button_to_table, get_button
 
 
 class Widget_Players(Widget_Default_Generic):
@@ -16,8 +15,6 @@ class Widget_Players(Widget_Default_Generic):
     def get_table():
         table = Table_Widget_Search(7, 3.5, 55, [None, 3.5, 5, 4.5, 4, 5, 3.5])
         table.setHorizontalHeaderLabels(["Name", "Sex", "Birth", "Fed.", "Title", "Rating", ""])
-        make_headers_bold_horizontal(table)
-        make_headers_bold_vertical(table)
 
         header_horizontal, header_vertical = table.horizontalHeader(), table.verticalHeader()
         header_horizontal.setSectionResizeMode(0, QHeaderView.Stretch)

@@ -1,7 +1,7 @@
 from PyQt5.QtWidgets import QMainWindow, QWidget, QHeaderView, QHBoxLayout, QApplication
 from PyQt5.QtCore import Qt, pyqtSignal
 from .table_widget_drag import Table_Widget_Drag
-from .functions_gui import add_content_to_table, make_headers_bold_horizontal, make_headers_bold_vertical, size_table
+from .functions_gui import add_content_to_table, size_table
 
 
 class Window_Line_Up(QMainWindow):
@@ -38,8 +38,6 @@ class Window_Line_Up(QMainWindow):
     def fill_in_table(self):
         size_table(self.table, len(self.members), 6, 3.5, max_width=55, widths=[None, 3.5, 5, 4.5, 4, 5, 3.5])
         self.table.setHorizontalHeaderLabels(["Name", "Sex", "Birth", "Fed.", "Title", "Rating"])
-        make_headers_bold_horizontal(self.table)
-        make_headers_bold_vertical(self.table)
 
         header_horizontal, header_vertical = self.table.horizontalHeader(), self.table.verticalHeader()
         header_horizontal.setSectionResizeMode(0, QHeaderView.Stretch)

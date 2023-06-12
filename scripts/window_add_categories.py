@@ -2,8 +2,8 @@ from math import inf
 from PyQt5.QtWidgets import QMainWindow, QHBoxLayout, QWidget, QTableWidget, QApplication, QHeaderView, QVBoxLayout
 from PyQt5.QtCore import Qt
 from .functions_categories import integer_categories
-from .functions_gui import get_button, add_button_to_table, add_combobox_to_table, make_headers_bold_horizontal,\
-    size_table, add_content_to_table, get_table_value
+from .functions_gui import get_button, add_button_to_table, add_combobox_to_table, size_table, add_content_to_table, \
+    get_table_value
 
 
 class Window_Add_Categories(QMainWindow):
@@ -50,7 +50,6 @@ class Window_Add_Categories(QMainWindow):
     def make_table(self):
         self.resize_table()
         self.table.setHorizontalHeaderLabels(["Category", "From", "Up To", ""])
-        make_headers_bold_horizontal(self.table)
 
         header_horizontal, header_vertical = self.table.horizontalHeader(), self.table.verticalHeader()
         header_horizontal.setSectionResizeMode(0, QHeaderView.Stretch)

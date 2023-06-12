@@ -1,7 +1,7 @@
 from PyQt5.QtWidgets import QWidget, QVBoxLayout, QHeaderView, QComboBox, QTableWidget
 from PyQt5.QtCore import Qt, QTimer, pyqtSignal
-from .functions_gui import add_content_to_table, add_button_to_table, add_combobox_to_table, clear_table,\
-    make_headers_bold_horizontal, size_table
+from .functions_gui import add_content_to_table, add_button_to_table, add_combobox_to_table, clear_table, size_table, \
+    add_blank_to_table
 
 
 class Widget_Tournament_Round(QWidget):
@@ -56,7 +56,8 @@ class Widget_Tournament_Round(QWidget):
             add_content_to_table(self.table, f":", row, column, edit=False, align=Qt.AlignCenter, bold=True)
         else:
             add_combobox_to_table(
-                self.table, [" : "] + [":".join(score) for score in self.possible_scores], row, column, "medium", None
+                self.table, [" : "] + [":".join(score) for score in self.possible_scores],
+                row, column, "medium", None, down_arrow=False
             )
 
     def add_pairing_row(self, row, participant_1, participant_2, score_1=None, score_2=None):
@@ -68,20 +69,21 @@ class Widget_Tournament_Round(QWidget):
     def add_last_row(self, choose_players):
         row = self.table.rowCount() - 1
         for i in range(3):
-            add_content_to_table(self.table, "", row, i, edit=False, color_bg=(200, 200, 200))
+            add_blank_to_table(self.table, row, i)
         if choose_players:
             add_button_to_table(
-                self.table, row, 3, "medium", None, "Confirm Pairings", connect_function=self.confirm_pairings
+                self.table, row, 3, "medium", None, "Confirm Pairings",
+                connect_function=self.confirm_pairings, bold=True
             )
         else:
             add_button_to_table(
-                self.table, row, 3, "medium", None, "Confirm Results", connect_function=self.confirm_results
+                self.table, row, 3, "medium", None, "Confirm Results",
+                connect_function=self.confirm_results, bold=True
             )
 
     def fill_in_table(self):
-        size_table(self.table, len(self.results) + self.is_current(), 4, 3.5, max_width=55, widths=[3.5, None, 7, None])
+        size_table(self.table, len(self.results) + self.is_current(), 4, 3.5, max_width=55, widths=[3.5, None, 5, None])
         self.table.setHorizontalHeaderLabels(["", self.headers[0], "", self.headers[1]])
-        make_headers_bold_horizontal(self.table)
 
         header_horizontal, header_vertical = self.table.horizontalHeader(), self.table.verticalHeader()
         header_horizontal.setSectionResizeMode(1, QHeaderView.Stretch)

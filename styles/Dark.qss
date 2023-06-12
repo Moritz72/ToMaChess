@@ -1,0 +1,199 @@
+QWidget {
+  padding: 0px;
+  color: #bbbbbb;
+  selection-background-color: #4e5254;
+  selection-color: #dddddd;
+}
+
+QWidget, QLabel {
+  background-color: #2b2b2b;
+}
+
+QPushButton, QLineEdit, QAbstractSpinBox, QComboBox, QAbstractSpinBox:up-button, QAbstractSpinBox:down-button, QComboBox::drop-down, QComboBox QAbstractItemView::item, QPushButton:checked#side_menu_button, QPushButton:checked:hover#side_menu_button, QTableView::item, QScrollBar::handle, QScrollBar::add-line, QScrollBar::sub-line {
+  background-color: #222222;
+}
+
+QPushButton, QLineEdit, QAbstractSpinBox, QComboBox, QAbstractSpinBox:up-button, QAbstractSpinBox:down-button, QComboBox::drop-down, QComboBox QAbstractItemView::item:selected, QScrollBar::handle, QHeaderView::section, QTableView QTableCornerButton::section, QComboBox QAbstractItemView, QScrollBar {
+  border: 1px solid #404040;
+}
+
+QPushButton:hover, QComboBox:hover, QComboBox QAbstractItemView::item:selected, QTableView::item::selected, QHeaderView::section:checked, QPushButton:checked#side_menu_button, QScrollBar {
+  color: #dddddd;
+}
+
+QPushButton:hover, QComboBox:hover, QAbstractSpinBox:up-button:hover, QAbstractSpinBox:down-button:hover, QComboBox::drop-down:hover, QScrollBar::handle:hover, QComboBox QAbstractItemView::item:selected, QTableView::item::selected, QWidget#blank_widget, QScrollBar::add-line:hover, QScrollBar::sub-line:hover {
+  background-color: #4e5254;
+}
+
+QPushButton:pressed, QPushButton:checked {
+  color: #eeeeee;
+}
+
+QPushButton:pressed, QAbstractSpinBox:up-button:pressed, QAbstractSpinBox:down-button:pressed, QComboBox::drop-down:pressed, QScrollBar::handle:pressed, QPushButton:checked, QScrollBar::add-line:pressed, QScrollBar::sub-line:pressed {
+  background-color: #666666;
+}
+
+QPushButton#side_menu_button {
+  border: 1px solid transparent;
+  background-color: transparent;
+}
+
+QPushButton:checked#side_menu_button {
+  border: 2px solid #555555;
+}
+
+QTableView {
+    gridline-color: #404040;
+}
+
+QHeaderView::section, QTableView QTableCornerButton::section {
+  background-color: #181818;
+}
+
+QAbstractSpinBox::down-arrow, QComboBox::down-arrow, QScrollBar::down-arrow {
+  image: url(styles/rc/dark/arrow_down.png);
+}
+
+QAbstractSpinBox::up-arrow, QScrollBar::up-arrow {
+  image: url(styles/rc/dark/arrow_up.png);
+}
+
+QAbstractSpinBox::down-arrow:hover, QComboBox::down-arrow:hover, QScrollBar::down-arrow:hover {
+  image: url(styles/rc/dark/arrow_down_hover.png);
+}
+
+QAbstractSpinBox::up-arrow:hover, QScrollBar::up-arrow:hover {
+  image: url(styles/rc/dark/arrow_up_hover.png);
+}
+
+QCheckBox::indicator:checked {
+  image: url(styles/rc/dark/checkbox_checked.png);
+}
+
+QCheckBox::indicator:unchecked {
+  image: url(styles/rc/dark/checkbox_unchecked.png);
+}
+
+QCheckBox::indicator:checked:hover, QCheckBox::indicator:checked:pressed {
+  image: url(styles/rc/dark/checkbox_checked_hover.png);
+}
+
+QCheckBox::indicator:unchecked:hover, QCheckBox::indicator:unchecked:pressed {
+  image: url(styles/rc/dark/checkbox_unchecked_hover.png);
+}
+
+QScrollBar::right-arrow {
+  image: url(styles/rc/dark/arrow_right.png);
+}
+
+QScrollBar::right-arrow:hover {
+  image: url(styles/rc/dark/arrow_right_hover.png);
+}
+
+QScrollBar::left-arrow {
+  image: url(styles/rc/dark/arrow_left.png);
+}
+
+QScrollBar::left-arrow:hover {
+  image: url(styles/rc/dark/arrow_left_hover.png);
+}
+
+QLabel {
+  padding: 2px;
+  margin: 0px;
+}
+
+QLineEdit {
+  padding-top: 2px;
+  padding-bottom: 2px;
+  padding-left: 4px;
+  padding-right: 4px;
+}
+
+QAbstractSpinBox:up-button {
+  subcontrol-origin: border;
+  subcontrol-position: top right;
+}
+
+QAbstractSpinBox:down-button {
+  subcontrol-origin: border;
+  subcontrol-position: bottom right;
+}
+
+QComboBox {
+  padding-left: 4px;
+  padding-right: 4px;
+}
+
+QComboBox QAbstractItemView {
+    outline: none;
+}
+
+QComboBox QAbstractItemView::item {
+  padding: 4px;
+}
+
+QComboBox::drop-down {
+  subcontrol-origin: padding;
+  subcontrol-position: top right;
+}
+
+QCheckBox {
+  background-color: transparent;
+  spacing: 0px;
+}
+
+QTableView {
+	outline: 0;
+}
+
+QScrollBar:horizontal {
+    height: 16px;
+    margin: 0px 16px 0px 16px;
+}
+
+QScrollBar::handle:horizontal {
+    min-width: 16px;
+}
+
+QScrollBar::add-line:horizontal {
+    width: 16px;
+    subcontrol-position: right;
+}
+
+QScrollBar::sub-line:horizontal {
+    width: 16px;
+    subcontrol-position: left;
+}
+
+QScrollBar:vertical {
+    width: 16px;
+    margin: 16px 0px 16px 0px;
+}
+
+QScrollBar::handle:vertical {
+    min-height: 16px;
+}
+
+QScrollBar::add-line:vertical {
+    height: 16px;
+    subcontrol-position: bottom;
+}
+
+QScrollBar::sub-line:vertical {
+    height: 16px;
+    subcontrol-position: top;
+}
+
+QScrollBar::down-arrow, QScrollBar::up-arrow, QScrollBar::right-arrow, QScrollBar::left-arrow {
+  height: 12px;
+  width: 12px;
+}
+
+QScrollBar::add-line, QScrollBar::sub-line {
+    subcontrol-origin: margin;
+}
+
+QScrollBar::add-page, QScrollBar::sub-page {
+  background: none;
+}
