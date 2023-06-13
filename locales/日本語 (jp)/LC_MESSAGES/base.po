@@ -1,0 +1,345 @@
+msgid ""
+msgstr ""
+"Content-Type: text/plain; charset=UTF-8\n"
+
+msgid "Tournaments"
+msgstr "トーナメント"
+
+msgid "Players"
+msgstr "プレーヤー"
+
+msgid "Teams"
+msgstr "チーム"
+
+msgid "MS Tournaments"
+msgstr "多段階トーナメント"
+
+msgid "Multi-Stage Tournaments"
+msgstr "多段階トーナメント"
+
+msgid "Collections"
+msgstr "集"
+
+msgid "Settings"
+msgstr "設定"
+
+msgid "Open"
+msgstr "オープン"
+
+msgid "Add\nTournament"
+msgstr "トーナメント\n追加"
+
+msgid "Add Team\nTournament"
+msgstr "チームトーナメント\n追加"
+
+msgid "Save"
+msgstr "保存"
+
+msgid "Add\nPlayer"
+msgstr "プレーヤー\n追加"
+
+msgid "Edit"
+msgstr "編集"
+
+msgid "Add\nTeam"
+msgstr "チーム\n追加"
+
+msgid "Add\nCollection"
+msgstr "集\n追加"
+
+msgid "Language"
+msgstr "言語"
+
+msgid "Style"
+msgstr "スタイル"
+
+msgid "Font"
+msgstr "フォント"
+
+msgid "Font Size"
+msgstr "フォントサイズ"
+
+msgid "bbpPairings Path"
+msgstr "bbpPairings パス"
+
+msgid "PDF Output Path"
+msgstr "PDF 出力先"
+
+msgid "Update Lists"
+msgstr "レーティングリスト更新"
+
+msgid "Reset"
+msgstr "リセット"
+
+msgid "Updating..."
+msgstr "更新中"
+
+msgid "Options"
+msgstr "設定"
+
+msgid "Add\nParticipants"
+msgstr "参加者\n追加"
+
+msgid "Add\nCategories"
+msgstr "カテゴリー\n追加"
+
+msgid "Create"
+msgstr "作成"
+
+msgid "Swiss"
+msgstr "スイス"
+
+msgid "Round Robin"
+msgstr "総当たり"
+
+msgid "Knockout"
+msgstr "勝ち残り"
+
+msgid "Swiss (Team)"
+msgstr "スイス（チーム）"
+
+msgid "Round Robin (Team)"
+msgstr "総当たり（チーム）"
+
+msgid "Knockout (Team)"
+msgstr "勝ち残り（チーム）"
+
+msgid "Custom"
+msgstr "ユーザー定義"
+
+msgid "Rounds"
+msgstr "ラウンド"
+
+msgid "Point System"
+msgstr "ポイントシステム"
+
+msgid "Tiebreak"
+msgstr "タイブレーク"
+
+msgid "Cycles"
+msgstr "周"
+
+msgid "Choose Seating"
+msgstr "シードを自分で決める"
+
+msgid "Games per Match"
+msgstr "試合あたりのゲーム数"
+
+msgid "Games per Tiebreak"
+msgstr "タイブレークあたりのゲーム数"
+
+msgid "Armageddon"
+msgstr "アルマゲドン"
+
+msgid "Boards"
+msgstr "ボード"
+
+msgid "Point System (Match)"
+msgstr "ポイントシステム（マッチ）"
+
+msgid "Point System (Game)"
+msgstr "ポイントシステム（試合）"
+
+msgid "Games per Round"
+msgstr "ラウンドあたりのゲーム数"
+
+msgid "With Armageddon"
+msgstr "アルマゲドンルールあり"
+
+msgid "After Tiebreak"
+msgstr "タイブレーク○の後"
+
+msgid "Color Determination"
+msgstr "色の決定"
+
+msgid "In Order"
+msgstr "順番に"
+
+msgid "Random"
+msgstr "ランダム"
+
+msgid "Choice"
+msgstr "選択肢"
+
+msgid "Add\nCategory"
+msgstr "カテゴリー\n追加"
+
+msgid "Rating"
+msgstr "レーティング"
+
+msgid "Birth"
+msgstr "生年"
+
+msgid "Sex"
+msgstr "性"
+
+msgid "Federation"
+msgstr "連盟"
+
+msgid "Add\nMembers"
+msgstr "メンバー\n追加"
+
+msgid "Remove\nMembers"
+msgstr "メンバー\n削除"
+
+msgid "Change\nLineup"
+msgstr "組み合わせ\n変更"
+
+msgid "Name"
+msgstr "名前"
+
+msgid "Mode"
+msgstr "方式"
+
+msgid "Draw Lots in Case of Tie"
+msgstr "引き分けの場合に抽選を行う"
+
+msgid "Add\nStage"
+msgstr "段階\n追加"
+
+msgid "Remove\nStage"
+msgstr "段階\n削除"
+
+msgid "Create\nTournament"
+msgstr "トーナメント\n作成"
+
+msgid "Participants"
+msgstr "参加者"
+
+msgid "Copy"
+msgstr "コピー"
+
+msgid "Add\nParticipant"
+msgstr "参加者\n追加"
+
+msgid "Choose..."
+msgstr "選択肢"
+
+msgid "Confirm Pairings"
+msgstr "組み合わせを確認する"
+
+msgid "Confirm Results"
+msgstr "結果を確認する"
+
+msgid "None"
+msgstr "無し"
+
+msgid "Buchholz Sum"
+msgstr "Buchholz （総計）"
+
+msgid "Sonneborn-Berger"
+msgstr "Sonneborn-Berger"
+
+msgid "Games as Black"
+msgstr "黒番の試合数"
+
+msgid "Wins"
+msgstr "勝利数"
+
+msgid "Wins as Black"
+msgstr "黒番での勝利数"
+
+msgid "Average Rating"
+msgstr "平均レーティング"
+
+msgid "Cumulative Score"
+msgstr "Cumulative Score"
+
+msgid "Direct Encounter"
+msgstr "直接対決"
+
+msgid "Board Points"
+msgstr "ボードポイント"
+
+msgid "Berliner Wertung"
+msgstr "Berliner Wertung"
+
+msgid "Criterion"
+msgstr "基準"
+
+msgid "Cut (bottom)"
+msgstr "Cut （下）"
+
+msgid "Cut (top)"
+msgstr "Cut （上）"
+
+msgid "Virtual Opponents"
+msgstr "バーチャル対戦相手"
+
+msgid "Include Forfeits"
+msgstr "不戦勝を含め"
+
+msgid "Standings"
+msgstr "順位表"
+
+msgid "Crosstable"
+msgstr "クロステーブル"
+
+msgid "Undo Last Round"
+msgstr "ラウンドを取り消す"
+
+msgid "Back"
+msgstr "戻る"
+
+msgid "Are you sure?"
+msgstr "確かですか？"
+
+msgid "Yes"
+msgstr "はい"
+
+msgid "No"
+msgstr "いいえ"
+
+msgid "Round"
+msgstr "ラウンド"
+
+msgid "Pairings"
+msgstr "組み合わせ"
+
+msgid "Results"
+msgstr "結果"
+
+msgid "Categories"
+msgstr "カテゴリー"
+
+msgid "Standings after {}"
+msgstr "{}後の順位表"
+
+msgid "Pairings for {}"
+msgstr "{}の組み合わせ"
+
+msgid "Results of {}"
+msgstr "{}の結果"
+
+msgid "ToMaChess"
+msgstr "ToMaChess"
+
+msgid "New Tournament"
+msgstr "トーナメント作成"
+
+msgid "Add Members"
+msgstr "メンバー追加"
+
+msgid "Remove Members"
+msgstr "メンバー削除"
+
+msgid "Change Lineup"
+msgstr "組み合わせ変更"
+
+msgid "Edit Team"
+msgstr "チーム編集"
+
+msgid "New Multi-Stage Tournament"
+msgstr "多段階トーナメント作成"
+
+msgid "Add Players"
+msgstr "プレーヤー追加"
+
+msgid "Add Teams"
+msgstr "チーム追加"
+
+msgid "Add Participants"
+msgstr "参加者追加"
+
+msgid "Add Categories"
+msgstr "カテゴリー追加"

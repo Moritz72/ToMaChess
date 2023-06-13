@@ -22,7 +22,7 @@ class Widget_Choice_Players(Widget_Default_Generic):
     @staticmethod
     def get_table():
         table = Table_Widget_Search(
-            7, 3.5, 55, [None, 3.5, 5, 4.5, 4, 5, 3.5], ["Name", "Sex", "Birth", "Fed.", "Title", "Rating", ""],
+            7, 3.5, 55, [None, 3.5, 5, 4.5, 4, 5, 3.5], ["Name", "Sex", "Birth", "Federation", "Title", "Rating", ""],
             translate=True
         )
 
@@ -68,7 +68,7 @@ class Widget_Choice_Teams(Widget_Default_Generic):
 
     @staticmethod
     def get_table():
-        table = Table_Widget_Search(3, 3.5, 55, [None, 5, 3.5], ["Name", "Memb.", ""], translate=True)
+        table = Table_Widget_Search(3, 3.5, 55, [None, 5, 3.5], ["Name", "Members", ""], translate=True)
 
         header_horizontal, header_vertical = table.horizontalHeader(), table.verticalHeader()
         header_horizontal.setSectionResizeMode(0, QHeaderView.Stretch)

@@ -160,14 +160,14 @@ def draw_row(pdf, top_row, row, values, column_widths, aligns, shift_x, shift_y)
 
 def add_table_to_pdf(
         pdf, top_row, table, horizontal_header=None, vertical_header=None, column_widths=None, aligns=None,
-        text_on_top=[]
+        text_on_top=[], translate=True
 ):
     if len(table) == 0 or len(table[0]) == 0:
         return top_row - 2 * ROW_HEIGHT
 
-    if horizontal_header is not None:
+    if translate and horizontal_header is not None:
         horizontal_header = translation_handler.tl_list(horizontal_header, short=True)
-    if vertical_header is not None:
+    if translate and vertical_header is not None:
         vertical_header = translation_handler.tl_list(vertical_header, short=True)
     vertical_header_width = get_vertical_header_width(vertical_header)
     if column_widths is None:
@@ -208,12 +208,12 @@ def add_table_to_pdf(
     return top_row
 
 
-def make_pdf_from_tables(filename, tables_data):
+def make_pdf_from_tables(filename, tables_data, translate=True):
     pdf = canvas.Canvas(filename, pagesize=A4)
     top_row = get_top_row_initial()
     for table, horizontal_header, vertical_header, column_widths, aligns, text_on_top in tables_data:
         top_row = add_table_to_pdf(
-            pdf, top_row, table, horizontal_header, vertical_header, column_widths, aligns, text_on_top
+            pdf, top_row, table, horizontal_header, vertical_header, column_widths, aligns, text_on_top, translate
         )
         top_row -= 2 * ROW_HEIGHT
     pdf.save()
@@ -338,4 +338,4 @@ def tournament_results_to_pdf(tournament, sub_folder=""):
         ]
         tables_data = ((table, header_horizontal, header_vertical, column_widths, aligns, [top_line]),)
 
-    make_pdf_from_tables(filename, tables_data)
+    make_pdf_from_tables(filename, tables_data, translate=not tournament.is_team_tournament())

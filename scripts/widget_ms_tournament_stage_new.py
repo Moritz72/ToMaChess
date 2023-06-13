@@ -54,7 +54,7 @@ class Widget_MS_Tournament_Stage_New(QWidget):
         )
 
     def fill_in_table(self):
-        set_up_table(self.table, 0, 6, header_horizontal=["Name", "Mode", "Part.", "", "", ""], translate=True)
+        set_up_table(self.table, 0, 6, header_horizontal=["Name", "Mode", "Participants", "", "", ""], translate=True)
         size_table(self.table, len(self.tournaments), 3.5, max_width=55, widths=[None, None, 5, 8, 8, 3.5])
 
         header_horizontal, header_vertical = self.table.horizontalHeader(), self.table.verticalHeader()

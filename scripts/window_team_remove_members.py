@@ -39,7 +39,8 @@ class Window_Team_Remove_Members(QMainWindow):
 
     def fill_in_table(self):
         set_up_table(
-            self.table, 0, 7, header_horizontal=["Name", "Sex", "Birth", "Fed.", "Title", "Rating", ""], translate=True
+            self.table, 0, 7,
+            header_horizontal=["Name", "Sex", "Birth", "Federation", "Title", "Rating", ""], translate=True
         )
         self.resize_table()
 

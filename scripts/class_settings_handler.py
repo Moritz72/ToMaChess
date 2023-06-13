@@ -34,7 +34,7 @@ def get_font_list():
 
 def get_defaults():
     return {
-        "language": ["English (en)", "Deutsch (de)"],
+        "language": ["English (en)", "Deutsch (de)", "日本語 (jp)"],
         "style": ["Light", "Dark"],
         "font": get_font_list(),
         "font_size": 12,

@@ -140,6 +140,27 @@ msgstr "Point System (Match)"
 msgid "Point System (Game)"
 msgstr "Point System (Game)"
 
+msgid "Games per Round"
+msgstr "Games per Round"
+
+msgid "With Armageddon"
+msgstr "With Armageddon"
+
+msgid "After Tiebreak"
+msgstr "After Tiebreak"
+
+msgid "Color Determination"
+msgstr "Color Determination"
+
+msgid "In Order"
+msgstr "In Order"
+
+msgid "Random"
+msgstr "Random"
+
+msgid "Choice"
+msgstr "Choice"
+
 msgid "Add\nCategory"
 msgstr "Add\nCategory"
 
@@ -191,6 +212,9 @@ msgstr "Copy"
 msgid "Add\nParticipant"
 msgstr "Add\nParticipant"
 
+msgid "Choose..."
+msgstr "Choose"
+
 msgid "Confirm Pairings"
 msgstr "Confirm Pairings"
 
@@ -230,8 +254,8 @@ msgstr "Board Points"
 msgid "Berliner Wertung"
 msgstr "Berliner Wertung"
 
-msgid "Criterium"
-msgstr "Criterium"
+msgid "Criterion"
+msgstr "Criterion"
 
 msgid "Cut (bottom)"
 msgstr "Cut (bottom)"

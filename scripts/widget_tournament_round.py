@@ -43,7 +43,9 @@ class Widget_Tournament_Round(QWidget):
                 self.table, participant[0], row, column, edit=False, align=Qt.AlignVCenter | Qt.AlignLeft
             )
         else:
-            add_combobox_to_table(self.table, ["Choose..."] + list(participant), row, column, "medium", None)
+            add_combobox_to_table(
+                self.table, ["Choose..."] + list(participant), row, column, "medium", None, translate=True
+            )
 
     def add_pairing_row_result(self, row, column, score_1, score_2, choose_pairing):
         if score_1 is not None and score_2 is not None:
@@ -130,7 +132,7 @@ class Widget_Tournament_Round(QWidget):
         widget = self.table.cellWidget(row, column)
         if not isinstance(widget, QComboBox):
             return True
-        if widget.currentText() == "Choose..." or column not in (1, 3):
+        if widget.currentData() == "Choose..." or column not in (1, 3):
             return False
 
         participant = widget.currentData()

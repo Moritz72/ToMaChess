@@ -1,0 +1,90 @@
+msgid ""
+msgstr ""
+"Content-Type: text/plain; charset=UTF-8\n"
+
+msgid "Name"
+msgstr "名前"
+
+msgid "Mode"
+msgstr "方式"
+
+msgid "Participants"
+msgstr "参加者"
+
+msgid "Sex"
+msgstr "性"
+
+msgid "Birth"
+msgstr "生年"
+
+msgid "Federation"
+msgstr "連盟"
+
+msgid "Title"
+msgstr "称号"
+
+msgid "Rating"
+msgstr "レート"
+
+msgid "Members"
+msgstr "メンバー"
+
+msgid "Type"
+msgstr "種類"
+
+msgid "Category"
+msgstr "カテゴリー"
+
+msgid "From"
+msgstr "から"
+
+msgid "Up To"
+msgstr "まで"
+
+msgid "Tournament"
+msgstr "トーナメント"
+
+msgid "Placement"
+msgstr "位"
+
+msgid "Points"
+msgstr "P"
+
+msgid "Matches"
+msgstr "M"
+
+msgid "Match Points"
+msgstr "MP"
+
+msgid "Buchholz"
+msgstr "BuHo"
+
+msgid "Buchholz Sum"
+msgstr "Bu総"
+
+msgid "Sonneborn-Berger"
+msgstr "SoBe"
+
+msgid "Games as Black"
+msgstr "黒番"
+
+msgid "Wins"
+msgstr "勝利"
+
+msgid "Wins as Black"
+msgstr "黒勝"
+
+msgid "Average Rating"
+msgstr "平均"
+
+msgid "Cumulative Score"
+msgstr "Cumu"
+
+msgid "Direct Encounter"
+msgstr "直対"
+
+msgid "Board Points"
+msgstr "ボポ"
+
+msgid "Berliner Wertung"
+msgstr "BeWe"

@@ -63,7 +63,7 @@ class Tiebreak:
         if "functions" not in self.args:
             self.args["functions"] = "Buchholz"
         if "functions" not in self.args_display:
-            self.args_display["functions"] = "Criterium"
+            self.args_display["functions"] = "Criterion"
         self.fill_in_default()
 
     def fill_in_default(self):
