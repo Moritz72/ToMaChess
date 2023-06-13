@@ -4,7 +4,7 @@ from .window_choice_table import Window_Choice_Table
 from .window_team_remove_members import Window_Team_Remove_Members
 from .window_team_line_up import Window_Line_Up
 from .functions_player import load_players_list
-from .functions_gui import get_button, add_widgets_to_layout
+from .functions_gui import get_button, add_widgets_to_layout, set_window_title
 
 
 class Window_Team_Edit(QMainWindow):
@@ -12,7 +12,7 @@ class Window_Team_Edit(QMainWindow):
 
     def __init__(self, team):
         super().__init__()
-        self.setWindowTitle("Edit Team")
+        set_window_title(self, "Edit Team")
         self.team = team
         self.window_add_members, self.window_remove_members, self.window_line_up = None, None, None
 
@@ -24,13 +24,18 @@ class Window_Team_Edit(QMainWindow):
         self.set_buttons()
 
     def set_buttons(self):
-        add_widgets_to_layout(
-            self.layout, (
-                get_button("large", (12, 6), text="Add\nMembers", connect_function=self.open_window_add_members),
-                get_button("large", (12, 6), text="Remove\nMembers", connect_function=self.open_window_remove_members),
-                get_button("large", (12, 6), text="Change\nLineup", connect_function=self.open_window_line_up)
+        buttons = (
+            get_button(
+                "large", (12, 6), text="Add\nMembers", connect_function=self.open_window_add_members, translate=True
+            ),
+            get_button(
+                "large", (12, 6), text="Remove\nMembers", connect_function=self.open_window_remove_members, translate=True
+            ),
+            get_button(
+                "large", (12, 6), text="Change\nLineup", connect_function=self.open_window_line_up, translate=True
             )
         )
+        add_widgets_to_layout(self.layout, buttons)
 
     def close_windows(self):
         for window in (self.window_add_members, self.window_remove_members, self.window_line_up):

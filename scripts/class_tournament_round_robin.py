@@ -67,10 +67,10 @@ class Tournament_Round_Robin(Tournament):
             "cycles": "Cycles",
             "choose_seating": "Choose Seating",
             "point_system": "Point System",
-            "tiebreak_1": "Tiebreak (1)",
-            "tiebreak_2": "Tiebreak (2)",
-            "tiebreak_3": "Tiebreak (3)",
-            "tiebreak_4": "Tiebreak (4)",
+            "tiebreak_1": ("Tiebreak", " (1)"),
+            "tiebreak_2": ("Tiebreak", " (2)"),
+            "tiebreak_3": ("Tiebreak", " (3)"),
+            "tiebreak_4": ("Tiebreak", " (4)")
         }
 
     @staticmethod
@@ -105,7 +105,7 @@ class Tournament_Round_Robin(Tournament):
         if participant_number % 2:
             participant_number += 1
         cycle, modulo_round = divmod(r - 1, participant_number - 1)
-        return f"Round {cycle + 1}.{modulo_round + 1}"
+        return "Round", f" {cycle + 1}.{modulo_round + 1}"
 
     def get_standings(self, category_range=None):
         return get_standings_with_tiebreaks(self, {

@@ -5,7 +5,8 @@ from .window_tournament_new import Window_Tournament_New
 from .window_choice_table import Window_Choice_Table
 from .window_advance_participants import Window_Advance_Participants
 from .functions_type import type_to_add_participant_window_args, get_function
-from .functions_gui import add_content_to_table, add_button_to_table, size_table, get_button, add_widgets_in_layout
+from .functions_gui import add_content_to_table, add_button_to_table, set_up_table, size_table, get_button,\
+    add_widgets_in_layout
 
 
 class Widget_MS_Tournament_Stage_New(QWidget):
@@ -41,15 +42,20 @@ class Widget_MS_Tournament_Stage_New(QWidget):
         add_content_to_table(self.table, mode, row, 1, edit=False)
         add_content_to_table(self.table, participants, row, 2, edit=False, align=Qt.AlignCenter)
         add_button_to_table(
-            self.table, row, 3, "medium", None, "Part.",
-            connect_function=self.open_add_participants if self.stage == 0 else self.open_advance_participants
+            self.table, row, 3, "medium", None, "Participants",
+            connect_function=self.open_add_participants if self.stage == 0 else self.open_advance_participants,
+            translate=True
         )
-        add_button_to_table(self.table, row, 4, "medium", None, "Copy", connect_function=self.copy_tournament)
-        add_button_to_table(self.table, row, 5, "medium", None, '-', connect_function=self.remove_tournament)
+        add_button_to_table(
+            self.table, row, 4, "medium", None, "Copy", connect_function=self.copy_tournament, translate=True
+        )
+        add_button_to_table(
+            self.table, row, 5, "medium", None, '-', connect_function=self.remove_tournament, translate=True
+        )
 
     def fill_in_table(self):
-        size_table(self.table, len(self.tournaments), 6, 3.5, max_width=55, widths=[None, None, 5, 4, 4, 3.5])
-        self.table.setHorizontalHeaderLabels(["Name", "Mode", "Part.", "", "", ""])
+        set_up_table(self.table, 0, 6, header_horizontal=["Name", "Mode", "Part.", "", "", ""], translate=True)
+        size_table(self.table, len(self.tournaments), 3.5, max_width=55, widths=[None, None, 5, 8, 8, 3.5])
 
         header_horizontal, header_vertical = self.table.horizontalHeader(), self.table.verticalHeader()
         header_horizontal.setSectionResizeMode(0, QHeaderView.Stretch)
@@ -65,7 +71,9 @@ class Widget_MS_Tournament_Stage_New(QWidget):
         self.table.itemChanged.connect(self.change_names)
 
     def set_buttons(self):
-        add_button = get_button("large", (10, 5), "Add\nTournament", connect_function=self.open_new_tournament_window)
+        add_button = get_button(
+            "large", (10, 5), "Add\nTournament", connect_function=self.open_new_tournament_window, translate=True
+        )
         layout_buttons = QVBoxLayout()
         layout_buttons.setAlignment(Qt.AlignTop | Qt.AlignLeft)
         add_widgets_in_layout(self.layout, layout_buttons, (add_button,))

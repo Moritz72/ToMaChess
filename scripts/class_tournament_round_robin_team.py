@@ -37,10 +37,10 @@ class Tournament_Round_Robin_Team(Tournament_Round_Robin):
             "choose_seating": None,
             "point_system": "Point System (Match)",
             "point_system_game": "Point System (Game)",
-            "tiebreak_1": "Tiebreak (1)",
-            "tiebreak_2": "Tiebreak (2)",
-            "tiebreak_3": "Tiebreak (3)",
-            "tiebreak_4": "Tiebreak (4)"
+            "tiebreak_1": ("Tiebreak", " (1)"),
+            "tiebreak_2": ("Tiebreak", " (2)"),
+            "tiebreak_3": ("Tiebreak", " (3)"),
+            "tiebreak_4": ("Tiebreak", " (4)")
         }
         self.variables = variables or self.variables | {"results_individual": []}
 

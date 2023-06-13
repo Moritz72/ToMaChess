@@ -26,20 +26,6 @@ tiebreaks = {
     "Board Points": get_board_points,
     "Berliner Wertung": get_berliner_wertung
 }
-abbreviations = {
-    "None": None,
-    "Buchholz": "BuHo",
-    "Buchholz Sum": "BuSu",
-    "Sonneborn-Berger": "SoBe",
-    "Games as Black": "BlaG",
-    "Wins": "Wins",
-    "Wins as Black": "BlaW",
-    "Average Rating": "AvRa",
-    "Cumulative Score": "Cumu",
-    "Direct Encounter": "DiEn",
-    "Board Points": "BoPo",
-    "Berliner Wertung": "BeWe"
-}
 func_args = {
     "None": {},
     "Buchholz": {"cut_down": 0, "cut_up": 0, "virtual": True},
@@ -107,6 +93,3 @@ class Tiebreak:
         func_args = self.args.copy() | args
         func = tiebreaks[func_args.pop("functions")[0]]
         return func(**{key: value for key, value in func_args.items() if key in getfullargspec(func).args})
-
-    def get_abbreviation(self):
-        return abbreviations[self.args["functions"][0]]

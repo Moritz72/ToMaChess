@@ -3,7 +3,7 @@ from PyQt5.QtCore import pyqtSignal
 from .functions_type import type_to_modes, type_to_mode_default, type_to_add_participant_window_args, get_function
 from .functions_categories import type_to_categories
 from .functions_gui import add_widgets_to_layout, get_suitable_widget, get_value_from_suitable_widget,\
-    get_button, get_label, get_lineedit, get_combo_box, get_scroll_area_widgets_and_layouts
+    get_button, get_label, get_lineedit, get_combo_box, get_scroll_area_widgets_and_layouts, set_window_title
 from .window_choice_table import Window_Choice_Table
 from .window_add_categories import Window_Add_Categories
 
@@ -13,7 +13,7 @@ class Window_Tournament_New(QMainWindow):
 
     def __init__(self, participant_type="player", add_participants=True):
         super().__init__()
-        self.setWindowTitle("New Tournament")
+        set_window_title(self, "New Tournament")
 
         self.add_participants = add_participants
         self.modes = type_to_modes[participant_type]
@@ -41,19 +41,19 @@ class Window_Tournament_New(QMainWindow):
         self.setFixedSize(self.layout.sizeHint())
 
     def set_left_side(self):
-        name_label = get_label("Name", "large")
+        name_label = get_label("Name", "large", translate=True)
         self.name_line = get_lineedit("medium", (15, 3))
         add_participants_button = get_button(
-            "medium", (10, 5), "Add\nParticipants", connect_function=self.add_participants_window.show
+            "medium", (10, 5), "Add\nParticipants", connect_function=self.add_participants_window.show, translate=True
         )
         if not self.add_participants:
             add_participants_button.setVisible(False)
-        mode_label = get_label("Mode", "large")
-        combo_box = get_combo_box(list(self.modes), "medium", (15, 3), self.mode_default)
+        mode_label = get_label("Mode", "large", translate=True)
+        combo_box = get_combo_box(list(self.modes), "medium", (15, 3), self.mode_default, translate=True)
         combo_box.activated[str].connect(lambda: self.set_right_side(list(self.modes)[combo_box.currentIndex()]))
-        create_button = get_button("large", (11, 4), "Create", connect_function=self.create_tournament)
+        create_button = get_button("large", (11, 4), "Create", connect_function=self.create_tournament, translate=True)
         add_categories_button = get_button(
-            "medium", (10, 5), "Add\nCategories", connect_function=self.add_categories_window.show
+            "medium", (10, 5), "Add\nCategories", connect_function=self.add_categories_window.show, translate=True
         )
 
         widget = QWidget()
@@ -73,14 +73,14 @@ class Window_Tournament_New(QMainWindow):
         parameter_display = self.new_tournament.get_parameter_display()
 
         self.parameter_widget_data = tuple(
-            (parameter, parameter_display[parameter], get_suitable_widget(value))
+            (parameter, parameter_display[parameter], get_suitable_widget(value, translate=True))
             for parameter, value in self.new_tournament.get_parameters().items()
             if value is not None and parameter_display[parameter] is not None
         )
 
         parameter_widgets = []
         for _, display, widget in self.parameter_widget_data:
-            parameter_widgets.extend([get_label(display, "large"), widget, QLabel()])
+            parameter_widgets.extend([get_label(display, "large", translate=True), widget, QLabel()])
 
         widget = QWidget()
         layout = QVBoxLayout()

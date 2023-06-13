@@ -4,6 +4,7 @@ from PyQt5.QtGui import QFontDatabase
 from .functions_util import read_file, write_file, get_root_directory
 
 settings_valid = {
+    "language": lambda x: True,
     "style": lambda x: True,
     "font": lambda x: True,
     "font_size": lambda x: 2 < x < 40,
@@ -12,6 +13,7 @@ settings_valid = {
 }
 
 settings_display = {
+    "language": "Language",
     "style": "Style",
     "font": "Font",
     "font_size": "Font Size",
@@ -32,6 +34,7 @@ def get_font_list():
 
 def get_defaults():
     return {
+        "language": ["English (en)", "Deutsch (de)"],
         "style": ["Light", "Dark"],
         "font": get_font_list(),
         "font_size": 12,

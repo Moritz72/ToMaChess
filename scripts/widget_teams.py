@@ -15,8 +15,7 @@ class Widget_Teams(Widget_Default_Generic):
 
     @staticmethod
     def get_table():
-        table = Table_Widget_Search(4, 3.5, 55, [None, 5, 9, 3.5])
-        table.setHorizontalHeaderLabels(["Name", "Memb.", "", ""])
+        table = Table_Widget_Search(4, 3.5, 55, [None, 5, 9, 3.5], ["Name", "Members", "", ""], translate=True)
 
         header_horizontal, header_vertical = table.horizontalHeader(), table.verticalHeader()
         header_horizontal.setSectionResizeMode(0, QHeaderView.Stretch)
@@ -24,8 +23,8 @@ class Widget_Teams(Widget_Default_Generic):
         return table
 
     def get_buttons(self):
-        add_button = get_button("large", (12, 5), "Add\nTeam", connect_function=self.add_new_row)
-        save_button = get_button("large", (12, 5), "Save", connect_function=self.update_database)
+        add_button = get_button("large", (14, 5), "Add\nTeam", connect_function=self.add_new_row, translate=True)
+        save_button = get_button("large", (14, 5), "Save", connect_function=self.update_database, translate=True)
         return add_button, save_button
 
     def get_object_from_values(self, values):
@@ -45,7 +44,8 @@ class Widget_Teams(Widget_Default_Generic):
         add_content_to_table(self.table, name, row, 0, bold=True)
         add_content_to_table(self.table, members, row, 1, edit=False, align=Qt.AlignCenter)
         if name:
-            add_button_to_table(self.table, row, 2, "medium", None, "Edit", connect_function=self.edit_team, bold=True)
+            add_button_to_table(
+                self.table, row, 2, "medium", None, "Edit", connect_function=self.edit_team, bold=True, translate=True)
         else:
             add_content_to_table(self.table, "", row, 2, edit=False, align=Qt.AlignCenter)
         add_button_to_table(self.table, row, 3, "medium", None, '-', connect_function=self.table.delete_current_row)

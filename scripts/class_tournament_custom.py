@@ -25,10 +25,10 @@ class Tournament_Custom(Tournament):
             "games_per_round": "Games per Round",
             "rounds": "Rounds",
             "point_system": "Point System",
-            "tiebreak_1": "Tiebreak (1)",
-            "tiebreak_2": "Tiebreak (2)",
-            "tiebreak_3": "Tiebreak (3)",
-            "tiebreak_4": "Tiebreak (4)"
+            "tiebreak_1": ("Tiebreak", " (1)"),
+            "tiebreak_2": ("Tiebreak", " (2)"),
+            "tiebreak_3": ("Tiebreak", " (3)"),
+            "tiebreak_4": ("Tiebreak", " (4)")
         }
 
     @staticmethod

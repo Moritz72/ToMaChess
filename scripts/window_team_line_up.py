@@ -1,7 +1,7 @@
 from PyQt5.QtWidgets import QMainWindow, QWidget, QHeaderView, QHBoxLayout, QApplication
 from PyQt5.QtCore import Qt, pyqtSignal
 from .table_widget_drag import Table_Widget_Drag
-from .functions_gui import add_content_to_table, size_table
+from .functions_gui import add_content_to_table, set_up_table, size_table, set_window_title
 
 
 class Window_Line_Up(QMainWindow):
@@ -9,7 +9,7 @@ class Window_Line_Up(QMainWindow):
 
     def __init__(self, team):
         super().__init__()
-        self.setWindowTitle("Change Lineup")
+        set_window_title(self, "Change Lineup")
 
         self.team = team
         self.members = team.get_members()
@@ -36,8 +36,10 @@ class Window_Line_Up(QMainWindow):
         add_content_to_table(self.table, obj.get_rating(), row, 5, edit=False, align=Qt.AlignCenter)
 
     def fill_in_table(self):
-        size_table(self.table, len(self.members), 6, 3.5, max_width=55, widths=[None, 3.5, 5, 4.5, 4, 5, 3.5])
-        self.table.setHorizontalHeaderLabels(["Name", "Sex", "Birth", "Fed.", "Title", "Rating"])
+        set_up_table(
+            self.table, 0, 6, header_horizontal=["Name", "Sex", "Birth", "Fed.", "Title", "Rating"], translate=True
+        )
+        size_table(self.table, len(self.members), 3.5, max_width=55, widths=[None, 3.5, 5, 4.5, 4, 5, 3.5])
 
         header_horizontal, header_vertical = self.table.horizontalHeader(), self.table.verticalHeader()
         header_horizontal.setSectionResizeMode(0, QHeaderView.Stretch)

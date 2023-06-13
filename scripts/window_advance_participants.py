@@ -1,6 +1,7 @@
 from PyQt5.QtWidgets import QMainWindow, QHBoxLayout, QWidget, QTableWidget, QApplication, QHeaderView, QVBoxLayout
 from PyQt5.QtCore import Qt, pyqtSignal
-from .functions_gui import get_button, add_button_to_table, add_combobox_to_table, size_table
+from .functions_gui import get_button, add_button_to_table, add_combobox_to_table, set_up_table, size_table,\
+    set_window_title
 
 
 class Window_Advance_Participants(QMainWindow):
@@ -8,7 +9,7 @@ class Window_Advance_Participants(QMainWindow):
 
     def __init__(self, advance_list, tournaments, participant_counts):
         super().__init__()
-        self.setWindowTitle("Add Participants")
+        set_window_title(self, "Add Participants")
 
         self.advance_list = advance_list
         self.tournaments = [
@@ -31,7 +32,9 @@ class Window_Advance_Participants(QMainWindow):
         layout.addWidget(self.table)
         self.layout.addLayout(layout)
 
-        add_row_button = get_button("large", (10, 6), "Add\nParticipant", connect_function=lambda: self.add_row())
+        add_row_button = get_button(
+            "large", (10, 6), "Add\nParticipant", connect_function=lambda: self.add_row(), translate=True
+        )
         if len(self.tournaments) == 0:
             add_row_button.setVisible(False)
         layout = QVBoxLayout()
@@ -43,7 +46,7 @@ class Window_Advance_Participants(QMainWindow):
         self.setFixedHeight(int(QApplication.primaryScreen().size().height() * .5))
 
     def resize_table(self):
-        size_table(self.table, self.table.rowCount(), 3, 3.5, max_width=30, widths=[None, 8, 3.5])
+        size_table(self.table, self.table.rowCount(), 3.5, max_width=30, widths=[None, 8, 3.5])
 
     def get_seatings_choices(self, tournament):
         if tournament is None:
@@ -63,8 +66,8 @@ class Window_Advance_Participants(QMainWindow):
         self.resize_table()
 
     def fill_in_table(self):
+        set_up_table(self.table, 0, 3, header_horizontal=["Tournament", "Placement", ""], translate=True)
         self.resize_table()
-        self.table.setHorizontalHeaderLabels(["Tournament", "Placement", ""])
 
         header_horizontal, header_vertical = self.table.horizontalHeader(), self.table.verticalHeader()
         header_horizontal.setSectionResizeMode(0, QHeaderView.Stretch)

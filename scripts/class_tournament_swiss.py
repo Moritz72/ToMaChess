@@ -24,10 +24,10 @@ class Tournament_Swiss(Tournament):
         self.parameter_display = {
             "rounds": "Rounds",
             "point_system": "Point System",
-            "tiebreak_1": "Tiebreak (1)",
-            "tiebreak_2": "Tiebreak (2)",
-            "tiebreak_3": "Tiebreak (3)",
-            "tiebreak_4": "Tiebreak (4)"
+            "tiebreak_1": ("Tiebreak", " (1)"),
+            "tiebreak_2": ("Tiebreak", " (2)"),
+            "tiebreak_3": ("Tiebreak", " (3)"),
+            "tiebreak_4": ("Tiebreak", " (4)")
         }
 
     def seat_participants(self):

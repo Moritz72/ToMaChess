@@ -3,7 +3,7 @@ from PyQt5.QtCore import Qt, pyqtSignal
 from .class_ms_tournament import MS_Tournament
 from .widget_ms_tournament_stage_new import Widget_MS_Tournament_Stage_New
 from .functions_gui import get_button, get_scroll_area_widgets_and_layouts, add_widgets_in_layout, get_lineedit,\
-    get_label, get_check_box, add_widgets_to_layout
+    get_label, get_check_box, add_widgets_to_layout, set_window_title
 
 
 class Window_MS_Tournament_New(QMainWindow):
@@ -11,7 +11,7 @@ class Window_MS_Tournament_New(QMainWindow):
 
     def __init__(self, participant_type="player"):
         super().__init__()
-        self.setWindowTitle("New Multi-Stage Tournament")
+        set_window_title(self, "New Multi-Stage Tournament")
 
         self.participant_type = participant_type
         self.name_line = None
@@ -33,9 +33,9 @@ class Window_MS_Tournament_New(QMainWindow):
         self.setFixedHeight(int(QApplication.primaryScreen().size().height()*.8))
 
     def add_top_line(self):
-        name_label = get_label("Name", "large")
+        name_label = get_label("Name", "large", translate=True)
         self.name_line = get_lineedit("medium", (15, 2.5))
-        draw_lots_label = get_label("Draw Lots in Case of Tie", "large")
+        draw_lots_label = get_label("Draw Lots in Case of Tie", "large", translate=True)
         self.draw_lots_check = get_check_box(True, "medium", (2.5, 2.5))
 
         layout = QHBoxLayout()
@@ -48,9 +48,9 @@ class Window_MS_Tournament_New(QMainWindow):
 
     def add_buttons(self):
         add_widgets_in_layout(self.layout, QHBoxLayout(), (
-            get_button("large", None, "Add\nStage", connect_function=self.add_stage),
-            get_button("large", None, "Remove\nStage", connect_function=self.remove_stage),
-            get_button("large", None, "Create\nTournament", connect_function=self.create_tournament)
+            get_button("large", None, "Add\nStage", connect_function=self.add_stage, translate=True),
+            get_button("large", None, "Remove\nStage", connect_function=self.remove_stage, translate=True),
+            get_button("large", None, "Create\nTournament", connect_function=self.create_tournament, translate=True)
         ))
 
     def add_stage(self):

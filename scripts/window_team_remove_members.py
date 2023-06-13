@@ -1,6 +1,6 @@
 from PyQt5.QtWidgets import QMainWindow, QWidget, QHBoxLayout, QApplication, QTableWidget, QHeaderView
 from PyQt5.QtCore import Qt, pyqtSignal
-from .functions_gui import size_table, add_content_to_table, add_button_to_table
+from .functions_gui import set_up_table, size_table, add_content_to_table, add_button_to_table, set_window_title
 
 
 class Window_Team_Remove_Members(QMainWindow):
@@ -8,7 +8,7 @@ class Window_Team_Remove_Members(QMainWindow):
 
     def __init__(self, members):
         super().__init__()
-        self.setWindowTitle("Remove Members")
+        set_window_title(self, "Remove Members")
         self.members = members
         self.removed_members = []
 
@@ -35,11 +35,13 @@ class Window_Team_Remove_Members(QMainWindow):
         add_button_to_table(self.table, row, 6, "medium", None, '-', connect_function=self.add_member_to_be_removed)
 
     def resize_table(self):
-        size_table(self.table, len(self.members), 7, 3.5, max_width=55, widths=[None, 3.5, 5, 4.5, 4, 5, 3.5])
+        size_table(self.table, len(self.members), 3.5, max_width=55, widths=[None, 3.5, 5, 4.5, 4, 5, 3.5])
 
     def fill_in_table(self):
+        set_up_table(
+            self.table, 0, 7, header_horizontal=["Name", "Sex", "Birth", "Fed.", "Title", "Rating", ""], translate=True
+        )
         self.resize_table()
-        self.table.setHorizontalHeaderLabels(["Name", "Sex", "Birth", "Fed.", "Title", "Rating", ""])
 
         header_horizontal, header_vertical = self.table.horizontalHeader(), self.table.verticalHeader()
         header_horizontal.setSectionResizeMode(0, QHeaderView.Stretch)

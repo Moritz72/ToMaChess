@@ -1,7 +1,7 @@
 from PyQt5.QtWidgets import QWidget, QVBoxLayout, QHeaderView, QTableWidget
 from PyQt5.QtCore import Qt
-from .functions_categories import get_category_range_string
-from .functions_gui import add_content_to_table, size_table, clear_table
+from .functions_categories import get_category_range_title
+from .functions_gui import add_content_to_table, set_up_table, size_table, clear_table
 
 
 class Widget_Tournament_Standings(QWidget):
@@ -25,13 +25,12 @@ class Widget_Tournament_Standings(QWidget):
     def fill_in_table(self):
         header_horizontal, header_vertical, table = self.tournament.get_standings(self.category_range)
         if self.category_range is not None:
-            header_horizontal[0] = get_category_range_string(*self.category_range)
-        size_table(
-            self.table, len(header_vertical), len(header_horizontal), 3.5,
-            max_width=55, widths=len(header_horizontal) * [5]
+            header_horizontal[0] = get_category_range_title(*self.category_range)
+        set_up_table(
+            self.table, 0, len(header_horizontal),
+            header_horizontal=header_horizontal, header_vertical=header_vertical, translate=True
         )
-        self.table.setHorizontalHeaderLabels(header_horizontal)
-        self.table.setVerticalHeaderLabels(header_vertical)
+        size_table(self.table, len(header_vertical), 3.5, max_width=55, widths=len(header_horizontal) * [5])
 
         header_horizontal, header_vertical = self.table.horizontalHeader(), self.table.verticalHeader()
         header_horizontal.setSectionResizeMode(0, QHeaderView.Stretch)

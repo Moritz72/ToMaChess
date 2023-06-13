@@ -20,8 +20,9 @@ class Widget_Tournaments(Widget_Default_Generic):
 
     @staticmethod
     def get_table():
-        table = Table_Widget_Search(5, 3.5, 55, [None, None, 5, 7, 3.5])
-        table.setHorizontalHeaderLabels(["Name", "Mode", "Part.", "", ""])
+        table = Table_Widget_Search(
+            5, 3.5, 55, [None, None, 5, 7, 3.5], ["Name", "Mode", "Participants", "", ""], translate=True
+        )
 
         header_horizontal, header_vertical = table.horizontalHeader(), table.verticalHeader()
         header_horizontal.setSectionResizeMode(0, QHeaderView.Stretch)
@@ -31,13 +32,14 @@ class Widget_Tournaments(Widget_Default_Generic):
 
     def get_buttons(self):
         add_button = get_button(
-            "large", (12, 5), "Add\nTournament", connect_function=lambda: self.open_new_tournament_window({})
+            "large", (14, 5), "Add\nTournament",
+            connect_function=lambda: self.open_new_tournament_window({}), translate=True
         )
         add_button_team = get_button(
-            "large", (12, 5), "Add Team\nTournament",
-            connect_function=lambda: self.open_new_tournament_window({"participant_type": "team"})
+            "large", (14, 5), "Add Team\nTournament",
+            connect_function=lambda: self.open_new_tournament_window({"participant_type": "team"}), translate=True
         )
-        save_button = get_button("large", (12, 5), "Save", connect_function=self.update_database)
+        save_button = get_button("large", (14, 5), "Save", connect_function=self.update_database, translate=True)
         return add_button, add_button_team, save_button
 
     def get_object_from_values(self, values):
@@ -49,10 +51,10 @@ class Widget_Tournaments(Widget_Default_Generic):
 
     def fill_in_row(self, row, obj=None):
         add_content_to_table(self.table, obj.get_name(), row, 0, bold=True)
-        add_content_to_table(self.table, obj.get_mode(), row, 1, edit=False)
+        add_content_to_table(self.table, obj.get_mode(), row, 1, edit=False, translate=True)
         add_content_to_table(self.table, obj.get_participant_count(), row, 2, edit=False, align=Qt.AlignCenter)
         add_button_to_table(
-            self.table, row, 3, "medium", None, "Open", connect_function=self.open_tournament, bold=True
+            self.table, row, 3, "medium", None, "Open", connect_function=self.open_tournament, bold=True, translate=True
         )
         add_button_to_table(self.table, row, 4, "medium", None, '-', connect_function=self.table.delete_current_row)
 

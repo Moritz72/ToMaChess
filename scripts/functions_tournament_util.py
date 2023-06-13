@@ -31,13 +31,13 @@ def get_standings_with_tiebreaks(tournament, tiebreak_args, category_range=None)
             key: value for key, value in uuid_to_participant_dict.items() if value in filtered_values
         }
     tiebreaks = [value for key, value in tournament.get_parameters().items() if key.startswith("tiebreak_")]
-    header_horizontal = ["Name", "P"]
+    header_horizontal = ["Name", "Points"]
     rank_functions = [lambda x: tournament.get_simple_scores()]
 
     for tb in tiebreaks:
-        if tb.get_abbreviation() is None:
+        if tb.args["functions"][0] == "None":
             continue
-        header_horizontal.append(tb.get_abbreviation())
+        header_horizontal.append(tb.args["functions"][0])
         rank_functions.append(lambda x, tiebreak=tb: tiebreak.evaluate({"uuids": x} | tiebreak_args))
 
     table = [

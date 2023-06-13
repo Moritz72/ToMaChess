@@ -13,8 +13,10 @@ class Widget_Players(Widget_Default_Generic):
 
     @staticmethod
     def get_table():
-        table = Table_Widget_Search(7, 3.5, 55, [None, 3.5, 5, 4.5, 4, 5, 3.5])
-        table.setHorizontalHeaderLabels(["Name", "Sex", "Birth", "Fed.", "Title", "Rating", ""])
+        table = Table_Widget_Search(
+            7, 3.5, 55, [None, 3.5, 5, 4.5, 4, 5, 3.5], ["Name", "Sex", "Birth", "Federation", "Title", "Rating", ""],
+            translate=True
+        )
 
         header_horizontal, header_vertical = table.horizontalHeader(), table.verticalHeader()
         header_horizontal.setSectionResizeMode(0, QHeaderView.Stretch)
@@ -22,8 +24,8 @@ class Widget_Players(Widget_Default_Generic):
         return table
 
     def get_buttons(self):
-        add_button = get_button("large", (12, 5), "Add\nPlayer", connect_function=self.add_new_row)
-        save_button = get_button("large", (12, 5), "Save", connect_function=self.update_database)
+        add_button = get_button("large", (14, 5), "Add\nPlayer", connect_function=self.add_new_row, translate=True)
+        save_button = get_button("large", (14, 5), "Save", connect_function=self.update_database, translate=True)
         return add_button, save_button
 
     def get_object_from_values(self, values):

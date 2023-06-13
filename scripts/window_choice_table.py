@@ -4,7 +4,7 @@ from .table_widget_search import Table_Widget_Search
 from .widget_default_generic import Widget_Default_Generic
 from .functions_player import load_players_like
 from .functions_team import load_teams_shallow_like
-from .functions_gui import add_content_to_table, get_check_box
+from .functions_gui import add_content_to_table, get_check_box, set_window_title
 
 
 def get_load_function_exclude(load_like_function, excluded_uuids):
@@ -21,8 +21,10 @@ class Widget_Choice_Players(Widget_Default_Generic):
 
     @staticmethod
     def get_table():
-        table = Table_Widget_Search(7, 3.5, 55, [None, 3.5, 5, 4.5, 4, 5, 3.5])
-        table.setHorizontalHeaderLabels(["Name", "Sex", "Birth", "Fed.", "Title", "Rating", ""])
+        table = Table_Widget_Search(
+            7, 3.5, 55, [None, 3.5, 5, 4.5, 4, 5, 3.5], ["Name", "Sex", "Birth", "Fed.", "Title", "Rating", ""],
+            translate=True
+        )
 
         header_horizontal, header_vertical = table.horizontalHeader(), table.verticalHeader()
         header_horizontal.setSectionResizeMode(0, QHeaderView.Stretch)
@@ -66,8 +68,7 @@ class Widget_Choice_Teams(Widget_Default_Generic):
 
     @staticmethod
     def get_table():
-        table = Table_Widget_Search(3, 3.5, 55, [None, 5, 3.5])
-        table.setHorizontalHeaderLabels(["Name", "Memb.", ""])
+        table = Table_Widget_Search(3, 3.5, 55, [None, 5, 3.5], ["Name", "Memb.", ""], translate=True)
 
         header_horizontal, header_vertical = table.horizontalHeader(), table.verticalHeader()
         header_horizontal.setSectionResizeMode(0, QHeaderView.Stretch)
@@ -108,7 +109,7 @@ class Window_Choice_Table(QMainWindow):
 
     def __init__(self, title, object_type, excluded_uuids=None, checked_uuids=None):
         super().__init__()
-        self.setWindowTitle(title)
+        set_window_title(self, title)
 
         excluded_uuids = excluded_uuids or []
         checked_uuids = checked_uuids or []

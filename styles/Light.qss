@@ -33,8 +33,12 @@ QPushButton:pressed, QPushButton:checked {
   color: #000000;
 }
 
-QPushButton:pressed, QAbstractSpinBox:up-button:pressed, QAbstractSpinBox:down-button:pressed, QComboBox::drop-down:pressed, QScrollBar::handle:pressed, QPushButton:checked#side_menu_button, QPushButton:checked:hover#side_menu_button, QHeaderView::section:checked, QPushButton:checked, QScrollBar::add-line:pressed, QScrollBar::sub-line:pressed {
+QPushButton:pressed, QAbstractSpinBox:up-button:pressed, QAbstractSpinBox:down-button:pressed, QComboBox::drop-down:pressed, QScrollBar::handle:pressed, QPushButton:checked#side_menu_button, QPushButton:checked:hover#side_menu_button, QPushButton:checked, QScrollBar::add-line:pressed, QScrollBar::sub-line:pressed {
   background-color: #a1d5ff;
+}
+
+QHeaderView::section:checked {
+  color: #444444;
 }
 
 QWidget#blank_widget {

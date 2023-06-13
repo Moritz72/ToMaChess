@@ -1,4 +1,5 @@
 from math import inf
+from .class_translation_handler import translation_handler
 
 integer_categories = ("Rating", "Birth")
 type_to_categories = {"player": ("Rating", "Birth", "Sex", "Federation"), "team": tuple()}
@@ -7,14 +8,18 @@ category_to_method_string = {
 }
 
 
-def get_category_range_string(category, bottom, top):
+def get_range_string(bottom, top):
     if bottom == top:
-        return f"{category} {bottom}"
+        return f"{bottom}"
     if bottom in (-inf, ""):
-        return f"{category} ≤ {top}"
+        return f"≤ {top}"
     if top in (inf, ""):
-        return f"{category} ≥ {bottom}"
-    return f"{category} {bottom} - {top}"
+        return f"≥ {bottom}"
+    return f"{bottom} - {top}"
+
+
+def get_category_range_title(category, bottom, top):
+    return f"{translation_handler.tl(category)} {get_range_string(bottom, top)}"
 
 
 def object_in_category_range(obj, category, bottom, top):

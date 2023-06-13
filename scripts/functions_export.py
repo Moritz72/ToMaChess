@@ -6,7 +6,8 @@ from reportlab.lib.units import inch
 from reportlab.pdfgen import canvas
 from reportlab.pdfbase.pdfmetrics import stringWidth
 from .class_settings_handler import settings_handler
-from .functions_categories import get_category_range_string
+from .class_translation_handler import translation_handler
+from .functions_categories import get_category_range_title
 
 FONT = "Helvetica"
 FONT_BOLD = "Helvetica-Bold"
@@ -19,21 +20,29 @@ ROW_HEIGHT = 1.7 * FONT_SIZE
 LINE_WIDTHS = (.5, 1.5, 2)
 
 
+def get_path(*parts):
+    return os.path.join(settings_handler.settings['pdf_path'], *parts)
+
+
 def make_new_folder(tournament, sub_folder=""):
     if settings_handler.settings["pdf_path"] == "":
         return False
-    folder_path = os.path.join(settings_handler.settings["pdf_path"], sub_folder)
+    folder_path = get_path(sub_folder)
     try:
         if sub_folder and not os.path.exists(folder_path):
             os.mkdir(folder_path)
         folder_path = os.path.join(folder_path, tournament.get_name())
-        if not os.path.exists(folder_path):
-            os.mkdir(folder_path)
-            os.mkdir(os.path.join(folder_path, "standings"))
-            os.mkdir(os.path.join(folder_path, "pairings"))
-            os.mkdir(os.path.join(folder_path, "results"))
-            if "category_ranges" in tournament.get_parameters() and tournament.get_parameter("category_ranges"):
-                os.mkdir(os.path.join(folder_path, "standings_categories"))
+        paths_parts = [
+            (folder_path,), (folder_path, translation_handler.tl("Standings")),
+            (folder_path, translation_handler.tl("Pairings")), (folder_path, translation_handler.tl("Results"))
+        ]
+        if "category_ranges" in tournament.get_parameters() and tournament.get_parameter("category_ranges"):
+            name = f"{translation_handler.tl('Standings')} ({translation_handler.tl('Categories')})"
+            paths_parts.append((folder_path, name))
+        for parts in paths_parts:
+            path = get_path(*parts)
+            if not os.path.exists(path):
+                os.mkdir(path)
     except:
         return False
     return True
@@ -156,6 +165,10 @@ def add_table_to_pdf(
     if len(table) == 0 or len(table[0]) == 0:
         return top_row - 2 * ROW_HEIGHT
 
+    if horizontal_header is not None:
+        horizontal_header = translation_handler.tl_list(horizontal_header, short=True)
+    if vertical_header is not None:
+        vertical_header = translation_handler.tl_list(vertical_header, short=True)
     vertical_header_width = get_vertical_header_width(vertical_header)
     if column_widths is None:
         column_widths = len(table[0]) * ((USABLE_WIDTH - vertical_header_width) / len(table[0]))
@@ -209,53 +222,57 @@ def make_pdf_from_tables(filename, tables_data):
 def tournament_participants_to_pdf(tournament, sub_folder=""):
     if not make_new_folder(tournament, sub_folder):
         return
-    filename = os.path.join(
-        settings_handler.settings['pdf_path'], sub_folder, tournament.get_name(), "participants.pdf"
-    )
-    header_horizontal = ("Name", "Sex", "Birth", "Fed.", "Title", "Rating")
-    column_widths = (.61, .06, .08, .08, .08, .09)
+    filename = get_path(sub_folder, tournament.get_name(), f"{translation_handler.tl('Participants')}.pdf")
+    header_horizontal = ("Name", "Sex", "Birth", "Federation", "Title", "Rating")
+    column_widths = (.6, .07, .08, .08, .08, .09)
     aligns = ["LEFT"] + 5 * ["CENTER"]
+
     if tournament.is_team_tournament():
         tables_data = tuple(
             (
                 [player.get_data()[:6] for player in team.get_members()], header_horizontal,
                 tuple(str(i + 1) for i in range(len(team.get_members()))), column_widths, aligns,
-                ["Participants", "", team.get_name()] if i == 0 else [team.get_name()]
+                [translation_handler.tl("Participants"), "", team.get_name()] if i == 0 else [team.get_name()]
             )
             for i, team in enumerate(tournament.get_participants())
         )
     else:
         header_vertical = tuple(str(i + 1) for i in range(len(tournament.get_participants())))
         table = [participant.get_data()[:6] for participant in tournament.get_participants()]
-        tables_data = ((table, header_horizontal, header_vertical, column_widths, aligns, ["Participants"]),)
+        tables_data = ((
+            table, header_horizontal, header_vertical, column_widths, aligns, [translation_handler.tl("Participants")]
+        ),)
+
     make_pdf_from_tables(filename, tables_data)
 
 
 def tournament_standings_to_pdf(tournament, sub_folder=""):
     if not make_new_folder(tournament, sub_folder):
         return
-    round_name = tournament.get_round_name(tournament.get_round() - 1)
-    filename = os.path.join(
-        settings_handler.settings['pdf_path'], sub_folder, tournament.get_name(), "standings", f"{round_name}.pdf"
-    )
+    round_name = translation_handler.tl(tournament.get_round_name(tournament.get_round() - 1))
+    top_line = translation_handler.tl("Standings after {}", insert=round_name)
+    filename = get_path(sub_folder, tournament.get_name(), translation_handler.tl("Standings"), f"{round_name}.pdf")
     header_horizontal, header_vertical, table = tournament.get_standings()
     column_widths = [1 - .1 * (len(header_horizontal) - 1)] + (len(header_horizontal) - 1) * [.1]
     aligns = ["LEFT"] + (len(header_horizontal) - 1) * ["CENTER"]
-    table_data = (table, header_horizontal, header_vertical, column_widths, aligns, [f"Standings after {round_name}"])
+    table_data = (table, header_horizontal, header_vertical, column_widths, aligns, [top_line])
+
     make_pdf_from_tables(filename, (table_data,))
+
     if "category_ranges" not in tournament.get_parameters() or not tournament.get_parameter("category_ranges"):
         return
-    filename = os.path.join(
-        settings_handler.settings['pdf_path'], sub_folder, tournament.get_name(), "standings_categories",
-        f"{round_name}.pdf"
+    filename = get_path(
+        sub_folder, tournament.get_name(),
+        f"{translation_handler.tl('Standings')} ({translation_handler.tl('Categories')})", f"{round_name}.pdf"
     )
     tables_data = tuple(
         (
             tournament.get_standings(category_range)[2], header_horizontal, tournament.get_standings(category_range)[1],
-            column_widths, aligns, [f"Standings after {round_name} ({get_category_range_string(*category_range)})"]
+            column_widths, aligns, [top_line + f" ({get_category_range_title(*category_range)})"]
         )
         for category_range in tournament.get_parameter("category_ranges")
     )
+
     make_pdf_from_tables(filename, tables_data)
 
 
@@ -265,18 +282,15 @@ def tournament_pairings_to_pdf(tournament, sub_folder=""):
     pairings = tournament.get_pairings()
     if pairings is None:
         return
-    round_name = tournament.get_round_name(tournament.get_round())
-    filename = os.path.join(
-        settings_handler.settings['pdf_path'], sub_folder, tournament.get_name(), "pairings", f"{round_name}.pdf"
-    )
+    round_name = translation_handler.tl(tournament.get_round_name(tournament.get_round()))
+    top_line = translation_handler.tl("Pairings for {}", insert=round_name)
+    filename = get_path(sub_folder, tournament.get_name(), translation_handler.tl("Pairings"), f"{round_name}.pdf")
     uuid_to_participant_dict = tournament.get_uuid_to_participant_dict() | {None: "bye"}
-    header_horizontal = ("", "", "") if tournament.is_team_tournament else ("White", "", "Black")
+    header_horizontal = ("", "", "")
     header_vertical = tuple(str(i + 1) for i in range(len(pairings)))
     table = [[uuid_to_participant_dict[uuid_1], ":", uuid_to_participant_dict[uuid_2]] for uuid_1, uuid_2 in pairings]
-    table_data = (
-        table, header_horizontal, header_vertical, (.45, .1, .45), ("LEFT", "CENTER", "RIGHT"),
-        [f"Pairings of {round_name}"]
-    )
+    table_data = (table, header_horizontal, header_vertical, (.45, .1, .45), ("LEFT", "CENTER", "RIGHT"), [top_line])
+
     make_pdf_from_tables(filename, (table_data,))
 
 
@@ -285,14 +299,14 @@ def tournament_results_to_pdf(tournament, sub_folder=""):
         return
     if tournament.get_round() == 1:
         return
-    round_name = tournament.get_round_name(tournament.get_round() - 1)
-    filename = os.path.join(
-        settings_handler.settings['pdf_path'], sub_folder, tournament.get_name(), "results", f"{round_name}.pdf"
-    )
+    round_name = translation_handler.tl(tournament.get_round_name(tournament.get_round() - 1))
+    top_line = translation_handler.tl("Results of {}", insert=round_name)
+    filename = get_path(sub_folder, tournament.get_name(), translation_handler.tl("Results"), f"{round_name}.pdf")
     uuid_to_participant_dict = tournament.get_uuid_to_participant_dict() | {None: "bye"}
     results = tournament.get_results()[-1]
     column_widths = (.45, .1, .45)
     aligns = ("LEFT", "CENTER", "RIGHT")
+
     if tournament.is_team_tournament():
         tables_data = []
         uuid_to_individual_dict = tournament.get_uuid_to_individual_dict() | {None: "bye"}
@@ -313,16 +327,15 @@ def tournament_results_to_pdf(tournament, sub_folder=""):
             ]
             tables_data.append((
                 table, header_horizontal, header_vertical, column_widths, aligns,
-                [f"Results of {round_name}"] if len(tables_data) == 0 else []
+                [top_line] if len(tables_data) == 0 else []
             ))
     else:
-        header_horizontal = ("White", "", "Black")
+        header_horizontal = ("", "", "")
         header_vertical = tuple(str(i + 1) for i in range(len(results)))
         table = [
             [uuid_to_participant_dict[uuid_1], f"{score_1} : {score_2}", uuid_to_participant_dict[uuid_2]]
             for (uuid_1, score_1), (uuid_2, score_2) in results
         ]
-        tables_data = ((
-            table, header_horizontal, header_vertical, column_widths, aligns, [f"Results of {round_name}"]
-        ),)
+        tables_data = ((table, header_horizontal, header_vertical, column_widths, aligns, [top_line]),)
+
     make_pdf_from_tables(filename, tables_data)

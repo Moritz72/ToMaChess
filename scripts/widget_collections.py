@@ -14,8 +14,7 @@ class Widget_Collections(Widget_Default_Generic):
 
     @staticmethod
     def get_table():
-        table = Table_Widget_Search(3, 3.5, 55, [None, None, 3.5])
-        table.setHorizontalHeaderLabels(["Name", "Type", ""])
+        table = Table_Widget_Search(3, 3.5, 55, [None, None, 3.5], ["Name", "Type", ""], translate=True)
 
         header_horizontal, header_vertical = table.horizontalHeader(), table.verticalHeader()
         header_horizontal.setSectionResizeMode(0, QHeaderView.Stretch)
@@ -24,13 +23,13 @@ class Widget_Collections(Widget_Default_Generic):
         return table
 
     def get_buttons(self):
-        add_button = get_button("large", (12, 5), "Add\nCollection", connect_function=self.add_new_row)
-        save_button = get_button("large", (12, 5), "Save", connect_function=self.update_database)
+        add_button = get_button("large", (14, 5), "Add\nCollection", connect_function=self.add_new_row, translate=True)
+        save_button = get_button("large", (14, 5), "Save", connect_function=self.update_database, translate=True)
         return add_button, save_button
 
     def update_database(self):
         super().update_database()
-        self.window_main.load(4)
+        self.window_main.load_up(4)
 
     def get_object_from_values(self, values):
         return Collection(values[0], values[1][0])
@@ -50,8 +49,9 @@ class Widget_Collections(Widget_Default_Generic):
         add_content_to_table(self.table, name, row, 0, bold=True)
         if name == "":
             add_combobox_to_table(
-                self.table, ["Players", "Tournaments", "Teams", "Multi-Stage Tournaments"], row, 1, "medium", None
+                self.table, ["Players", "Tournaments", "Teams", "Multi-Stage Tournaments"], row, 1, "medium", None,
+                translate=True
             )
         else:
-            add_content_to_table(self.table, object_type, row, 1, edit=False)
+            add_content_to_table(self.table, object_type, row, 1, edit=False, translate=True)
         add_button_to_table(self.table, row, 2, "medium", None, '-', connect_function=self.table.delete_current_row)

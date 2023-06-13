@@ -1,0 +1,90 @@
+msgid ""
+msgstr ""
+"Content-Type: text/plain; charset=UTF-8\n"
+
+msgid "Name"
+msgstr "Name"
+
+msgid "Mode"
+msgstr "Modus"
+
+msgid "Participants"
+msgstr "Teiln."
+
+msgid "Sex"
+msgstr "Ges."
+
+msgid "Birth"
+msgstr "Jahrg."
+
+msgid "Federation"
+msgstr "Föd."
+
+msgid "Title"
+msgstr "Titel"
+
+msgid "Rating"
+msgstr "Wert."
+
+msgid "Members"
+msgstr "Mitgl."
+
+msgid "Type"
+msgstr "Typ"
+
+msgid "Category"
+msgstr "Kategorie"
+
+msgid "From"
+msgstr "Von"
+
+msgid "Up To"
+msgstr "Bis"
+
+msgid "Tournament"
+msgstr "Turnier"
+
+msgid "Placement"
+msgstr "Platz"
+
+msgid "Points"
+msgstr "P"
+
+msgid "Matches"
+msgstr "M"
+
+msgid "Match Points"
+msgstr "MP"
+
+msgid "Buchholz"
+msgstr "BuHo"
+
+msgid "Buchholz Sum"
+msgstr "BuSu"
+
+msgid "Sonneborn-Berger"
+msgstr "SoBe"
+
+msgid "Games as Black"
+msgstr "SPar"
+
+msgid "Wins"
+msgstr "Sieg"
+
+msgid "Wins as Black"
+msgstr "SSie"
+
+msgid "Average Rating"
+msgstr "GegS"
+
+msgid "Cumulative Score"
+msgstr "KuPu"
+
+msgid "Direct Encounter"
+msgstr "DiVe"
+
+msgid "Board Points"
+msgstr "BrPu"
+
+msgid "Berliner Wertung"
+msgstr "BeWe"

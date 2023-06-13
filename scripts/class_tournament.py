@@ -190,7 +190,7 @@ class Tournament:
 
     @staticmethod
     def get_round_name(r):
-        return f"Round {r}"
+        return "Round", f" {r}"
 
     def get_simple_scores(self):
         score_dict = self.get_score_dict()

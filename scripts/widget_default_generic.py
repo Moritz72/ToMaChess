@@ -32,11 +32,11 @@ class Widget_Default_Generic(QWidget):
         layout.setAlignment(Qt.AlignTop)
         add_widgets_in_layout(self.layout, layout, (self.table,))
 
-        self.search_bar = get_lineedit("medium", (12, 3))
+        self.search_bar = get_lineedit("medium", (14, 3))
         self.search_bar.textChanged.connect(self.reset_timer)
         widgets = [self.search_bar, *self.get_buttons()]
         if object_type is not None:
-            collection_box = get_combo_box([collection.get_name() for collection in self.collections], "large", (12, 3))
+            collection_box = get_combo_box([collection.get_name() for collection in self.collections], "large", (14, 3))
             collection_box.currentIndexChanged.connect(self.change_collection)
             widgets = [collection_box] + widgets
         layout = QVBoxLayout()

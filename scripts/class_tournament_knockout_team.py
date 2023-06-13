@@ -102,15 +102,15 @@ class Tournament_Knockout_Team(Tournament_Knockout):
             counter += 1
 
         if armageddon.is_armageddon(games, games_per_tiebreak, r):
-            return f"Round {counter}.A"
+            return "Round", f" {counter}.A"
         if r <= games:
             if games == 1:
-                return f"Round {counter}"
-            return f"Round {counter}.{r}"
-        return f"Round {counter}.T{r - games}"
+                return "Round", f" {counter}"
+            return "Round", f" {counter}.{r}"
+        return "Round", f" {counter}.T{r - games}"
 
     def get_standings(self, category_range=None):
-        header_horizontal = ["Name", "M", "MaPo", "BoPo", "BeWe"]
+        header_horizontal = ["Name", "Matches", "Match Points", "Board Points", "Berliner Wertung"]
         participant_standings = self.get_variable("participant_standings")
         participants = self.get_participants()
         if category_range is not None:

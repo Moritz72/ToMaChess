@@ -4,6 +4,7 @@ from PyQt5.QtCore import Qt, QThread, pyqtSignal
 from PyQt5.QtGui import QFont
 from .class_size_handler import size_handler
 from .class_settings_handler import settings_handler
+from .class_translation_handler import translation_handler
 
 
 class Function_Worker(QThread):
@@ -19,10 +20,10 @@ class Function_Worker(QThread):
 
 
 class Options_Button(QPushButton):
-    def __init__(self, var, size, widget_size, text="", bold=False):
-        super().__init__(text)
+    def __init__(self, var, size, widget_size, text="", bold=False, translate=False):
+        super().__init__(translation_handler.tl(text) if translate else text)
         self.obj = var
-        self.window = Options_Window(self.obj)
+        self.window = Options_Window(self.obj, translate)
         self.window.options_closed.connect(self.get_args_and_args_display_from_window)
         self.clicked.connect(self.window.show)
 
@@ -40,12 +41,13 @@ class Options_Button(QPushButton):
 class Options_Window(QMainWindow):
     options_closed = pyqtSignal()
 
-    def __init__(self, obj):
+    def __init__(self, obj, translate=False):
         super().__init__()
-        self.setWindowTitle("Options")
+        set_window_title(self, "Options")
 
         self.obj = obj
         self.args_widget_data = None
+        self.translate = translate
 
         self.make_window_from_object()
 
@@ -56,13 +58,14 @@ class Options_Window(QMainWindow):
     def make_window_from_object(self):
         args, args_display = self.obj.get_args_and_args_display()
         self.args_widget_data = tuple(
-            (arg, args_display[arg], get_suitable_widget(value)) for arg, value in args.items()
+            (arg, args_display[arg], get_suitable_widget(value, translate=self.translate))
+            for arg, value in args.items()
         )
 
         parameter_widgets = []
         for _, display, widget in self.args_widget_data:
             connect_widget(widget, lambda _: self.update_widget_data(self.get_new_args()))
-            parameter_widgets.extend([get_label(display, "large"), widget, QLabel()])
+            parameter_widgets.extend([get_label(display, "large", translate=self.translate), widget, QLabel()])
 
         widget = QWidget()
         layout = QVBoxLayout()
@@ -118,23 +121,43 @@ def get_scroll_area_widgets_and_layouts(layout, widgets_in_scroll_area, margins=
     return scroll_area, widget_inner, layout_inner
 
 
-def size_table(table, rows, columns, row_height, max_width=None, widths=[], header_width=None):
+def set_window_title(window, title):
+    window.setWindowTitle(translation_handler.tl(title))
+
+
+def set_up_table(table, rows, columns, header_horizontal=None, header_vertical=None, translate=False):
     font_size = size_handler.font_sizes["medium"]
-    size_factor = size_handler.widget_size_factor
+
     table.setRowCount(rows)
     table.setColumnCount(columns)
     set_font(table, size_handler, "medium")
 
     horizontal_header, vertical_header = table.horizontalHeader(), table.verticalHeader()
     horizontal_header.setStyleSheet("QHeaderView {font-size: " + str(font_size) + "pt; font-weight: bold;}")
-    horizontal_header.setMinimumSectionSize(0)
-    horizontal_header.setFixedHeight(int(row_height * size_factor))
-    set_font(horizontal_header, size_handler, "medium")
     vertical_header.setStyleSheet("QHeaderView {font-size: " + str(font_size) + "pt; font-weight: bold;}")
-    vertical_header.setSectionResizeMode(QHeaderView.Fixed)
-    vertical_header.setDefaultSectionSize(int(row_height * size_factor))
+    set_font(horizontal_header, size_handler, "medium")
     set_font(vertical_header, size_handler, "medium")
 
+    if header_horizontal is not None:
+        if translate:
+            header_horizontal = translation_handler.tl_list(header_horizontal, short=True)
+        table.setHorizontalHeaderLabels(header_horizontal)
+    if header_vertical is not None:
+        if translate:
+            header_vertical = translation_handler.tl_list(header_vertical, short=True)
+        table.setVerticalHeaderLabels(header_vertical)
+
+
+def size_table(table, rows, row_height, max_width=None, widths=[], header_width=None):
+    size_factor = size_handler.widget_size_factor
+
+    horizontal_header, vertical_header = table.horizontalHeader(), table.verticalHeader()
+    horizontal_header.setMinimumSectionSize(0)
+    horizontal_header.setFixedHeight(int(row_height * size_factor))
+    vertical_header.setSectionResizeMode(QHeaderView.Fixed)
+    vertical_header.setDefaultSectionSize(int(row_height * size_factor))
+
+    table.setRowCount(rows)
     if max_width is not None:
         table.setMaximumWidth(2 + int(max_width * size_factor))
     table.setMaximumHeight(2 + int(row_height * size_factor) * (rows + 1))
@@ -173,7 +196,9 @@ def set_font(widget, size_handler, size, bold=False):
         widget.setFont(get_font(size_handler.font_sizes[size], bold))
 
 
-def get_label(text, size, bold=False):
+def get_label(text, size, bold=False, translate=False):
+    if translate:
+        text = translation_handler.tl(text)
     label = QLabel(text)
     set_font(label, size_handler, size, bold)
     return label
@@ -189,7 +214,11 @@ def get_lineedit(size, widget_size, text="", connect_function=None, bold=False):
     return lineedit
 
 
-def get_button(size, widget_size, text="", connect_function=None, bold=False, checkable=False, enabled=True):
+def get_button(
+        size, widget_size, text="", connect_function=None, bold=False, checkable=False, enabled=True, translate=False
+):
+    if translate:
+        text = translation_handler.tl(text)
     button = QPushButton(text)
     set_fixed_size(button, size_handler, size, widget_size)
     set_font(button, size_handler, size, bold)
@@ -202,8 +231,11 @@ def get_button(size, widget_size, text="", connect_function=None, bold=False, ch
 
 def get_button_threaded(
         parent, size, widget_size, text="", load_text="", connect_function=None, bold=False, checkable=True,
-        enabled=True
+        enabled=True, translate=False
 ):
+    if translate:
+        text = translation_handler.tl(text)
+        load_text = translation_handler.tl(load_text)
     button = get_button(size, widget_size, text, None, bold, checkable, enabled)
 
     def threaded_function():
@@ -261,7 +293,7 @@ def get_spin_box(value, size, widget_size, bold=False, align=None):
     return spin_box
 
 
-def get_combo_box(choices, size, widget_size, current=None, bold=False, down_arrow=True):
+def get_combo_box(choices, size, widget_size, current=None, bold=False, down_arrow=True, translate=False):
     combo_box = QComboBox()
     combo_box.setItemDelegate(QStyledItemDelegate(combo_box))
     if down_arrow:
@@ -279,20 +311,20 @@ def get_combo_box(choices, size, widget_size, current=None, bold=False, down_arr
     for i, choice in enumerate(choices):
         match choice:
             case str():
-                combo_box.addItem(choice)
+                combo_box.addItem(translation_handler.tl(choice) if translate else choice, choice)
             case None:
                 combo_box.addItem("", choice)
             case _:
-                combo_box.addItem(str(choice), choice)
+                combo_box.addItem(translation_handler.tl(str(choice)) if translate else str(choice), choice)
     if current is not None and current in choices:
         combo_box.setCurrentIndex(choices.index(current))
     return combo_box
 
 
-def add_content_to_table(table, content, row, column, edit=True, align=None, bold=False):
+def add_content_to_table(table, content, row, column, edit=True, align=None, bold=False, translate=False):
     if content is None:
         content = ""
-    item = QTableWidgetItem(str(content))
+    item = QTableWidgetItem(translation_handler.tl(str(content)) if translate else str(content))
     set_font(item, size_handler, "medium", bold)
     if not edit:
         item.setFlags(item.flags() & ~Qt.ItemIsEditable)
@@ -301,15 +333,18 @@ def add_content_to_table(table, content, row, column, edit=True, align=None, bol
     table.setItem(row, column, item)
 
 
-def add_button_to_table(table, row, column, size, widget_size, text, connect_function=None, bold=False):
-    button = get_button(size, widget_size, text, connect_function, bold)
+def add_button_to_table(
+        table, row, column, size, widget_size, text, connect_function=None, bold=False, checkable=False, enabled=True,
+        translate=False
+):
+    button = get_button(size, widget_size, text, connect_function, bold, checkable, enabled, translate)
     table.setCellWidget(row, column, button)
 
 
 def add_combobox_to_table(
-        table, choices, row, column, size, widget_size, current=None, bold=False, down_arrow=True
+        table, choices, row, column, size, widget_size, current=None, bold=False, down_arrow=True, translate=False
 ):
-    combobox = get_combo_box(choices, size, widget_size, current, bold, down_arrow)
+    combobox = get_combo_box(choices, size, widget_size, current, bold, down_arrow, translate)
     table.setCellWidget(row, column, combobox)
 
 
@@ -324,7 +359,7 @@ def clear_table(table):
     table.setRowCount(0)
 
 
-def get_suitable_widget(var, size="medium", widget_size_factors=(1, 1)):
+def get_suitable_widget(var, size="medium", widget_size_factors=(1, 1), translate=False):
     match var:
         case str():
             return get_lineedit(size, (15 * widget_size_factors[0], 3 * widget_size_factors[1]), text=var)
@@ -335,9 +370,14 @@ def get_suitable_widget(var, size="medium", widget_size_factors=(1, 1)):
                 var, size, (5 * widget_size_factors[0], 3 * widget_size_factors[1]), align=Qt.AlignCenter
             )
         case list():
-            return get_combo_box(var, size, (15 * widget_size_factors[0], 3 * widget_size_factors[1]))
+            return get_combo_box(
+                var, size, (15 * widget_size_factors[0], 3 * widget_size_factors[1]), translate=translate
+            )
         case _:
-            return Options_Button(var, size, (15 * widget_size_factors[0], 3 * widget_size_factors[1]), text="Options")
+            return Options_Button(
+                var, size, (15 * widget_size_factors[0], 3 * widget_size_factors[1]),
+                text="Options", translate=translate
+            )
 
 
 def get_value_from_suitable_widget(widget):
@@ -349,7 +389,7 @@ def get_value_from_suitable_widget(widget):
         case QSpinBox():
             return widget.value()
         case QComboBox():
-            return sorted((widget.itemText(i) for i in range(widget.count())), key=lambda x: x != widget.currentText())
+            return sorted((widget.itemData(i) for i in range(widget.count())), key=lambda x: x != widget.currentData())
         case Options_Button():
             return widget.give_back()
 

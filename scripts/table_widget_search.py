@@ -1,9 +1,9 @@
 from PyQt5.QtWidgets import QTableWidget
-from .functions_gui import size_table, get_table_value
+from .functions_gui import set_up_table, size_table, get_table_value
 
 
 class Table_Widget_Search(QTableWidget):
-    def __init__(self, columns, row_height, max_width, widths):
+    def __init__(self, columns, row_height, max_width, widths, header_horizontal, translate=False):
         super().__init__()
         self.objects = []
         self.row_height = row_height
@@ -11,7 +11,7 @@ class Table_Widget_Search(QTableWidget):
         self.widths = widths
         self.updated_objects_dict = dict()
         self.deleted_objects = []
-        self.setColumnCount(columns)
+        set_up_table(self, 0, columns, header_horizontal=header_horizontal, translate=translate)
 
     def set_objects(self, objects):
         self.objects = objects
@@ -34,9 +34,7 @@ class Table_Widget_Search(QTableWidget):
         ]
 
     def resize_table(self):
-        size_table(
-            self, len(self.objects), self.columnCount(), self.row_height, max_width=self.max_width, widths=self.widths
-        )
+        size_table(self, len(self.objects), self.row_height, max_width=self.max_width, widths=self.widths)
 
     def delete_current_row(self):
         row = self.currentRow()

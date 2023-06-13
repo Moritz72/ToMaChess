@@ -1,16 +1,14 @@
 from PyQt5.QtWidgets import QWidget, QVBoxLayout, QHeaderView, QComboBox, QTableWidget
 from PyQt5.QtCore import Qt, QTimer, pyqtSignal
-from .functions_gui import add_content_to_table, add_button_to_table, add_combobox_to_table, clear_table, size_table, \
-    add_blank_to_table
+from .functions_gui import add_content_to_table, add_button_to_table, add_combobox_to_table, clear_table,\
+    set_up_table, size_table, add_blank_to_table
 
 
 class Widget_Tournament_Round(QWidget):
     confirmed_pairings = pyqtSignal()
     confirmed_results = pyqtSignal()
 
-    def __init__(
-            self, results, uuid_to_participant_dict, possible_scores, is_valid_pairings, headers=("White", "Black")
-    ):
+    def __init__(self, results, uuid_to_participant_dict, possible_scores, is_valid_pairings, headers=("", "")):
         super().__init__()
         self.results = results
         self.uuid_to_participant_dict = uuid_to_participant_dict | {None: None}
@@ -73,17 +71,17 @@ class Widget_Tournament_Round(QWidget):
         if choose_players:
             add_button_to_table(
                 self.table, row, 3, "medium", None, "Confirm Pairings",
-                connect_function=self.confirm_pairings, bold=True
+                connect_function=self.confirm_pairings, bold=True, translate=True
             )
         else:
             add_button_to_table(
                 self.table, row, 3, "medium", None, "Confirm Results",
-                connect_function=self.confirm_results, bold=True
+                connect_function=self.confirm_results, bold=True, translate=True
             )
 
     def fill_in_table(self):
-        size_table(self.table, len(self.results) + self.is_current(), 4, 3.5, max_width=55, widths=[3.5, None, 5, None])
-        self.table.setHorizontalHeaderLabels(["", self.headers[0], "", self.headers[1]])
+        set_up_table(self.table, 0, 4, header_horizontal=["", self.headers[0], "", self.headers[1]])
+        size_table(self.table, len(self.results) + self.is_current(), 3.5, max_width=55, widths=[3.5, None, 5, None])
 
         header_horizontal, header_vertical = self.table.horizontalHeader(), self.table.verticalHeader()
         header_horizontal.setSectionResizeMode(1, QHeaderView.Stretch)

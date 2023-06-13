@@ -1,0 +1,321 @@
+msgid ""
+msgstr ""
+"Content-Type: text/plain; charset=UTF-8\n"
+
+msgid "Tournaments"
+msgstr "Turniere"
+
+msgid "Players"
+msgstr "Spieler"
+
+msgid "Teams"
+msgstr "Mannschaften"
+
+msgid "MS Tournaments"
+msgstr "MS Turniere"
+
+msgid "Multi-Stage Tournaments"
+msgstr "Mehrstufige Turniere"
+
+msgid "Collections"
+msgstr "Sammlungen"
+
+msgid "Settings"
+msgstr "Einstellungen"
+
+msgid "Open"
+msgstr "Öffnen"
+
+msgid "Add\nTournament"
+msgstr "Turnier\nhinzufügen"
+
+msgid "Add Team\nTournament"
+msgstr "Mannschaftsturnier\nhinzufügen"
+
+msgid "Save"
+msgstr "Speichern"
+
+msgid "Add\nPlayer"
+msgstr "Spieler\nhinzufügen"
+
+msgid "Edit"
+msgstr "Bearbeiten"
+
+msgid "Add\nTeam"
+msgstr "Mannschaft\nhinzufügen"
+
+msgid "Add\nCollection"
+msgstr "Sammlung\nhinzufügen"
+
+msgid "Language"
+msgstr "Sprache"
+
+msgid "Style"
+msgstr "Stil"
+
+msgid "Font"
+msgstr "Schriftart"
+
+msgid "Font Size"
+msgstr "Schirftgröße"
+
+msgid "bbpPairings Path"
+msgstr "bbpPairings Pfad"
+
+msgid "PDF Output Path"
+msgstr "PDF Speicherort"
+
+msgid "Update Lists"
+msgstr "Listen aktualisieren"
+
+msgid "Reset"
+msgstr "Zurücksetzen"
+
+msgid "Updating..."
+msgstr "Aktualisieren..."
+
+msgid "Options"
+msgstr "Optionen"
+
+msgid "Add\nParticipants"
+msgstr "Teilnehmer\nhinzufügen"
+
+msgid "Add\nCategories"
+msgstr "Kategorien\nhinzufügen"
+
+msgid "Create"
+msgstr "Erstellen"
+
+msgid "Swiss"
+msgstr "Schweizer System"
+
+msgid "Round Robin"
+msgstr "Rundenturnier"
+
+msgid "Knockout"
+msgstr "K.o.-Turnier"
+
+msgid "Swiss (Team)"
+msgstr "Schweizer System (Mannschaft)"
+
+msgid "Round Robin (Team)"
+msgstr "Rundenturnier (Mannschaft)"
+
+msgid "Knockout (Team)"
+msgstr "K.o.-Turnier (Mannschaft)"
+
+msgid "Custom"
+msgstr "Benutzerdefiniert"
+
+msgid "Rounds"
+msgstr "Runden"
+
+msgid "Point System"
+msgstr "Punktesystem"
+
+msgid "Tiebreak"
+msgstr "Feinwertung"
+
+msgid "Cycles"
+msgstr "Durchgänge"
+
+msgid "Choose Seating"
+msgstr "Eigene Setzliste"
+
+msgid "Games per Match"
+msgstr "Partien pro Match"
+
+msgid "Games per Tiebreak"
+msgstr "Partien pro Tiebreak"
+
+msgid "Armageddon"
+msgstr "Armageddon"
+
+msgid "Boards"
+msgstr "Bretter"
+
+msgid "Point System (Match)"
+msgstr "Punktesystem (Match)"
+
+msgid "Point System (Game)"
+msgstr "Punktesystem (Partie)"
+
+msgid "Add\nCategory"
+msgstr "Kategorie\nhinzufügen"
+
+msgid "Rating"
+msgstr "Wertung"
+
+msgid "Birth"
+msgstr "Jahrgang"
+
+msgid "Sex"
+msgstr "Geschlecht"
+
+msgid "Federation"
+msgstr "Föderation"
+
+msgid "Add\nMembers"
+msgstr "Mitglieder\nhinzufügen"
+
+msgid "Remove\nMembers"
+msgstr "Mitglieder\nentfernen"
+
+msgid "Change\nLineup"
+msgstr "Aufstellung\nändern"
+
+msgid "Name"
+msgstr "Name"
+
+msgid "Mode"
+msgstr "Modus"
+
+msgid "Draw Lots in Case of Tie"
+msgstr "Ziehe Lose bei Gleichstand"
+
+msgid "Add\nStage"
+msgstr "Stufe\nhinzufügen"
+
+msgid "Remove\nStage"
+msgstr "Stufe\nentfernen"
+
+msgid "Create\nTournament"
+msgstr "Turnier\nerstellen"
+
+msgid "Participants"
+msgstr "Teilnehmer"
+
+msgid "Copy"
+msgstr "Kopieren"
+
+msgid "Add\nParticipant"
+msgstr "Teilnehmer\nhinzufügen"
+
+msgid "Confirm Pairings"
+msgstr "Paarungen bestätigen"
+
+msgid "Confirm Results"
+msgstr "Ergebnisse bestätigen"
+
+msgid "None"
+msgstr "Keine"
+
+msgid "Buchholz Sum"
+msgstr "Buchholzsumme"
+
+msgid "Sonneborn-Berger"
+msgstr "Sonneborn-Berger"
+
+msgid "Games as Black"
+msgstr "Schwarzpartien"
+
+msgid "Wins"
+msgstr "Siege"
+
+msgid "Wins as Black"
+msgstr "Schwarzsiege"
+
+msgid "Average Rating"
+msgstr "Gegnerschnitt"
+
+msgid "Cumulative Score"
+msgstr "Kumulative Punkte"
+
+msgid "Direct Encounter"
+msgstr "Direkter Vergleich"
+
+msgid "Board Points"
+msgstr "Brettpunkte"
+
+msgid "Berliner Wertung"
+msgstr "Berliner Wertung"
+
+msgid "Criterium"
+msgstr "Kriterium"
+
+msgid "Cut (bottom)"
+msgstr "Cut (unten)"
+
+msgid "Cut (top)"
+msgstr "Cut (oben)"
+
+msgid "Virtual Opponents"
+msgstr "Virtuelle Gegner"
+
+msgid "Include Forfeits"
+msgstr "Mit Kampflosen"
+
+msgid "Standings"
+msgstr "Stand"
+
+msgid "Crosstable"
+msgstr "Kreuztabelle"
+
+msgid "Undo Last Round"
+msgstr "Runde zurücknehmen"
+
+msgid "Back"
+msgstr "Zurück"
+
+msgid "Are you sure?"
+msgstr "Sind Sie sicher?"
+
+msgid "Yes"
+msgstr "Ja"
+
+msgid "No"
+msgstr "Nein"
+
+msgid "Round"
+msgstr "Runde"
+
+msgid "Pairings"
+msgstr "Paarungen"
+
+msgid "Results"
+msgstr "Ergebnisse"
+
+msgid "Categories"
+msgstr "Kategorien"
+
+msgid "Standings after {}"
+msgstr "Stand nach {}"
+
+msgid "Pairings for {}"
+msgstr "Paarungen für {}"
+
+msgid "Results of {}"
+msgstr "Ergebnisse von {}"
+
+msgid "ToMaChess"
+msgstr "ToMaChess"
+
+msgid "New Tournament"
+msgstr "Neues Turnier"
+
+msgid "Add Members"
+msgstr "Mitglieder hinzufügen"
+
+msgid "Remove Members"
+msgstr "Mitglieder entfernen"
+
+msgid "Change Lineup"
+msgstr "Aufstellung ändern"
+
+msgid "Edit Team"
+msgstr "Mannschaft bearbeiten"
+
+msgid "New Multi-Stage Tournament"
+msgstr "Neues mehrstufiges Turnier"
+
+msgid "Add Players"
+msgstr "Spieler hinzufügen"
+
+msgid "Add Teams"
+msgstr "Mannschaften hinzufügen"
+
+msgid "Add Participants"
+msgstr "Teilnehmer hinzufügen"
+
+msgid "Add Categories"
+msgstr "Kategorien hinzufügen"
