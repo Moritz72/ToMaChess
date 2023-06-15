@@ -4,7 +4,7 @@ from .table_widget_drag import Table_Widget_Drag_Light
 from .window_tournament_new import Window_Tournament_New
 from .window_choice_table import Window_Choice_Table
 from .window_advance_participants import Window_Advance_Participants
-from .functions_type import type_to_add_participant_window_args, get_function
+from .functions_type import TYPE_TO_ADD_PARTICIPANT_WINDOW_ARGS, get_function
 from .functions_gui import add_content_to_table, add_button_to_table, set_up_table, size_table, get_button,\
     add_widgets_in_layout
 
@@ -161,7 +161,7 @@ class Widget_MS_Tournament_Stage_New(QWidget):
             for participant in self.add_particiapants_tournament.get_participants()
         ]
         self.add_participants_window = Window_Choice_Table(
-            *type_to_add_participant_window_args[self.participant_type], checked_uuids=checked_uuids
+            *TYPE_TO_ADD_PARTICIPANT_WINDOW_ARGS[self.participant_type], checked_uuids=checked_uuids
         )
         self.add_participants_window.window_closed.connect(self.update_added_participants)
         self.add_participants_window.show()

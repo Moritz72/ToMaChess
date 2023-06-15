@@ -1,5 +1,5 @@
 from .class_tournament import Tournament
-from .class_tiebreak import Tiebreak, tiebreak_list
+from .class_tiebreak import Tiebreak, get_tiebreak_list
 from .functions_tournament_util import get_score_dict_by_point_system, get_standings_with_tiebreaks
 
 
@@ -12,15 +12,15 @@ class Tournament_Custom(Tournament):
             participants, name, shallow_particpant_count, parameters, variables, order, uuid, uuid_associate
         )
         self.mode = "Custom"
-        self.parameters = parameters or {
+        self.parameters = {
             "games_per_round": 5,
             "rounds": 4,
             "point_system": ["1 - ½ - 0", "2 - 1- 0", "3 - 1 - 0"],
-            "tiebreak_1": Tiebreak(args={"functions": sorted(tiebreak_list, key=lambda x: x != "Buchholz")}),
-            "tiebreak_2": Tiebreak(args={"functions": sorted(tiebreak_list, key=lambda x: x != "Buchholz Sum")}),
-            "tiebreak_3": Tiebreak(args={"functions": sorted(tiebreak_list, key=lambda x: x != "None")}),
-            "tiebreak_4": Tiebreak(args={"functions": sorted(tiebreak_list, key=lambda x: x != "None")})
-        }
+            "tiebreak_1": Tiebreak(args={"functions": get_tiebreak_list("Buchholz")}),
+            "tiebreak_2": Tiebreak(args={"functions": get_tiebreak_list("Buchholz Sum")}),
+            "tiebreak_3": Tiebreak(args={"functions": get_tiebreak_list("None")}),
+            "tiebreak_4": Tiebreak(args={"functions": get_tiebreak_list("None")})
+        } | self.parameters
         self.parameter_display = {
             "games_per_round": "Games per Round",
             "rounds": "Rounds",

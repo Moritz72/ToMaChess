@@ -1,14 +1,11 @@
 from .class_tournament import Tournament
 from .class_armageddon import Armageddon
+from .functions_pairing import PAIRING_FUNCTIONS
 from .functions_util import shorten_float
 from .functions_tournament_knockout import get_uuids_in_current_level, get_end_rounds, update_participant_standings,\
     reverse_participant_standings
 from .functions_tournament_util import get_standings_header_vertical
 from .functions_categories import filter_list_by_category_range
-
-
-def get_totals(games, games_per_tiebreak):
-    return [games], [games_per_tiebreak]
 
 
 def get_scores(score_1, score_2, score_dict):
@@ -27,17 +24,19 @@ class Tournament_Knockout(Tournament):
             participants, name, shallow_particpant_count, parameters, variables, order, uuid, uuid_associate
         )
         self.mode = "Knockout"
-        self.parameters = parameters or {
+        self.parameters = {
             "games": 2,
             "games_per_tiebreak": 2,
+            "pairing_method": ["Slide", "Fold", "Adjacent", "Random", "Custom"],
             "armageddon": Armageddon()
-        }
+        } | self.parameters
         self.parameter_display = {
             "games": "Games per Match",
             "games_per_tiebreak": "Games per Tiebreak",
+            "pairing_method": "Pairing Method",
             "armageddon": "Armageddon"
         }
-        self.variables = variables or self.variables | {"participant_standings": None}
+        self.variables = {"participant_standings": None} | self.variables
 
     def seat_participants(self):
         self.set_participants(sorted(
@@ -65,38 +64,51 @@ class Tournament_Knockout(Tournament):
     def is_valid_parameters(self):
         return self.get_parameter("games") > 0 and self.get_parameter("games_per_tiebreak") > 0
 
+    def is_valid_pairings(self, results):
+        uuids = [uuid_1 for (uuid_1, _), (_, _) in results] + [uuid_2 for (_, _), (uuid_2, _) in results]
+        return len(uuids) == len(set(uuids))
+
     def is_done(self):
         return tuple(
             standing["beaten_by_seat"] for standing in self.get_variable("participant_standings").values()
         ).count(None) == 1
 
+    def get_totals(self):
+        return [self.get_parameter("games")], [self.get_parameter("games"), self.get_parameter("games_per_tiebreak")]
+
+    def get_latest_scores(self):
+        return [
+            get_scores(score_1, score_2, self.get_score_dict())
+            for (uuid_1, score_1), (uuid_2, score_2) in self.get_results()[-1]
+        ]
+
     def add_results(self, results):
         super().add_results(results)
         games, games_per_tiebreak = self.get_parameter("games"), self.get_parameter("games_per_tiebreak")
-        for (uuid_1, score_1), (uuid_2, score_2) in self.get_results()[-1]:
+        armageddon = self.get_parameter("armageddon")
+        participant_standings = self.get_variable("participant_standings")
+        for ((uuid_1, _), (uuid_2, _)), scores in zip(self.get_results()[-1], self.get_latest_scores()):
             update_participant_standings(
-                uuid_1, uuid_2, *get_scores(score_1, score_2, self.get_score_dict()),
-                self.get_variable("participant_standings"), games, games_per_tiebreak, self.get_parameter("armageddon"),
-                *get_totals(games, games_per_tiebreak)
+                uuid_1, uuid_2, *scores, participant_standings,
+                games, games_per_tiebreak, armageddon, *self.get_totals()
             )
 
     def remove_results(self):
         games, games_per_tiebreak = self.get_parameter("games"), self.get_parameter("games_per_tiebreak")
-        for (uuid_1, score_1), (uuid_2, score_2) in self.get_results()[-1]:
+        armageddon = self.get_parameter("armageddon")
+        participant_standings = self.get_variable("participant_standings")
+        for ((uuid_1, _), (uuid_2, _)), scores in zip(self.get_results()[-1], self.get_latest_scores()):
             reverse_participant_standings(
-                uuid_1, uuid_2, *get_scores(score_1, score_2, self.get_score_dict()),
-                self.get_variable("participant_standings"), games, games_per_tiebreak, self.get_parameter("armageddon"),
-                *get_totals(games, games_per_tiebreak)
+                uuid_1, uuid_2, *scores, participant_standings,
+                games, games_per_tiebreak, armageddon, *self.get_totals()
             )
         super().remove_results()
 
     def get_round_name(self, r):
         games, games_per_tiebreak = self.get_parameter("games"), self.get_parameter("games_per_tiebreak")
         armageddon = self.get_parameter("armageddon")
-        end_rounds = get_end_rounds(
-            self.get_variable("participant_standings"), games, games_per_tiebreak, armageddon,
-            *get_totals(games, games_per_tiebreak)
-        )
+        participant_standings = self.get_variable("participant_standings")
+        end_rounds = get_end_rounds(participant_standings, games, games_per_tiebreak, armageddon, *self.get_totals())
 
         counter = 1
         while len(end_rounds) > 0 and r > end_rounds[0]:
@@ -139,13 +151,20 @@ class Tournament_Knockout(Tournament):
         uuids = sorted(
             get_uuids_in_current_level(participant_standings), key=lambda x: participant_standings[x]["seating"]
         )
-        pairings = [(uuids[i], uuids[i + int(len(uuids) / 2)]) for i in range(int(len(uuids) / 2))]
-        score_sum = participant_standings[pairings[0][0]]["score"][0] + \
-            participant_standings[pairings[0][1]]["score"][0]
+        score_sum = sum(participant_standings[uuid]["score"][0] for uuid in uuids) / len(uuids)
+        pairing_method = self.get_parameter("pairing_method")[0]
+
+        if score_sum == 0 and pairing_method == "Custom":
+            pairings = int(len(uuids) / 2) * [(uuids, uuids)]
+            if len(uuids) % 2:
+                pairings.append((uuids, None))
+        elif score_sum == 0:
+            pairing_indices = PAIRING_FUNCTIONS[pairing_method](len(uuids))
+            pairings = [(uuids[i_1], uuids[i_2]) for i_1, i_2 in pairing_indices]
+        else:
+            pairings = [(uuid_2, uuid_1) for (uuid_1, _), (uuid_2, _) in self.get_results()[-1] if uuid_1 in uuids]
 
         if armageddon.is_armageddon(games, games_per_tiebreak, score_sum + 1):
             self.set_pairings([armageddon.determine_color(uuid_1, uuid_2) for uuid_1, uuid_2 in pairings])
-        elif score_sum % 2:
-            self.set_pairings([(uuid_2, uuid_1) for uuid_1, uuid_2 in pairings])
         else:
             self.set_pairings(pairings)

@@ -4,9 +4,9 @@ from .functions_player import *
 from .functions_team import *
 from .functions_tournament import *
 
-type_to_modes = {"player": modes, "team": modes_team}
-type_to_mode_default = {"player": mode_default, "team": mode_default_team}
-type_to_add_participant_window_args = {"player": ("Add Players", "Players"), "team": ("Add Teams", "Teams")}
+TYPE_TO_MODES = {"player": MODES, "team": MODES_TEAM}
+TYPE_TO_MODE_DEFAULT = {"player": MODE_DEFAULT, "team": MODE_DEFAULT_TEAM}
+TYPE_TO_ADD_PARTICIPANT_WINDOW_ARGS = {"player": ("Add Players", "Players"), "team": ("Add Teams", "Teams")}
 
 
 def get_function(object_type, action, multiple=False, shallow=False, specification=None):

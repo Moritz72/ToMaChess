@@ -141,7 +141,7 @@ class Tournament:
             if not isinstance(value, (bool, str, int, list, tuple, dict, type(None))):
                 parameters[parameter] = {
                     "class": value.__class__.__name__,
-                    "dict": value.__dict__,
+                    "dict": value.get_dict(),
                 }
         if include_order:
             return self.get_mode(), self.get_name(), self.get_participant_count(), dumps(parameters), \

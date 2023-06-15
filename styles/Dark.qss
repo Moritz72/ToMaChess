@@ -3,6 +3,7 @@ QWidget {
   color: #bbbbbb;
   selection-background-color: #4e5254;
   selection-color: #dddddd;
+  border: none;
 }
 
 QWidget, QLabel {
@@ -15,6 +16,10 @@ QPushButton, QLineEdit, QAbstractSpinBox, QComboBox, QAbstractSpinBox:up-button,
 
 QPushButton, QLineEdit, QAbstractSpinBox, QComboBox, QAbstractSpinBox:up-button, QAbstractSpinBox:down-button, QComboBox::drop-down, QComboBox QAbstractItemView::item:selected, QScrollBar::handle, QHeaderView::section, QTableView QTableCornerButton::section, QComboBox QAbstractItemView, QScrollBar {
   border: 1px solid #404040;
+}
+
+QSplitter::handle, QMainWindow::separator {
+  background-color: #404040;
 }
 
 QPushButton:hover, QComboBox:hover, QComboBox QAbstractItemView::item:selected, QTableView::item::selected, QHeaderView::section:checked, QPushButton:checked#side_menu_button, QScrollBar {
@@ -145,6 +150,17 @@ QCheckBox {
 
 QTableView {
 	outline: 0;
+}
+
+QSplitter::handle:vertical {
+    height: 1px;
+	width: 1px;
+}
+
+
+QMainWindow::separator {
+    height: 2px;
+	width: 2px;
 }
 
 QScrollBar:horizontal {

@@ -26,13 +26,13 @@ class Window_Team_Edit(QMainWindow):
     def set_buttons(self):
         buttons = (
             get_button(
-                "large", (12, 6), text="Add\nMembers", connect_function=self.open_window_add_members, translate=True
+                "large", (12, 6), "Add\nMembers", connect_function=self.open_window_add_members, translate=True
             ),
             get_button(
-                "large", (12, 6), text="Remove\nMembers", connect_function=self.open_window_remove_members, translate=True
+                "large", (12, 6), "Remove\nMembers", connect_function=self.open_window_remove_members, translate=True
             ),
             get_button(
-                "large", (12, 6), text="Change\nLineup", connect_function=self.open_window_line_up, translate=True
+                "large", (12, 6), "Change\nLineup", connect_function=self.open_window_line_up, translate=True
             )
         )
         add_widgets_to_layout(self.layout, buttons)

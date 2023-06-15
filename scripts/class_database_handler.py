@@ -284,4 +284,4 @@ class Database_Handler:
         )
 
 
-database_handler = Database_Handler()
+DATABASE_HANDLER = Database_Handler()

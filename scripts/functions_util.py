@@ -27,8 +27,9 @@ def get_image(name):
 
 def remove_temporary_files():
     for file in ("zip_file.zip", "extracted_file"):
-        if os.path.exists(os.path.join(get_root_directory(), file)):
-            os.remove(os.path.join(get_root_directory(), file))
+        path = os.path.join(get_root_directory(), file)
+        if os.path.exists(path):
+            os.remove(path)
 
 
 def recursive_buckets(lis, functions, reverse=True):
@@ -37,10 +38,7 @@ def recursive_buckets(lis, functions, reverse=True):
     dic = functions[0]([e[0] for e in lis])
     lis = sorted(lis, key=lambda e: dic[e[0]], reverse=reverse)
     temp = [(list(group), key) for key, group in groupby(lis, lambda x: dic[x[0]])]
-    return [
-        [element[0], key]+element[1:] for group, key in temp
-        for element in recursive_buckets(group, functions[1:], reverse)
-    ]
+    return [[el[0], key]+el[1:] for group, key in temp for el in recursive_buckets(group, functions[1:], reverse)]
 
 
 def shorten_float(value):

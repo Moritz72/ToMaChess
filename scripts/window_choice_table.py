@@ -101,7 +101,7 @@ class Widget_Choice_Teams(Widget_Default_Generic):
             self.checked_uuids.remove((obj.get_uuid(), obj.get_uuid_associate()))
 
 
-type_to_widget = {"Players": Widget_Choice_Players, "Teams": Widget_Choice_Teams}
+TYPE_TO_WIDGET = {"Players": Widget_Choice_Players, "Teams": Widget_Choice_Teams}
 
 
 class Window_Choice_Table(QMainWindow):
@@ -114,7 +114,7 @@ class Window_Choice_Table(QMainWindow):
         excluded_uuids = excluded_uuids or []
         checked_uuids = checked_uuids or []
 
-        self.widget = type_to_widget[object_type](excluded_uuids, checked_uuids)
+        self.widget = TYPE_TO_WIDGET[object_type](excluded_uuids, checked_uuids)
         self.setCentralWidget(self.widget)
 
         self.setFixedWidth(self.widget.table.maximumWidth() + 120)

@@ -1,7 +1,7 @@
 from math import inf
 from PyQt5.QtWidgets import QMainWindow, QHBoxLayout, QWidget, QTableWidget, QApplication, QHeaderView, QVBoxLayout
 from PyQt5.QtCore import Qt
-from .functions_categories import integer_categories
+from .functions_categories import INTEGER_CATEGORIES
 from .functions_gui import get_button, add_button_to_table, add_combobox_to_table, set_up_table, size_table,\
     add_content_to_table, get_table_value, set_window_title
 
@@ -69,7 +69,7 @@ class Window_Add_Categories(QMainWindow):
     def remove_invalid_rows(self):
         for row in range(self.table.rowCount() - 1, -1, -1):
             category, bottom, top = self.get_row_values(row)
-            invalid = bottom == "" == top or (category in integer_categories and (
+            invalid = bottom == "" == top or (category in INTEGER_CATEGORIES and (
                     (bottom != "" and not bottom.isdigit()) or (top != "" and not top.isdigit())
             ))
             if invalid:
@@ -81,7 +81,7 @@ class Window_Add_Categories(QMainWindow):
         entries = []
         for row in range(self.table.rowCount()):
             category, bottom, top = self.get_row_values(row)
-            if category in integer_categories:
+            if category in INTEGER_CATEGORIES:
                 bottom = -inf if bottom == "" else int(bottom)
                 top = inf if top == "" else int(top)
             entries.append((category, bottom, top))

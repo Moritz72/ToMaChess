@@ -29,7 +29,7 @@ class Widget_Collections(Widget_Default_Generic):
 
     def update_database(self):
         super().update_database()
-        self.window_main.load_up(4)
+        self.window_main.reload()
 
     def get_object_from_values(self, values):
         return Collection(values[0], values[1][0])

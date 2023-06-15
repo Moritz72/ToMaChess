@@ -213,7 +213,7 @@ msgid "Add\nParticipant"
 msgstr "Add\nParticipant"
 
 msgid "Choose..."
-msgstr "Choose"
+msgstr "Choose..."
 
 msgid "Confirm Pairings"
 msgstr "Confirm Pairings"
@@ -343,3 +343,33 @@ msgstr "Add Participants"
 
 msgid "Add Categories"
 msgstr "Add Categories"
+
+msgid "Slide"
+msgstr "Slide"
+
+msgid "Fold"
+msgstr "Fold"
+
+msgid "Adjacent"
+msgstr "Adjacent"
+
+msgid "Pairings (First Round)"
+msgstr "Pairings (First Round)"
+
+msgid "White"
+msgstr "White"
+
+msgid "Black"
+msgstr "Black"
+
+msgid "Top Seed (First Round)"
+msgstr "Top Seed (First Round)"
+
+msgid "Pairing Method"
+msgstr "Pairing Method"
+
+msgid "Cycle"
+msgstr "Cycle"
+
+msgid "Berger"
+msgstr "Berger"

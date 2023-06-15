@@ -1,7 +1,7 @@
 from PyQt5.QtWidgets import QMainWindow, QWidget, QVBoxLayout, QHBoxLayout, QLabel, QSplitter
 from PyQt5.QtCore import pyqtSignal
-from .functions_type import type_to_modes, type_to_mode_default, type_to_add_participant_window_args, get_function
-from .functions_categories import type_to_categories
+from .functions_type import TYPE_TO_MODES, TYPE_TO_MODE_DEFAULT, TYPE_TO_ADD_PARTICIPANT_WINDOW_ARGS, get_function
+from .functions_categories import TYPE_TO_CATEGORIES
 from .functions_gui import add_widgets_to_layout, get_suitable_widget, get_value_from_suitable_widget,\
     get_button, get_label, get_lineedit, get_combo_box, get_scroll_area_widgets_and_layouts, set_window_title
 from .window_choice_table import Window_Choice_Table
@@ -16,11 +16,11 @@ class Window_Tournament_New(QMainWindow):
         set_window_title(self, "New Tournament")
 
         self.add_participants = add_participants
-        self.modes = type_to_modes[participant_type]
-        self.mode_default = type_to_mode_default[participant_type]
+        self.modes = TYPE_TO_MODES[participant_type]
+        self.mode_default = TYPE_TO_MODE_DEFAULT[participant_type]
         self.load_function = get_function(participant_type, "load", multiple=True, specification="list")
-        self.add_participants_window = Window_Choice_Table(*type_to_add_participant_window_args[participant_type])
-        self.categories = type_to_categories[participant_type]
+        self.add_participants_window = Window_Choice_Table(*TYPE_TO_ADD_PARTICIPANT_WINDOW_ARGS[participant_type])
+        self.categories = TYPE_TO_CATEGORIES[participant_type]
         self.add_categories_window = Window_Add_Categories(self.categories)
         self.parameter_widget_data = None
         self.new_tournament = None

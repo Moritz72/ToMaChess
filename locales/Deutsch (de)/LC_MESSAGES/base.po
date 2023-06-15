@@ -343,3 +343,33 @@ msgstr "Teilnehmer hinzufügen"
 
 msgid "Add Categories"
 msgstr "Kategorien hinzufügen"
+
+msgid "Slide"
+msgstr "Slide"
+
+msgid "Fold"
+msgstr "Falten"
+
+msgid "Adjacent"
+msgstr "Benachbart"
+
+msgid "Pairings (First Round)"
+msgstr "Paarungen (Runde 1)"
+
+msgid "White"
+msgstr "Weiß"
+
+msgid "Black"
+msgstr "Schwarz"
+
+msgid "Top Seed (First Round)"
+msgstr "Erstgesetzter (Runde 1)"
+
+msgid "Pairing Method"
+msgstr "Paarungsmethode"
+
+msgid "Cycle"
+msgstr "Rutsch"
+
+msgid "Berger"
+msgstr "Berger"

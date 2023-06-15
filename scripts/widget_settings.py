@@ -1,8 +1,8 @@
 from PyQt5.QtWidgets import QWidget, QGridLayout, QHBoxLayout
 from PyQt5.QtCore import Qt
-from .class_settings_handler import settings_display, settings_valid, settings_handler
+from .class_settings_handler import SETTINGS_DISPLAY, SETTINGS_VALID, SETTINGS_HANDLER
 from .functions_gui import get_suitable_widget, get_value_from_suitable_widget, get_button, get_label,\
-    get_button_threaded
+    get_button_threaded, get_scroll_area_widgets_and_layouts
 from .functions_rating_lists import update_list_by_name
 
 
@@ -28,41 +28,45 @@ class Widget_Settings(QWidget):
     def __init__(self, window_main):
         super().__init__()
         self.window_main = window_main
-
-        self.layout = QGridLayout()
-        self.layout.setHorizontalSpacing(50)
-        self.layout.setVerticalSpacing(20)
-        self.layout.setAlignment(Qt.AlignCenter | Qt.AlignTop)
-        self.layout.setColumnStretch(0, 1)
-        self.layout.setColumnStretch(3, 1)
+        self.layout = QHBoxLayout()
         self.setLayout(self.layout)
 
-        self.fill_in_layouts()
+        layout = QGridLayout()
+        layout.setHorizontalSpacing(50)
+        layout.setVerticalSpacing(20)
+        layout.setAlignment(Qt.AlignCenter | Qt.AlignTop)
+        layout.setColumnStretch(0, 1)
+        layout.setColumnStretch(3, 1)
 
-    def fill_in_layouts(self):
-        settings = settings_handler.settings
+        _, _, self.layout_inner = get_scroll_area_widgets_and_layouts(
+            self.layout, layout_inner=layout, horizontal_bar=True
+        )
+        self.fill_in_layout()
+
+    def fill_in_layout(self):
+        settings = SETTINGS_HANDLER.settings
         for i, (key, value) in enumerate(settings.items()):
-            self.layout.addWidget(get_label(settings_display[key], "large", translate=True), i, 1)
-            self.layout.addWidget(get_suitable_widget(value, widget_size_factors=(2, 1)), i, 2)
-        self.layout.addWidget(get_label("Update Lists", "large", translate=True), len(settings), 1)
-        self.layout.addWidget(get_update_lists_widget(self.window_main), len(settings), 2)
-        self.layout.addWidget(
+            self.layout_inner.addWidget(get_label(SETTINGS_DISPLAY[key], "large", translate=True), i, 1)
+            self.layout_inner.addWidget(get_suitable_widget(value, widget_size_factors=(2, 1)), i, 2)
+        self.layout_inner.addWidget(get_label("Update Lists", "large", translate=True), len(settings), 1)
+        self.layout_inner.addWidget(get_update_lists_widget(self.window_main), len(settings), 2)
+        self.layout_inner.addWidget(
             get_button("large", (15, 5), "Reset", connect_function=self.reset_settings, translate=True),
             len(settings) + 1, 1
         )
-        self.layout.addWidget(
+        self.layout_inner.addWidget(
             get_button("large", (30, 5), "Save", connect_function=self.save_settings, translate=True),
             len(settings) + 1, 2
         )
 
     def reset_settings(self):
-        settings_handler.reset()
-        self.window_main.load_up(5)
+        SETTINGS_HANDLER.reset()
+        self.window_main.reload()
 
     def save_settings(self):
-        for i, key in enumerate(settings_handler.settings):
-            value = get_value_from_suitable_widget(self.layout.itemAtPosition(i, 2).widget())
-            if settings_valid[key](value):
-                settings_handler.settings[key] = value
-        settings_handler.save()
-        self.window_main.load_up(5)
+        for i, key in enumerate(SETTINGS_HANDLER.settings):
+            value = get_value_from_suitable_widget(self.layout_inner.itemAtPosition(i, 2).widget())
+            if SETTINGS_VALID[key](value):
+                SETTINGS_HANDLER.settings[key] = value
+        SETTINGS_HANDLER.save()
+        self.window_main.reload()

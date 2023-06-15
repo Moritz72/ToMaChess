@@ -3,7 +3,7 @@ from json import loads, dumps
 from PyQt5.QtGui import QFontDatabase
 from .functions_util import read_file, write_file, get_root_directory
 
-settings_valid = {
+SETTINGS_VALID = {
     "language": lambda x: True,
     "style": lambda x: True,
     "font": lambda x: True,
@@ -11,8 +11,7 @@ settings_valid = {
     "bbp_path": lambda x: os.path.exists(os.path.join(x, "bbpPairings.exe")),
     "pdf_path": lambda x: os.path.exists(x) or x == ""
 }
-
-settings_display = {
+SETTINGS_DISPLAY = {
     "language": "Language",
     "style": "Style",
     "font": "Font",
@@ -21,12 +20,12 @@ settings_display = {
     "pdf_path": "PDF Output Path"
 }
 
-default_fonts = ("MS Shell Dlg 2", "Arial")
+DEFAULT_FONTS = ("MS Shell Dlg 2", "Arial")
 
 
 def get_font_list():
     font_list = list(QFontDatabase().families())
-    for font in default_fonts:
+    for font in DEFAULT_FONTS:
         if font in font_list:
             return sorted(font_list, key=lambda x: x == font, reverse=True)
     return font_list
@@ -62,4 +61,4 @@ class Settings_Handler:
         self.save()
 
 
-settings_handler = Settings_Handler()
+SETTINGS_HANDLER = Settings_Handler()

@@ -1,5 +1,5 @@
 from json import loads
-from .class_database_handler import database_handler
+from .class_database_handler import DATABASE_HANDLER
 from .class_tournament_swiss import Tournament_Swiss
 from .class_tournament_round_robin import Tournament_Round_Robin
 from .class_tournament_knockout import Tournament_Knockout
@@ -10,25 +10,25 @@ from .class_tournament_knockout_team import Tournament_Knockout_Team
 from .functions_player import load_players_all, add_players
 from .functions_team import load_teams_all, add_teams
 
-modes = {
+MODES = {
     "Swiss": Tournament_Swiss,
     "Round Robin": Tournament_Round_Robin,
     "Knockout": Tournament_Knockout,
     "Custom": Tournament_Custom
 }
-modes_team = {
+MODES_TEAM = {
     "Swiss (Team)": Tournament_Swiss_Team,
     "Round Robin (Team)": Tournament_Round_Robin_Team,
     "Knockout (Team)": Tournament_Knockout_Team
 }
-modes_all = modes | modes_team
-mode_default = "Swiss"
-mode_default_team = "Swiss (Team)"
+MODES_ALL = MODES | MODES_TEAM
+MODE_DEFAULT = "Swiss"
+MODE_DEFAULT_TEAM = "Swiss (Team)"
 
 
 def get_tournament(participants, entry):
     mode = entry.pop(0)
-    return modes_all[mode](participants, *entry)
+    return MODES_ALL[mode](participants, *entry)
 
 
 def json_loads_entry(entry):
@@ -37,7 +37,7 @@ def json_loads_entry(entry):
 
 
 def load_tournament_shallow(table_root, uuid, uuid_associate):
-    entry = list(database_handler.get_entries(
+    entry = list(DATABASE_HANDLER.get_entries(
         f"{table_root}tournaments", ("uuid", "uuid_associate"), (uuid, uuid_associate)
     )[0])
     json_loads_entry(entry)
@@ -47,18 +47,18 @@ def load_tournament_shallow(table_root, uuid, uuid_associate):
 def load_tournaments_shallow_all(table_root, uuid_associate):
     entries = [
         list(entry) for entry
-        in database_handler.get_entries(f"{table_root}tournaments", ("uuid_associate",), (uuid_associate,))]
+        in DATABASE_HANDLER.get_entries(f"{table_root}tournaments", ("uuid_associate",), (uuid_associate,))]
     for entry in entries:
         json_loads_entry(entry)
     return [get_tournament([], entry) for entry in entries]
 
 
 def load_tournament(table_root, uuid, uuid_associate):
-    entry = list(database_handler.get_entries(
+    entry = list(DATABASE_HANDLER.get_entries(
         f"{table_root}tournaments", ("uuid", "uuid_associate"), (uuid, uuid_associate)
     )[0])
     json_loads_entry(entry)
-    if entry[0] in modes:
+    if entry[0] in MODES:
         participants = load_players_all(f"{table_root}tournaments_", uuid)
     else:
         participants = load_teams_all(f"{table_root}tournaments_", uuid)
@@ -67,7 +67,7 @@ def load_tournament(table_root, uuid, uuid_associate):
 
 def load_tournaments_shallow_like(table_root, uuid_associate, name, limit):
     entries = [
-        list(entry) for entry in database_handler.get_entries_like(
+        list(entry) for entry in DATABASE_HANDLER.get_entries_like(
             f"{table_root}tournaments", ("uuid_associate",), (uuid_associate,),
             ("name",), (name,), ("mode", "name"), (True, True), limit
         )
@@ -78,7 +78,7 @@ def load_tournaments_shallow_like(table_root, uuid_associate, name, limit):
 
 
 def add_tournament_shallow(table_root, tournament):
-    database_handler.add_entry(
+    DATABASE_HANDLER.add_entry(
         f"{table_root}tournaments",
         ("mode", "name", "participants", "parameters", "variables", "participant_order", "uuid", "uuid_associate"),
         tournament.get_data()
@@ -99,7 +99,7 @@ def add_tournament(table_root, tournament):
 
 
 def add_tournaments_shallow(table_root, tournaments):
-    database_handler.add_entries(
+    DATABASE_HANDLER.add_entries(
         f"{table_root}tournaments",
         ("mode", "name", "participants", "parameters", "variables", "participant_order", "uuid", "uuid_associate"),
         tuple(tournament.get_data() for tournament in tournaments)
@@ -121,7 +121,7 @@ def add_tournaments(table_root, tournaments):
 
 
 def update_tournament(table_root, tournament):
-    database_handler.update_entry(
+    DATABASE_HANDLER.update_entry(
         f"{table_root}tournaments",
         ("uuid", "uuid_associate"), (tournament.get_uuid(), tournament.get_uuid_associate()),
         ("mode", "name", "participants", "parameters", "variables", "participant_order", "uuid", "uuid_associate"),
@@ -130,7 +130,7 @@ def update_tournament(table_root, tournament):
 
 
 def update_tournaments(table_root, tournaments):
-    database_handler.update_entries(
+    DATABASE_HANDLER.update_entries(
         f"{table_root}tournaments", ("uuid", "uuid_associate",),
         tuple((tournament.get_uuid(), tournament.get_uuid_associate()) for tournament in tournaments),
         ("mode", "name", "participants", "parameters", "variables", "participant_order", "uuid", "uuid_associate"),
@@ -139,7 +139,7 @@ def update_tournaments(table_root, tournaments):
 
 
 def update_tournament_shallow(table_root, tournament):
-    database_handler.update_entry(
+    DATABASE_HANDLER.update_entry(
         f"{table_root}tournaments",
         ("uuid", "uuid_associate"), (tournament.get_uuid(), tournament.get_uuid_associate()),
         ("mode", "name", "participants", "parameters", "variables", "uuid", "uuid_associate"),
@@ -148,7 +148,7 @@ def update_tournament_shallow(table_root, tournament):
 
 
 def update_tournaments_shallow(table_root, tournaments):
-    database_handler.update_entries(
+    DATABASE_HANDLER.update_entries(
         f"{table_root}tournaments", ("uuid", "uuid_associate",),
         tuple((tournament.get_uuid(), tournament.get_uuid_associate()) for tournament in tournaments),
         ("mode", "name", "participants", "parameters", "variables", "uuid", "uuid_associate"),
@@ -157,13 +157,13 @@ def update_tournaments_shallow(table_root, tournaments):
 
 
 def remove_tournament(table_root, tournament):
-    database_handler.delete_entry(
+    DATABASE_HANDLER.delete_entry(
         f"{table_root}tournaments", ("uuid", "uuid_associate"), (tournament.get_uuid(), tournament.get_uuid_associate())
     )
 
 
 def remove_tournaments(table_root, tournaments):
-    database_handler.delete_entries(
+    DATABASE_HANDLER.delete_entries(
         f"{table_root}tournaments", ("uuid", "uuid_associate"),
         tuple((tournament.get_uuid(), tournament.get_uuid_associate()) for tournament in tournaments)
     )

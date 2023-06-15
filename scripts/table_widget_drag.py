@@ -29,9 +29,10 @@ class Table_Widget_Drag(QTableWidget):
             drop_row = self.drop_on(event)
 
             rows = sorted(set(item.row() for item in self.selectedItems()))
-            rows_to_move = [[
-                QTableWidgetItem(self.item(row_index, column_index)) for column_index in range(self.columnCount())
-            ] for row_index in rows]
+            rows_to_move = [
+                [QTableWidgetItem(self.item(row_index, column_index)) for column_index in range(self.columnCount())]
+                for row_index in rows
+            ]
             for row_index in reversed(rows):
                 self.removeRow(row_index)
                 if row_index < drop_row:

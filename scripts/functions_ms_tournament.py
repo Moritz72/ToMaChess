@@ -1,5 +1,5 @@
 from json import loads
-from .class_database_handler import database_handler
+from .class_database_handler import DATABASE_HANDLER
 from .class_ms_tournament import MS_Tournament
 from .functions_player import load_players_all, add_players
 from .functions_team import load_teams_all, add_teams
@@ -12,7 +12,7 @@ def json_loads_entry(entry):
 
 
 def load_ms_tournament_shallow(table_root, uuid, uuid_associate):
-    entry = list(database_handler.get_entries(
+    entry = list(DATABASE_HANDLER.get_entries(
         f"{table_root}ms_tournaments", ("uuid", "uuid_associate"), (uuid, uuid_associate)
     )[0])
     json_loads_entry(entry)
@@ -22,7 +22,7 @@ def load_ms_tournament_shallow(table_root, uuid, uuid_associate):
 def load_ms_tournaments_shallow_all(table_root, uuid_associate):
     entries = [
         list(entry) for entry
-        in database_handler.get_entries(f"{table_root}ms_tournaments", ("uuid_associate",), (uuid_associate,))
+        in DATABASE_HANDLER.get_entries(f"{table_root}ms_tournaments", ("uuid_associate",), (uuid_associate,))
     ]
     for entry in entries:
         json_loads_entry(entry)
@@ -30,7 +30,7 @@ def load_ms_tournaments_shallow_all(table_root, uuid_associate):
 
 
 def load_ms_tournament(table_root, uuid, uuid_associate):
-    entry = list(database_handler.get_entries(
+    entry = list(DATABASE_HANDLER.get_entries(
         f"{table_root}ms_tournaments", ("uuid", "uuid_associate"), (uuid, uuid_associate)
     )[0])
     json_loads_entry(entry)
@@ -46,7 +46,7 @@ def load_ms_tournament(table_root, uuid, uuid_associate):
 
 def load_ms_tournaments_shallow_like(table_root, uuid_associate, name, limit):
     entries = [
-        list(entry) for entry in database_handler.get_entries_like(
+        list(entry) for entry in DATABASE_HANDLER.get_entries_like(
             f"{table_root}ms_tournaments", ("uuid_associate",), (uuid_associate,),
             ("name",), (name,), ("name",), (True,), limit
         )
@@ -57,7 +57,7 @@ def load_ms_tournaments_shallow_like(table_root, uuid_associate, name, limit):
 
 
 def add_ms_tournament(table_root, ms_tournament):
-    database_handler.add_entry(
+    DATABASE_HANDLER.add_entry(
         f"{table_root}ms_tournaments",
         (
             "name", "participants", "stages_advance_lists", "draw_lots", "stage", "tournament_order", "uuid",
@@ -84,7 +84,7 @@ def add_ms_tournament(table_root, ms_tournament):
 
 
 def add_ms_tournaments(table_root, ms_tournaments):
-    database_handler.add_entries(
+    DATABASE_HANDLER.add_entries(
         f"{table_root}ms_tournaments",
         (
             "name", "participants", "stages_advance_lists", "draw_lots", "stage", "tournament_order", "uuid",
@@ -112,7 +112,7 @@ def add_ms_tournaments(table_root, ms_tournaments):
 
 
 def update_ms_tournament_shallow(table_root, ms_tournament):
-    database_handler.update_entry(
+    DATABASE_HANDLER.update_entry(
         f"{table_root}ms_tournaments",
         ("uuid", "uuid_associate"), (ms_tournament.get_uuid(), ms_tournament.get_uuid_associate()),
         (
@@ -124,7 +124,7 @@ def update_ms_tournament_shallow(table_root, ms_tournament):
 
 
 def update_ms_tournaments_shallow(table_root, ms_tournaments):
-    database_handler.update_entries(
+    DATABASE_HANDLER.update_entries(
         f"{table_root}ms_tournaments", ("uuid", "uuid_associate"),
         tuple((ms_tournament.get_uuid(), ms_tournament.get_uuid_associate()) for ms_tournament in ms_tournaments),
         (
@@ -147,14 +147,14 @@ def update_ms_tournament(table_root, ms_tournament):
 
 
 def remove_ms_tournament(table_root, ms_tournament):
-    database_handler.delete_entry(
+    DATABASE_HANDLER.delete_entry(
         f"{table_root}ms_tournaments",
         ("uuid", "uuid_associate"), (ms_tournament.get_uuid(), ms_tournament.get_uuid_associate())
     )
 
 
 def remove_ms_tournaments(table_root, ms_tournaments):
-    database_handler.delete_entries(
+    DATABASE_HANDLER.delete_entries(
         f"{table_root}ms_tournaments", ("uuid", "uuid_associate"),
         tuple((ms_tournament.get_uuid(), ms_tournament.get_uuid_associate()) for ms_tournament in ms_tournaments)
     )

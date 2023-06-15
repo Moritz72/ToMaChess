@@ -8,7 +8,7 @@ def shorten_floats(scores):
 def median(scores):
     half, rest = divmod(len(scores), 2)
     if half:
-        return (scores[half]+scores[half+1]) / 2
+        return (scores[half] + scores[half + 1]) / 2
     return scores[half]
 
 

@@ -27,7 +27,7 @@ class Widget_Tournament_Standings(QWidget):
         if self.category_range is not None:
             header_horizontal[0] = get_category_range_title(*self.category_range)
         set_up_table(
-            self.table, 0, len(header_horizontal),
+            self.table, len(header_vertical), len(header_horizontal),
             header_horizontal=header_horizontal, header_vertical=header_vertical, translate=True
         )
         size_table(self.table, len(header_vertical), 3.5, max_width=55, widths=len(header_horizontal) * [5])

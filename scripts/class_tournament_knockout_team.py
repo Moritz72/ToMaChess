@@ -2,14 +2,8 @@ from .class_tournament import Tournament
 from .class_tournament_knockout import Tournament_Knockout
 from .class_armageddon import Armageddon
 from .functions_util import shorten_float
-from .functions_tournament_knockout import get_end_rounds, update_participant_standings, reverse_participant_standings
 from .functions_tournament_util import get_standings_header_vertical
 from .functions_categories import filter_list_by_category_range
-
-
-def get_totals(games, games_per_tiebreak, boards):
-    return [games, games * boards, games * boards * (boards + 1) / 2], \
-           [games_per_tiebreak, games_per_tiebreak * boards, games_per_tiebreak * boards * (boards + 1) / 2]
 
 
 def get_scores_mini(score_1, score_2, score_dict, factor=1):
@@ -33,23 +27,25 @@ class Tournament_Knockout_Team(Tournament_Knockout):
             self, participants, name, shallow_particpant_count=None, parameters=None, variables=None, order=None,
             uuid=None, uuid_associate="00000000-0000-0000-0000-000000000002"
     ):
-        super().__init__(
-            participants, name, shallow_particpant_count, parameters, variables, order, uuid, uuid_associate
+        Tournament.__init__(
+            self, participants, name, shallow_particpant_count, parameters, variables, order, uuid, uuid_associate
         )
         self.mode = "Knockout (Team)"
-        self.parameters = parameters or {
+        self.parameters = {
             "boards": 8,
             "games": 1,
             "games_per_tiebreak": 1,
+            "pairing_method": ["Slide", "Fold", "Adjacent", "Random"],
             "armageddon": Armageddon()
-        }
+        } | self.parameters
         self.parameter_display = {
             "boards": "Boards",
             "games": "Games per Match",
             "games_per_tiebreak": None,
+            "pairing_method": "Pairing Method",
             "armageddon": None
         }
-        self.variables = variables or self.variables | {"results_individual": []}
+        self.variables = {"participant_standings": None, "results_individual": []} | self.variables
 
     def set_participants(self, participants):
         super().set_participants(participants)
@@ -64,50 +60,18 @@ class Tournament_Knockout_Team(Tournament_Knockout):
     def is_valid_parameters(self):
         return super().is_valid_parameters() and self.get_parameter("boards") > 0
 
-    def add_results(self, results):
-        Tournament.add_results(self, results)
+    def get_totals(self):
         games, games_per_tiebreak = self.get_parameter("games"), self.get_parameter("games_per_tiebreak")
-        for ((uuid_1, score_1), (uuid_2, score_2)), individual \
-                in zip(self.get_results()[-1], self.get_results_individual()[-1]):
-            update_participant_standings(
-                uuid_1, uuid_2,
-                *get_scores(score_1, score_2, individual, self.get_score_dict(), self.get_score_dict_game()),
-                self.get_variable("participant_standings"), games, games_per_tiebreak, self.get_parameter("armageddon"),
-                *get_totals(games, games_per_tiebreak, self.get_parameter("boards"))
-            )
+        boards = self.get_parameter("boards")
+        return [games, games * boards, games * boards * (boards + 1) / 2], \
+               [games_per_tiebreak, games_per_tiebreak * boards, games_per_tiebreak * boards * (boards + 1) / 2]
 
-    def remove_results(self):
-        games, games_per_tiebreak = self.get_parameter("games"), self.get_parameter("games_per_tiebreak")
-        for ((uuid_1, score_1), (uuid_2, score_2)), individual \
-                in zip(self.get_results()[-1], self.get_results_individual()[-1]):
-            reverse_participant_standings(
-                uuid_1, uuid_2,
-                *get_scores(score_1, score_2, individual, self.get_score_dict(), self.get_score_dict_game()),
-                self.get_variable("participant_standings"), games, games_per_tiebreak, self.get_parameter("armageddon"),
-                *get_totals(games, games_per_tiebreak, self.get_parameter("boards"))
-            )
-        Tournament.remove_results(self)
-
-    def get_round_name(self, r):
-        games, games_per_tiebreak = self.get_parameter("games"), self.get_parameter("games_per_tiebreak")
-        armageddon = self.get_parameter("armageddon")
-        end_rounds = get_end_rounds(
-            self.get_variable("participant_standings"), games, games_per_tiebreak, armageddon,
-            *get_totals(games, games_per_tiebreak, self.get_parameter("boards"))
-        )
-
-        counter = 1
-        while len(end_rounds) > 0 and r > end_rounds[0]:
-            r -= end_rounds.pop(0)
-            counter += 1
-
-        if armageddon.is_armageddon(games, games_per_tiebreak, r):
-            return "Round", f" {counter}.A"
-        if r <= games:
-            if games == 1:
-                return "Round", f" {counter}"
-            return "Round", f" {counter}.{r}"
-        return "Round", f" {counter}.T{r - games}"
+    def get_latest_scores(self):
+        return [
+            get_scores(score_1, score_2, individual, self.get_score_dict(), self.get_score_dict_game())
+            for ((uuid_1, score_1), (uuid_2, score_2)), individual
+            in zip(self.get_results()[-1], self.get_results_individual()[-1])
+        ]
 
     def get_standings(self, category_range=None):
         header_horizontal = ["Name", "Matches", "Match Points", "Board Points", "Berliner Wertung"]

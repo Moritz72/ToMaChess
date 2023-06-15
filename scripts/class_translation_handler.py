@@ -1,5 +1,5 @@
 import gettext
-from .class_settings_handler import settings_handler
+from .class_settings_handler import SETTINGS_HANDLER
 
 
 class Translation_Handler:
@@ -7,7 +7,7 @@ class Translation_Handler:
         self.language, self.translation, self.translation_shortened = None, None, None
 
     def refresh(self):
-        self.language = settings_handler.settings["language"][0]
+        self.language = SETTINGS_HANDLER.settings["language"][0]
         self.translation = gettext.translation("base", "locales", languages=[self.language])
         self.translation_shortened = gettext.translation("short", "locales", languages=[self.language])
 
@@ -28,4 +28,4 @@ class Translation_Handler:
         return tuple(self.tl(text, short=short) for text in texts)
 
 
-translation_handler = Translation_Handler()
+TRANSLATION_HANDLER = Translation_Handler()

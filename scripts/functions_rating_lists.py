@@ -4,7 +4,7 @@ from requests import get, exceptions
 from zipfile import ZipFile, BadZipFile
 from xml.etree.ElementTree import parse
 from csv import reader
-from .class_database_handler import database_handler
+from .class_database_handler import DATABASE_HANDLER
 from .class_collection import Collection
 from .functions_util import get_root_directory
 from .functions_collection import add_collection, collection_exists
@@ -16,9 +16,8 @@ def get_uuid_from_numbers(n, m):
 
 def renew_certificate(certificate):
     try:
-        response = get(
-            f"https://raw.githubusercontent.com/Moritz72/ToMaChess/master/certificates/{certificate.split('/')[-1]}"
-        )
+        url = f"https://raw.githubusercontent.com/Moritz72/ToMaChess/master/certificates/{certificate.split('/')[-1]}"
+        response = get(url)
         response.raise_for_status()
         with open(certificate, 'wb') as file:
             file.write(response.content)
@@ -27,13 +26,10 @@ def renew_certificate(certificate):
 
 
 def process_xml(xml_file_path, key_dict):
-    tree = parse(xml_file_path)
-    root = tree.getroot()
-    players = [
+    return [
         {key_dict[child_elem.tag]: child_elem.text for child_elem in player_elem if child_elem.tag in key_dict}
-        for player_elem in root.iter("player")
+        for player_elem in parse(xml_file_path).getroot().iter("player")
     ]
-    return players
 
 
 def process_csv(csv_file_path, key_dict):
@@ -41,17 +37,18 @@ def process_csv(csv_file_path, key_dict):
         csv_reader = reader(file)
         header = next(csv_reader)
         indices = tuple(header.index(key) for key in key_dict)
-        players = [{value: row[indices[j]] for j, value in enumerate(list(key_dict.values()))} for row in csv_reader]
-    return players
+        return [{value: row[indices[j]] for j, value in enumerate(list(key_dict.values()))} for row in csv_reader]
 
 
 def download_and_unzip(url, file_to_extract, verify=True, retry=True):
+    path_zip = os.path.join(get_root_directory(), "zip_file.zip")
+    path_extract = os.path.join(get_root_directory(), file_to_extract)
     try:
         response = get(url, verify=verify)
         response.raise_for_status()
-        with open(os.path.join(get_root_directory(), "zip_file.zip"), 'wb') as file:
+        with open(path_zip, 'wb') as file:
             file.write(response.content)
-        with ZipFile(os.path.join(get_root_directory(), "zip_file.zip"), 'r') as zip_file:
+        with ZipFile(path_zip, 'r') as zip_file:
             return zip_file.extract(file_to_extract)
     except exceptions.SSLError:
         renew_certificate(verify)
@@ -62,13 +59,10 @@ def download_and_unzip(url, file_to_extract, verify=True, retry=True):
     except BadZipFile as e:
         return
     finally:
-        if os.path.exists(os.path.join(get_root_directory(), "zip_file.zip")):
-            os.remove(os.path.join(get_root_directory(), "zip_file.zip"))
-        if os.path.exists(os.path.join(get_root_directory(), file_to_extract)):
-            os.rename(
-                os.path.join(get_root_directory(), file_to_extract),
-                os.path.join(get_root_directory(), "extracted_file")
-            )
+        if os.path.exists(path_zip):
+            os.remove(path_zip)
+        if os.path.exists(path_extract):
+            os.rename(path_extract, os.path.join(get_root_directory(), "extracted_file"))
 
 
 def update_list(name, number, get_list):
@@ -79,12 +73,12 @@ def update_list(name, number, get_list):
     if collection_exists("", collection_uuid):
         uuids_to_delete = set(
             tuple(entry[-2:])
-            for entry in database_handler.get_entries("players", ("uuid_associate",), (collection_uuid,))
+            for entry in DATABASE_HANDLER.get_entries("players", ("uuid_associate",), (collection_uuid,))
         ) - set((get_uuid_from_numbers(number, entry["id"]), collection_uuid) for entry in player_list)
     else:
         collection = add_collection("", Collection(name, "Players", collection_uuid))
         uuids_to_delete = set()
-    database_handler.add_or_update_entries(
+    DATABASE_HANDLER.add_or_update_entries(
         "players", ("name", "sex", "birthday", "country", "title", "rating", "uuid", "uuid_associate"),
         tuple(
             (
@@ -93,15 +87,14 @@ def update_list(name, number, get_list):
             ) for entry in player_list
         )
     )
-    database_handler.delete_entries_list(
+    DATABASE_HANDLER.delete_entries_list(
         "players", ("uuid", "uuid_associate"), [list(entry) for entry in zip(*uuids_to_delete)]
     )
 
 
 def get_fide_standard_list():
-    unzipped_file = download_and_unzip(
-        "http://ratings.fide.com/download/standard_rating_list_xml.zip", "standard_rating_list.xml"
-    )
+    url = "http://ratings.fide.com/download/standard_rating_list_xml.zip"
+    unzipped_file = download_and_unzip(url, "standard_rating_list.xml")
     if unzipped_file is None:
         return
     player_list = process_xml(
@@ -116,10 +109,9 @@ def get_fide_standard_list():
 
 
 def get_dsb_list():
-    unzipped_file = download_and_unzip(
-        "https://dwz.svw.info/services/files/export/csv/LV-0-csv_v2.zip", "spieler.csv",
-        verify=os.path.join(get_root_directory(), "certificates", "svw-info-certificate.pem")
-    )
+    url = "https://dwz.svw.info/services/files/export/csv/LV-0-csv_v2.zip"
+    certificate = os.path.join(get_root_directory(), "certificates", "svw-info-certificate.pem")
+    unzipped_file = download_and_unzip(url, "spieler.csv", verify=certificate)
     if unzipped_file is None:
         return
     player_list = process_csv(
@@ -137,8 +129,8 @@ def get_dsb_list():
     return player_list
 
 
-rating_lists = {"FIDE": (1, get_fide_standard_list), "DSB": (2, get_dsb_list)}
+RATING_LISTS = {"FIDE": (1, get_fide_standard_list), "DSB": (2, get_dsb_list)}
 
 
 def update_list_by_name(name):
-    update_list(name, *rating_lists[name])
+    update_list(name, *RATING_LISTS[name])

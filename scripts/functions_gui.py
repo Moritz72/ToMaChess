@@ -2,9 +2,9 @@ from PyQt5.QtWidgets import QComboBox, QLineEdit, QCheckBox, QSpinBox, QTableWid
     QScrollArea, QMainWindow, QVBoxLayout, QWidget, QHeaderView, QApplication, QSizePolicy, QStyledItemDelegate
 from PyQt5.QtCore import Qt, QThread, pyqtSignal
 from PyQt5.QtGui import QFont
-from .class_size_handler import size_handler
-from .class_settings_handler import settings_handler
-from .class_translation_handler import translation_handler
+from .class_size_handler import SIZE_HANDLER
+from .class_settings_handler import SETTINGS_HANDLER
+from .class_translation_handler import TRANSLATION_HANDLER
 
 
 class Function_Worker(QThread):
@@ -21,14 +21,14 @@ class Function_Worker(QThread):
 
 class Options_Button(QPushButton):
     def __init__(self, var, size, widget_size, text="", bold=False, translate=False):
-        super().__init__(translation_handler.tl(text) if translate else text)
+        super().__init__(TRANSLATION_HANDLER.tl(text) if translate else text)
         self.obj = var
         self.window = Options_Window(self.obj, translate)
         self.window.options_closed.connect(self.get_args_and_args_display_from_window)
         self.clicked.connect(self.window.show)
 
-        set_fixed_size(self, size_handler, size, widget_size)
-        set_font(self, size_handler, size, bold)
+        set_fixed_size(self, SIZE_HANDLER, size, widget_size)
+        set_font(self, SIZE_HANDLER, size, bold)
 
     def get_args_and_args_display_from_window(self):
         if self.obj.is_valid():
@@ -80,7 +80,8 @@ class Options_Window(QMainWindow):
 
     def update_widget_data(self, args):
         self.obj.update(args)
-        self.make_window_from_object()
+        if self.obj.window_update_necessary:
+            self.make_window_from_object()
 
 
 def add_widgets_to_layout(layout, widgets):
@@ -103,16 +104,20 @@ def clear_layout(layout, s=0):
             layout.removeItem(layout.itemAt(i))
 
 
-def get_scroll_area_widgets_and_layouts(layout, widgets_in_scroll_area, margins=(0, 0, 0, 0), spacing=0):
+def get_scroll_area_widgets_and_layouts(
+        layout, widgets_in_scroll_area=[], margins=(0, 0, 0, 0), spacing=0, layout_inner=None, horizontal_bar=False
+):
     scroll_area = QScrollArea()
-    scroll_area.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
+    if not horizontal_bar:
+        scroll_area.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
     scroll_area.setWidgetResizable(True)
     scroll_area.setMinimumWidth(1)
     widget_inner = QWidget()
-    layout_inner = QVBoxLayout()
-    layout_inner.setAlignment(Qt.AlignTop)
-    layout_inner.setContentsMargins(*margins)
-    layout_inner.setSpacing(spacing)
+    if layout_inner is None:
+        layout_inner = QVBoxLayout()
+        layout_inner.setAlignment(Qt.AlignTop)
+        layout_inner.setContentsMargins(*margins)
+        layout_inner.setSpacing(spacing)
     for widget in widgets_in_scroll_area:
         layout_inner.addWidget(widget)
     widget_inner.setLayout(layout_inner)
@@ -122,34 +127,34 @@ def get_scroll_area_widgets_and_layouts(layout, widgets_in_scroll_area, margins=
 
 
 def set_window_title(window, title):
-    window.setWindowTitle(translation_handler.tl(title))
+    window.setWindowTitle(TRANSLATION_HANDLER.tl(title))
 
 
 def set_up_table(table, rows, columns, header_horizontal=None, header_vertical=None, translate=False):
-    font_size = size_handler.font_sizes["medium"]
+    font_size = SIZE_HANDLER.font_sizes["medium"]
 
     table.setRowCount(rows)
     table.setColumnCount(columns)
-    set_font(table, size_handler, "medium")
+    set_font(table, SIZE_HANDLER, "medium")
 
     horizontal_header, vertical_header = table.horizontalHeader(), table.verticalHeader()
     horizontal_header.setStyleSheet("QHeaderView {font-size: " + str(font_size) + "pt; font-weight: bold;}")
     vertical_header.setStyleSheet("QHeaderView {font-size: " + str(font_size) + "pt; font-weight: bold;}")
-    set_font(horizontal_header, size_handler, "medium")
-    set_font(vertical_header, size_handler, "medium")
+    set_font(horizontal_header, SIZE_HANDLER, "medium")
+    set_font(vertical_header, SIZE_HANDLER, "medium")
 
     if header_horizontal is not None:
         if translate:
-            header_horizontal = translation_handler.tl_list(header_horizontal, short=True)
+            header_horizontal = TRANSLATION_HANDLER.tl_list(header_horizontal, short=True)
         table.setHorizontalHeaderLabels(header_horizontal)
     if header_vertical is not None:
         if translate:
-            header_vertical = translation_handler.tl_list(header_vertical, short=True)
+            header_vertical = TRANSLATION_HANDLER.tl_list(header_vertical, short=True)
         table.setVerticalHeaderLabels(header_vertical)
 
 
 def size_table(table, rows, row_height, max_width=None, widths=[], header_width=None):
-    size_factor = size_handler.widget_size_factor
+    size_factor = SIZE_HANDLER.widget_size_factor
 
     horizontal_header, vertical_header = table.horizontalHeader(), table.verticalHeader()
     horizontal_header.setMinimumSectionSize(0)
@@ -180,7 +185,7 @@ def set_fixed_size(widget, size_handler, size, widget_size):
 
 
 def get_font(font_size=None, bold=False):
-    font = QFont(settings_handler.settings["font"][0])
+    font = QFont(SETTINGS_HANDLER.settings["font"][0])
     if font_size is not None:
         font.setPointSize(font_size)
     font.setBold(bold)
@@ -198,17 +203,17 @@ def set_font(widget, size_handler, size, bold=False):
 
 def get_label(text, size, bold=False, translate=False):
     if translate:
-        text = translation_handler.tl(text)
+        text = TRANSLATION_HANDLER.tl(text)
     label = QLabel(text)
-    set_font(label, size_handler, size, bold)
+    set_font(label, SIZE_HANDLER, size, bold)
     return label
 
 
 def get_lineedit(size, widget_size, text="", connect_function=None, bold=False):
     lineedit = QLineEdit(text)
     lineedit.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Fixed)
-    set_fixed_size(lineedit, size_handler, size, widget_size)
-    set_font(lineedit, size_handler, size, bold)
+    set_fixed_size(lineedit, SIZE_HANDLER, size, widget_size)
+    set_font(lineedit, SIZE_HANDLER, size, bold)
     if connect_function is not None:
         lineedit.editingFinished.connect(connect_function)
     return lineedit
@@ -218,10 +223,10 @@ def get_button(
         size, widget_size, text="", connect_function=None, bold=False, checkable=False, enabled=True, translate=False
 ):
     if translate:
-        text = translation_handler.tl(text)
+        text = TRANSLATION_HANDLER.tl(text)
     button = QPushButton(text)
-    set_fixed_size(button, size_handler, size, widget_size)
-    set_font(button, size_handler, size, bold)
+    set_fixed_size(button, SIZE_HANDLER, size, widget_size)
+    set_font(button, SIZE_HANDLER, size, bold)
     button.setCheckable(checkable)
     button.setEnabled(enabled)
     if connect_function is not None:
@@ -234,8 +239,8 @@ def get_button_threaded(
         enabled=True, translate=False
 ):
     if translate:
-        text = translation_handler.tl(text)
-        load_text = translation_handler.tl(load_text)
+        text = TRANSLATION_HANDLER.tl(text)
+        load_text = TRANSLATION_HANDLER.tl(load_text)
     button = get_button(size, widget_size, text, None, bold, checkable, enabled)
 
     def threaded_function():
@@ -261,7 +266,7 @@ def get_button_threaded(
 def get_check_box(boolean, size, widget_size):
     check_box = QCheckBox()
     check_box.setChecked(boolean)
-    size_factor = size_handler.widget_size_factor
+    size_factor = SIZE_HANDLER.widget_size_factor
     check_box.setStyleSheet(
         "QCheckBox::indicator {"
         "width:  " + str(int(size_factor * widget_size[0])) + "px;"
@@ -274,19 +279,19 @@ def get_check_box(boolean, size, widget_size):
 def get_spin_box(value, size, widget_size, bold=False, align=None):
     spin_box = QSpinBox()
     spin_box.setStyleSheet(
-        "QAbstractSpinBox:up-button {width: " + str(1.3 * size_handler.font_sizes[size]) + "px;}"
-        "QAbstractSpinBox:down-button {width: " + str(1.3 * size_handler.font_sizes[size]) + "px;}"
+        "QAbstractSpinBox:up-button {width: " + str(1.3 * SIZE_HANDLER.font_sizes[size]) + "px;}"
+        "QAbstractSpinBox:down-button {width: " + str(1.3 * SIZE_HANDLER.font_sizes[size]) + "px;}"
         "QAbstractSpinBox::down-arrow {"
-        "width: " + str(size_handler.font_sizes[size]) + "px;"
-        "height: " + str(size_handler.font_sizes[size]) + "px;"
+        "width: " + str(SIZE_HANDLER.font_sizes[size]) + "px;"
+        "height: " + str(SIZE_HANDLER.font_sizes[size]) + "px;"
         "}"
         "QAbstractSpinBox::up-arrow {"
-        "width: " + str(size_handler.font_sizes[size]) + "px;"
-        "height: " + str(size_handler.font_sizes[size]) + "px;"
+        "width: " + str(SIZE_HANDLER.font_sizes[size]) + "px;"
+        "height: " + str(SIZE_HANDLER.font_sizes[size]) + "px;"
         "}"
     )
-    set_fixed_size(spin_box, size_handler, size, widget_size)
-    set_font(spin_box, size_handler, size, bold)
+    set_fixed_size(spin_box, SIZE_HANDLER, size, widget_size)
+    set_font(spin_box, SIZE_HANDLER, size, bold)
     spin_box.setValue(value)
     if align:
         spin_box.setAlignment(align)
@@ -298,24 +303,24 @@ def get_combo_box(choices, size, widget_size, current=None, bold=False, down_arr
     combo_box.setItemDelegate(QStyledItemDelegate(combo_box))
     if down_arrow:
         combo_box.setStyleSheet(
-            "QComboBox::drop-down {width: " + str(1.3 * size_handler.font_sizes[size]) + "px;}"
+            "QComboBox::drop-down {width: " + str(1.3 * SIZE_HANDLER.font_sizes[size]) + "px;}"
             "QComboBox::down-arrow {"
-            "width: " + str(size_handler.font_sizes[size]) + "px;"
-            "height: " + str(size_handler.font_sizes[size]) + "px;"
+            "width: " + str(SIZE_HANDLER.font_sizes[size]) + "px;"
+            "height: " + str(SIZE_HANDLER.font_sizes[size]) + "px;"
             "}"
         )
     else:
         combo_box.setStyleSheet("QComboBox::drop-down {width: 0px;} QComboBox::down-arrow {width: 0px;}")
-    set_fixed_size(combo_box, size_handler, size, widget_size)
-    set_font(combo_box, size_handler, size, bold)
+    set_fixed_size(combo_box, SIZE_HANDLER, size, widget_size)
+    set_font(combo_box, SIZE_HANDLER, size, bold)
     for i, choice in enumerate(choices):
         match choice:
             case str():
-                combo_box.addItem(translation_handler.tl(choice) if translate else choice, choice)
+                combo_box.addItem(TRANSLATION_HANDLER.tl(choice) if translate else choice, choice)
             case None:
                 combo_box.addItem("", choice)
             case _:
-                combo_box.addItem(translation_handler.tl(str(choice)) if translate else str(choice), choice)
+                combo_box.addItem(TRANSLATION_HANDLER.tl(str(choice)) if translate else str(choice), choice)
     if current is not None and current in choices:
         combo_box.setCurrentIndex(choices.index(current))
     return combo_box
@@ -324,8 +329,8 @@ def get_combo_box(choices, size, widget_size, current=None, bold=False, down_arr
 def add_content_to_table(table, content, row, column, edit=True, align=None, bold=False, translate=False):
     if content is None:
         content = ""
-    item = QTableWidgetItem(translation_handler.tl(str(content)) if translate else str(content))
-    set_font(item, size_handler, "medium", bold)
+    item = QTableWidgetItem(TRANSLATION_HANDLER.tl(str(content)) if translate else str(content))
+    set_font(item, SIZE_HANDLER, "medium", bold)
     if not edit:
         item.setFlags(item.flags() & ~Qt.ItemIsEditable)
     if align is not None:

@@ -1,7 +1,7 @@
 from uuid import uuid4
 
-sex_dict = {'M': 'M', 'F': 'F', 'W': 'F', 'D': 'D'}
-titles = ("CM", "FM", "IM", "GM", "WCM", "WFM", "WIM", "WGM")
+SEX_DICT = {'M': 'M', 'F': 'F', 'W': 'F', 'D': 'D'}
+TITLES = ("GM", "WGM", "IM", "WIM", "FM", "WFM", "CM", "WCM")
 
 
 class Player:
@@ -47,8 +47,8 @@ class Player:
         return self.sex
 
     def set_sex(self, sex):
-        if sex in sex_dict:
-            self.sex = sex_dict[sex]
+        if sex in SEX_DICT:
+            self.sex = SEX_DICT[sex]
 
     def get_birthday(self):
         return self.birthday
@@ -68,7 +68,7 @@ class Player:
         return self.title
 
     def set_title(self, title):
-        if title in titles:
+        if title in TITLES:
             self.title = title
 
     def get_rating(self):

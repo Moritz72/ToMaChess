@@ -3,16 +3,16 @@ from .functions_tiebreak import get_buchholz, get_buchholz_sum, get_sonneborn_be
     get_number_of_wins, get_opponent_average_rating, get_cumulative_score, get_number_of_black_wins,\
     get_direct_encounter, get_board_points, get_berliner_wertung
 
-tiebreak_list = [
+TIEBREAK_LIST = [
     "None", "Buchholz", "Buchholz Sum", "Sonneborn-Berger", "Games as Black", "Wins", "Wins as Black",
     "Average Rating", "Cumulative Score", "Direct Encounter"
 ]
-tiebreak_list_team = [
+TIEBREAK_LIST_TEAM = [
     "None", "Board Points", "Berliner Wertung", "Buchholz", "Buchholz Sum", "Sonneborn-Berger", "Wins",
     "Cumulative Score", "Direct Encounter"
 ]
 
-tiebreaks = {
+TIEBREAKS = {
     "None": None,
     "Buchholz": get_buchholz,
     "Buchholz Sum": get_buchholz_sum,
@@ -26,7 +26,7 @@ tiebreaks = {
     "Board Points": get_board_points,
     "Berliner Wertung": get_berliner_wertung
 }
-func_args = {
+FUNC_ARGS = {
     "None": {},
     "Buchholz": {"cut_down": 0, "cut_up": 0, "virtual": True},
     "Buchholz Sum": {"cut_down": 0, "cut_up": 0, "virtual": True},
@@ -40,7 +40,7 @@ func_args = {
     "Board Points": {},
     "Berliner Wertung": {}
 }
-func_args_display = {
+FUNC_ARGS_DISPLAY = {
     "None": {},
     "Buchholz": {"cut_down": "Cut (bottom)", "cut_up": "Cut (top)", "virtual": "Virtual Opponents"},
     "Buchholz Sum": {"cut_down": "Cut (bottom)", "cut_up": "Cut (top)", "virtual": "Virtual Opponents"},
@@ -56,21 +56,31 @@ func_args_display = {
 }
 
 
+def get_tiebreak_list(default, team=False):
+    if team:
+        return sorted(TIEBREAK_LIST_TEAM, key=lambda x: x != default)
+    return sorted(TIEBREAK_LIST, key=lambda x: x != default)
+
+
 class Tiebreak:
-    def __init__(self, args=None, args_display=None):
-        self.args = args or {}
-        self.args_display = args_display or {}
+    def __init__(self, **args):
+        self.args = dict()
+        if "args" in args:
+            self.args = args["args"]
         if "functions" not in self.args:
-            self.args["functions"] = "Buchholz"
-        if "functions" not in self.args_display:
-            self.args_display["functions"] = "Criterion"
+            self.args["functions"] = get_tiebreak_list("None")
+        self.args_display = {"functions": "Criterion"}
         self.fill_in_default()
+        self.window_update_necessary = False
+
+    def get_dict(self):
+        return {"args": self.args}
 
     def fill_in_default(self):
-        for key, value in func_args[self.args["functions"][0]].items():
+        for key, value in FUNC_ARGS[self.args["functions"][0]].items():
             if key not in self.args:
                 self.args[key] = value
-        for key, value in func_args_display[self.args["functions"][0]].items():
+        for key, value in FUNC_ARGS_DISPLAY[self.args["functions"][0]].items():
             if key not in self.args_display:
                 self.args_display[key] = value
 
@@ -79,8 +89,10 @@ class Tiebreak:
             self.args = {"functions": args["functions"]}
             self.args_display = {"functions": "Criterium"}
             self.fill_in_default()
+            self.window_update_necessary = True
         else:
             self.args = args
+            self.window_update_necessary = False
 
     def get_args_and_args_display(self):
         return self.args, self.args_display
@@ -91,5 +103,5 @@ class Tiebreak:
 
     def evaluate(self, args):
         func_args = self.args.copy() | args
-        func = tiebreaks[func_args.pop("functions")[0]]
+        func = TIEBREAKS[func_args.pop("functions")[0]]
         return func(**{key: value for key, value in func_args.items() if key in getfullargspec(func).args})

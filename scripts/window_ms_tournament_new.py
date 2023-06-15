@@ -83,8 +83,8 @@ class Window_MS_Tournament_New(QMainWindow):
 
         participants = list({participant.get_uuid(): participant for participant in participants}.values())
         self.new_tournament = MS_Tournament(
-            participants, stages_tournaments, self.name_line.text(), stages_advance_lists=stages_advance_lists,
-            draw_lots=self.draw_lots_check.checkState() == Qt.Checked
+            participants, stages_tournaments, self.name_line.text(),
+            stages_advance_lists=stages_advance_lists, draw_lots=self.draw_lots_check.checkState() == Qt.Checked
         )
 
         if self.new_tournament.is_valid():

@@ -25,9 +25,9 @@ def get_results_matrix(results, participant_number, id_to_index):
 
 
 def get_appropriate_width_for_matrix(results_matrix):
-    return 2 * max([1.5] + [
-        entry.index('\n') if '\n' in entry else len(entry) for row in results_matrix for entry in row
-    ])
+    return 2 * max(
+        [1.5] + [entry.index('\n') if '\n' in entry else len(entry) for row in results_matrix for entry in row]
+    )
 
 
 class Widget_Tournament_Cross_Table(QWidget):

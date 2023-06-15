@@ -1,6 +1,8 @@
+from random import random
 from .class_tournament import Tournament
 from .functions_swiss_bbp import get_pairings_bbp
-from .class_tiebreak import Tiebreak, tiebreak_list
+from .class_tiebreak import Tiebreak, get_tiebreak_list
+from .functions_pairing import PAIRING_FUNCTIONS
 from .functions_tournament_util import get_score_dict_by_point_system, get_standings_with_tiebreaks
 
 
@@ -13,16 +15,20 @@ class Tournament_Swiss(Tournament):
             participants, name, shallow_particpant_count, parameters, variables, order, uuid, uuid_associate
         )
         self.mode = "Swiss"
-        self.parameters = parameters or {
+        self.parameters = {
             "rounds": 4,
+            "pairing_method_first_round": ["Slide", "Fold", "Adjacent", "Random", "Custom"],
+            "top_seed_color_first_round": ["White", "Black", "Random"],
             "point_system": ["1 - ½ - 0", "2 - 1 - 0", "3 - 1 - 0"],
-            "tiebreak_1": Tiebreak(args={"functions": sorted(tiebreak_list, key=lambda x: x != "Buchholz")}),
-            "tiebreak_2": Tiebreak(args={"functions": sorted(tiebreak_list, key=lambda x: x != "Buchholz Sum")}),
-            "tiebreak_3": Tiebreak(args={"functions": sorted(tiebreak_list, key=lambda x: x != "None")}),
-            "tiebreak_4": Tiebreak(args={"functions": sorted(tiebreak_list, key=lambda x: x != "None")})
-        }
+            "tiebreak_1": Tiebreak(args={"functions": get_tiebreak_list("Buchholz")}),
+            "tiebreak_2": Tiebreak(args={"functions": get_tiebreak_list("Buchholz Sum")}),
+            "tiebreak_3": Tiebreak(args={"functions": get_tiebreak_list("None")}),
+            "tiebreak_4": Tiebreak(args={"functions": get_tiebreak_list("None")})
+        } | self.parameters
         self.parameter_display = {
             "rounds": "Rounds",
+            "pairing_method_first_round": "Pairings (First Round)",
+            "top_seed_color_first_round": "Top Seed (First Round)",
             "point_system": "Point System",
             "tiebreak_1": ("Tiebreak", " (1)"),
             "tiebreak_2": ("Tiebreak", " (2)"),
@@ -45,6 +51,10 @@ class Tournament_Swiss(Tournament):
     def is_valid_parameters(self):
         return self.get_parameter("rounds") > 0
 
+    def is_valid_pairings(self, results):
+        uuids = [uuid_1 for (uuid_1, _), (_, _) in results] + [uuid_2 for (_, _), (uuid_2, _) in results]
+        return len(uuids) == len(set(uuids))
+
     def is_done(self):
         return self.get_round() > self.get_parameter("rounds")
 
@@ -57,10 +67,30 @@ class Tournament_Swiss(Tournament):
     def load_pairings(self):
         if self.get_pairings() is not None or self.is_done():
             return
-        try:
+
+        uuids = self.get_participant_uuids()
+        participant_number = len(uuids)
+        first_round = self.get_variable("round") == 1
+        first_round_method = self.get_parameter("pairing_method_first_round")[0]
+
+        if first_round and first_round_method == "Custom":
+            pairings = int(participant_number / 2) * [(uuids, uuids)]
+            if participant_number % 2:
+                pairings.append((uuids, None))
+        elif first_round:
+            match self.get_parameter("top_seed_color_first_round"):
+                case "White":
+                    first_seed_white = True
+                case "Black":
+                    first_seed_white = False
+                case _:
+                    first_seed_white = random() > .5
+            if participant_number % 2:
+                uuids.append(None)
+            pairing_indices = PAIRING_FUNCTIONS[first_round_method](participant_number, first_seed_white)
+            pairings = [(uuids[i_1], uuids[i_2]) for i_1, i_2 in pairing_indices]
+        else:
             pairings = get_pairings_bbp(
                 self.get_participants(), self.get_results(), self.get_parameter("rounds"), self.get_score_dict()
             )
-        except:
-            return
         self.set_pairings(pairings)

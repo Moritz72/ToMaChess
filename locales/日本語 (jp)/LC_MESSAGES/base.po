@@ -6,7 +6,7 @@ msgid "Tournaments"
 msgstr "トーナメント"
 
 msgid "Players"
-msgstr "プレーヤー"
+msgstr "プレイヤー"
 
 msgid "Teams"
 msgstr "チーム"
@@ -36,7 +36,7 @@ msgid "Save"
 msgstr "保存"
 
 msgid "Add\nPlayer"
-msgstr "プレーヤー\n追加"
+msgstr "プレイヤー\n追加"
 
 msgid "Edit"
 msgstr "編集"
@@ -333,7 +333,7 @@ msgid "New Multi-Stage Tournament"
 msgstr "多段階トーナメント作成"
 
 msgid "Add Players"
-msgstr "プレーヤー追加"
+msgstr "プレイヤー追加"
 
 msgid "Add Teams"
 msgstr "チーム追加"
@@ -343,3 +343,33 @@ msgstr "参加者追加"
 
 msgid "Add Categories"
 msgstr "カテゴリー追加"
+
+msgid "Slide"
+msgstr "スライド"
+
+msgid "Fold"
+msgstr "折り畳み"
+
+msgid "Adjacent"
+msgstr "隣接"
+
+msgid "Pairings (First Round)"
+msgstr "組み合わせ（第一ラウンド）"
+
+msgid "White"
+msgstr "白番"
+
+msgid "Black"
+msgstr "黒番"
+
+msgid "Top Seed (First Round)"
+msgstr "一位（第一ラウンド）"
+
+msgid "Pairing Method"
+msgstr "組み合わせ方"
+
+msgid "Cycle"
+msgstr "Rutsch"
+
+msgid "Berger"
+msgstr "Berger"
