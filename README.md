@@ -63,4 +63,4 @@ If the option *Draw Lots in Case of Tie* is disabled, it is also possible to cre
 - *PDF Output Path*  
   
 ## License  
-This project is licensed under the [Apache License 2.0](https://github.com/apache/.github/blob/main/LICENSE).  
+This project is licensed under the LGPL-3.0 license.  
