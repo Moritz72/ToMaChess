@@ -19,7 +19,7 @@ Parameters *Games per Match*, *Games per Tiebreak*, *Pairing Method* and *Armage
 *Custom* does not pair by itself at all, instead the user can manually pair all games of all rounds.  
 Parameters: *Games per Round*, *Rounds*, *Point System* and *Tiebreak (1) - (4)*.  
   
-![Icon](./demo/demo_tournament.png)  
+![demo_tournament](./demo/demo_tournament.PNG)  
   
 ### Tiebreak Criteria  
 The available tiebreak criteria are  
@@ -39,30 +39,30 @@ For the *Armageddon* parameter the user can specify additional parameters *With 
 ## Players  
 Players can be manually added. Additionally, one can use the FIDE Standard rating list as well as the German national rating list after creating them by clicking the corresponding buttons in the settings.  
   
-![Icon](./demo/demo_player.png)  
+![demo_player](./demo/demo_player.PNG)  
   
 ## Teams  
 Teams are ordered sets of players. One can add players to a team, remove players from a team an change the lineup.  
   
-![Icon](./demo/demo_team.png)  
+![demo_team](./demo/demo_team.PNG)  
   
 ### Team Tournaments  
 Team tournaments work like regular tournaments, except for some restrictions and changes e.g. for tiebreaks or Armageddon.  
   
 There is an additional parameter *Boards* which specifies on how many boards the matches are played and there are two tiebreak criteria exclusive to team tournaments: *Board Points* and *Berliner Wertung*.  
   
-![Icon](./demo/demo_team_tournament.png)  
+![demo_team_tournament](./demo/demo_team_tournament.PNG)  
   
 ## Multi-Stage Tournaments  
 It is also possible to combine multiple tournaments to a multi-stage tournament.  
   
 A multi-stage tournament consists of a first stage with a number of tournaments where the participants are predetermined. On top of that, it has an arbitrary number of further stages where the participants of the stage tournaments are the participants that got a certain placement in  a certain tournament of the previous stage.  
   
-![Icon](./demo/demo_ms_tournament.png)  
+![demo_ms_tournament](./demo/demo_ms_tournament.PNG)  
   
 For example one could have *Round Robin* tournaments *Group A* up to *Group H* with four players each in the first stage and then in the second stage a *Knockout* tournament *Finals* with all participants who placed first or second in their respective group.  
   
-![Icon](./demo/ms_tournament_2.png)  
+![demo_ms_tournament_2](./demo/ms_tournament_2.PNG)  
   
 If the option *Draw Lots in Case of Tie* is disabled, it is also possible to create a regular tournament with play-offs in case of a tie for first place. This can be achieved by creating a multi-stage tournament with only the desired regular tournament as the first stage and a *Knockout* tournament with only the first place as a participant as a second stage.  
   
