@@ -1,16 +1,17 @@
-from PyQt5.QtWidgets import QMainWindow, QHBoxLayout, QApplication, QWidget, QVBoxLayout
-from PyQt5.QtCore import Qt, pyqtSignal
+from PySide6.QtWidgets import QMainWindow, QHBoxLayout, QApplication, QWidget, QVBoxLayout
+from PySide6.QtCore import Qt, Signal, QSize
 from .class_ms_tournament import MS_Tournament
 from .widget_ms_tournament_stage_new import Widget_MS_Tournament_Stage_New
 from .functions_gui import get_button, get_scroll_area_widgets_and_layouts, add_widgets_in_layout, get_lineedit,\
-    get_label, get_check_box, add_widgets_to_layout, set_window_title
+    get_label, get_check_box, add_widgets_to_layout, set_window_title, set_window_size
 
 
 class Window_MS_Tournament_New(QMainWindow):
-    added_tournament = pyqtSignal()
+    added_tournament = Signal()
 
-    def __init__(self, participant_type="player"):
-        super().__init__()
+    def __init__(self, participant_type="player", parent=None):
+        super().__init__(parent=parent)
+        self.setAttribute(Qt.WA_DeleteOnClose)
         set_window_title(self, "New Multi-Stage Tournament")
 
         self.participant_type = participant_type
@@ -19,8 +20,7 @@ class Window_MS_Tournament_New(QMainWindow):
         self.new_tournament = None
 
         self.widget = QWidget()
-        self.layout = QVBoxLayout()
-        self.widget.setLayout(self.layout)
+        self.layout = QVBoxLayout(self.widget)
         self.setCentralWidget(self.widget)
 
         self.add_top_line()
@@ -29,8 +29,10 @@ class Window_MS_Tournament_New(QMainWindow):
         self.add_stage()
         self.add_stage()
 
-        self.setFixedWidth(int(QApplication.primaryScreen().size().height()*.8))
-        self.setFixedHeight(int(QApplication.primaryScreen().size().height()*.8))
+        set_window_size(self, QSize(
+            int(QApplication.primaryScreen().size().height() * .8),
+            int(QApplication.primaryScreen().size().height() * .8)
+        ))
 
     def add_top_line(self):
         name_label = get_label("Name", "large", translate=True)
@@ -55,7 +57,7 @@ class Window_MS_Tournament_New(QMainWindow):
 
     def add_stage(self):
         stage = self.layout_inner.count()
-        widget = Widget_MS_Tournament_Stage_New(stage, self, participant_type=self.participant_type)
+        widget = Widget_MS_Tournament_Stage_New(stage, participant_type=self.participant_type)
         self.layout_inner.addWidget(widget)
         widget.update_necessary.connect(self.validate_advance_lists_signal)
 
@@ -63,27 +65,24 @@ class Window_MS_Tournament_New(QMainWindow):
         if self.layout_inner.count() != 0:
             self.layout_inner.takeAt(self.layout_inner.count() - 1).widget().setParent(None)
 
+    def get_stage_tournaments(self, i):
+        return self.layout_inner.itemAt(i).widget().tournaments
+
+    def get_stage_advance_lists(self, i):
+        return self.layout_inner.itemAt(i).widget().advance_lists
+
     def create_tournament(self):
-        participants, stages_tournaments, stages_advance_lists = [], [], []
-
-        for i in range(self.layout_inner.count()):
-            stage_tournaments = self.layout_inner.itemAt(i).widget().tournaments
-            participants.extend(
-                [participant for tournament in stage_tournaments for participant in tournament.get_participants()]
-            )
-            stages_tournaments.append(stage_tournaments)
-            if i == 0:
-                continue
-
-            stage_advance_lists = [
+        stages_tournaments = [self.get_stage_tournaments(i) for i in range(self.layout_inner.count())]
+        stages_advance_lists = [
+            [
                 [(stages_tournaments[-2].index(tournament), placement) for tournament, placement in advance_list]
-                for advance_list in self.layout_inner.itemAt(i).widget().advance_lists
+                for advance_list in self.get_stage_advance_lists(i)
             ]
-            stages_advance_lists.append(stage_advance_lists)
+            for i in range(1, self.layout_inner.count())
+        ]
 
-        participants = list({participant.get_uuid(): participant for participant in participants}.values())
         self.new_tournament = MS_Tournament(
-            participants, stages_tournaments, self.name_line.text(),
+            stages_tournaments, self.name_line.text(),
             stages_advance_lists=stages_advance_lists, draw_lots=self.draw_lots_check.checkState() == Qt.Checked
         )
 

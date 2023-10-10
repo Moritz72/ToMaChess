@@ -27,6 +27,9 @@ class Team:
     def get_uuid_associate(self):
         return self.uuid_associate
 
+    def get_uuid_tuple(self):
+        return self.uuid, self.uuid_associate
+
     def set_uuid_associate(self, uuid_associate):
         self.uuid_associate = uuid_associate
 
@@ -45,8 +48,8 @@ class Team:
     def add_members(self, members):
         self.members.extend(members)
 
-    def remove_member(self, member):
-        self.members.remove(member)
+    def remove_members_by_uuid(self, uuids):
+        self.members = [member for member in self.get_members() if member.get_uuid() not in uuids]
 
     def get_shallow_member_count(self):
         return self.shallow_member_count

@@ -34,6 +34,9 @@ class Player:
     def get_uuid_associate(self):
         return self.uuid_associate
 
+    def get_uuid_tuple(self):
+        return self.uuid, self.uuid_associate
+
     def set_uuid_associate(self, uuid_associate):
         self.uuid_associate = uuid_associate
 

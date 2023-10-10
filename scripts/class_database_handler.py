@@ -100,7 +100,6 @@ class Database_Handler:
         ]
         query = f"DELETE FROM {table} WHERE {' AND '.join(query_parts)}"
         self.cursor.execute(query, tuple(element for column_list in search_column_lists for element in column_list))
-        return self.cursor.fetchall()
 
     def get_entries(self, table, search_column_names, search_column_values):
         query = (

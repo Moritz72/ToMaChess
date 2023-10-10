@@ -4,18 +4,25 @@ from .class_settings_handler import SETTINGS_HANDLER
 from .functions_util import read_file, write_file
 
 
-def get_data_from_player_results(players, results):
+def get_data_from_player_results(players, results, drop_outs):
     uuid_to_index_dict = {None: -1} | {player.get_uuid(): i for i, player in enumerate(players)}
     player_ratings = [player.get_rating() for player in players]
     player_results = [[] for player in players]
 
     for roun in results:
+        uuids = {player.get_uuid() for player in players}
         for (uuid_1, score_1), (uuid_2, score_2) in roun:
             ind_1, ind_2 = uuid_to_index_dict[uuid_1], uuid_to_index_dict[uuid_2]
             if uuid_1 is not None:
                 player_results[ind_1].append((ind_2, True, score_1))
+                uuids.discard(uuid_1)
             if uuid_2 is not None:
                 player_results[ind_2].append((ind_1, False, score_2))
+                uuids.discard(uuid_2)
+        for uuid in uuids:
+            player_results[uuid_to_index_dict[uuid]].append((None, None, None))
+    for uuid in drop_outs:
+        player_results[uuid_to_index_dict[uuid]].append((None, None, None))
     return player_ratings, player_results
 
 
@@ -27,12 +34,17 @@ def convert_points(points):
     return '=' if points == '½' else points
 
 
+def convert_result(result):
+    if result[0] is None:
+        return "  0000 - Z"
+    return f"{result[0]+1} {convert_side(result[1])} {convert_points(result[2])}".rjust(10)
+
+
 def write_input_file(player_ratings, player_results, rounds, score_dict, bbp_directory):
-    player_points = [sum([score_dict[points] for _, _, points in result]) for result in player_results]
-    player_results = [
-        [f"{opponent+1} {convert_side(side)} {convert_points(points)}".rjust(10) for opponent, side, points in results]
-        for results in player_results
+    player_points = [
+        sum([score_dict[points] for _, _, points in result if points is not None]) for result in player_results
     ]
+    player_results = [[convert_result(result) for result in results] for results in player_results]
     player_ranks = sorted(((i + 1, points) for i, points in enumerate(player_points)), key=lambda x: x[1], reverse=True)
     player_ranks = [rank for rank, _ in player_ranks]
 
@@ -61,9 +73,9 @@ def process_pairings(pairings_raw, players):
     ]
 
 
-def get_pairings_bbp(players, results, rounds, score_dict):
+def get_pairings_bbp(players, results, rounds, score_dict, drop_outs):
     bbp_directory = SETTINGS_HANDLER.settings["bbp_path"]
-    player_ratings, player_results = get_data_from_player_results(players, results)
+    player_ratings, player_results = get_data_from_player_results(players, results, drop_outs)
     write_input_file(player_ratings, player_results, rounds, score_dict, bbp_directory)
     path_bbp = os.path.join(bbp_directory, "bbpPairings.exe")
     path_input = os.path.join(bbp_directory, "input.txt")

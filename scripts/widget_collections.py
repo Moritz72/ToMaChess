@@ -1,10 +1,11 @@
-from PyQt5.QtWidgets import QHeaderView
-from PyQt5.QtCore import Qt
+from PySide6.QtWidgets import QHeaderView
+from PySide6.QtCore import Qt
 from .class_collection import Collection
 from .table_widget_search import Table_Widget_Search
 from .widget_default_generic import Widget_Default_Generic
-from .functions_collection import load_collections_like, update_collections, remove_collections, add_collections
-from .functions_gui import add_content_to_table, add_button_to_table, get_button, add_combobox_to_table
+from .functions_collection import load_collections_like, update_collections, remove_collections, add_collections, \
+    COLLECTION_ATTRIBUTE_LIST
+from .functions_gui import add_button_to_table, get_button, add_combobox_to_table, add_collection_to_table
 
 
 class Widget_Collections(Widget_Default_Generic):
@@ -14,7 +15,7 @@ class Widget_Collections(Widget_Default_Generic):
 
     @staticmethod
     def get_table():
-        table = Table_Widget_Search(3, 3.5, 55, [None, None, 3.5], ["Name", "Type", ""], translate=True)
+        table = Table_Widget_Search(3, 3.5, 55, [None, None, 3.5], COLLECTION_ATTRIBUTE_LIST + [""], translate=True)
 
         header_horizontal, header_vertical = table.horizontalHeader(), table.verticalHeader()
         header_horizontal.setSectionResizeMode(0, QHeaderView.Stretch)
@@ -40,18 +41,10 @@ class Widget_Collections(Widget_Default_Generic):
         obj.set_name(values[0])
 
     def fill_in_row(self, row, obj=None):
+        add_collection_to_table(self.table, row, obj, edit=True)
         if obj is None:
-            name = ""
-            object_type = ""
-        else:
-            name = obj.get_name()
-            object_type = obj.get_object_type()
-        add_content_to_table(self.table, name, row, 0, bold=True)
-        if name == "":
             add_combobox_to_table(
                 self.table, ["Players", "Tournaments", "Teams", "Multi-Stage Tournaments"], row, 1, "medium", None,
                 translate=True
             )
-        else:
-            add_content_to_table(self.table, object_type, row, 1, edit=False, translate=True)
         add_button_to_table(self.table, row, 2, "medium", None, '-', connect_function=self.table.delete_current_row)

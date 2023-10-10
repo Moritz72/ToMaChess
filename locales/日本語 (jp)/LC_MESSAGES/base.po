@@ -224,11 +224,14 @@ msgstr "結果を確認する"
 msgid "None"
 msgstr "無し"
 
+msgid "Buchholz"
+msgstr "ブッフホルツ"
+
 msgid "Buchholz Sum"
-msgstr "Buchholz （総計）"
+msgstr "ブッフホルツ（総計）"
 
 msgid "Sonneborn-Berger"
-msgstr "Sonneborn-Berger"
+msgstr "ゾンネボーン＝バーガー"
 
 msgid "Games as Black"
 msgstr "黒番の試合数"
@@ -243,7 +246,7 @@ msgid "Average Rating"
 msgstr "平均レーティング"
 
 msgid "Cumulative Score"
-msgstr "Cumulative Score"
+msgstr "累積得点"
 
 msgid "Direct Encounter"
 msgstr "直接対決"
@@ -252,16 +255,16 @@ msgid "Board Points"
 msgstr "ボードポイント"
 
 msgid "Berliner Wertung"
-msgstr "Berliner Wertung"
+msgstr "ベルリン格付け"
 
 msgid "Criterion"
 msgstr "基準"
 
 msgid "Cut (bottom)"
-msgstr "Cut （下）"
+msgstr "切り（下）"
 
 msgid "Cut (top)"
-msgstr "Cut （上）"
+msgstr "切り（上）"
 
 msgid "Virtual Opponents"
 msgstr "バーチャル対戦相手"
@@ -369,7 +372,22 @@ msgid "Pairing Method"
 msgstr "組み合わせ方"
 
 msgid "Cycle"
-msgstr "Rutsch"
+msgstr "サークル"
 
 msgid "Berger"
-msgstr "Berger"
+msgstr "ベルガー"
+
+msgid "Actions"
+msgstr "アクション"
+
+msgid "Reload Pairings"
+msgstr "組み合わせを再ロードする"
+
+msgid "Edit Parameters"
+msgstr "パラメータを編集する"
+
+msgid "Drop Out Participants"
+msgstr "参加者を除く"
+
+msgid "Drop In Participants"
+msgstr "参加者を追加する"

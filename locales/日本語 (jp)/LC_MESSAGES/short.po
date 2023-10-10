@@ -48,22 +48,22 @@ msgid "Placement"
 msgstr "位"
 
 msgid "Points"
-msgstr "P"
+msgstr "点"
 
 msgid "Matches"
-msgstr "M"
+msgstr "試合"
 
 msgid "Match Points"
-msgstr "MP"
+msgstr "現点"
 
 msgid "Buchholz"
-msgstr "BuHo"
+msgstr "ブホ"
 
 msgid "Buchholz Sum"
-msgstr "Bu総"
+msgstr "ブ総"
 
 msgid "Sonneborn-Berger"
-msgstr "SoBe"
+msgstr "ゾバ"
 
 msgid "Games as Black"
 msgstr "黒番"
@@ -78,7 +78,7 @@ msgid "Average Rating"
 msgstr "平均"
 
 msgid "Cumulative Score"
-msgstr "Cumu"
+msgstr "累積"
 
 msgid "Direct Encounter"
 msgstr "直対"
@@ -87,4 +87,4 @@ msgid "Board Points"
 msgstr "ボポ"
 
 msgid "Berliner Wertung"
-msgstr "BeWe"
+msgstr "ベ格"

@@ -6,7 +6,6 @@ from .functions_tournament import *
 
 TYPE_TO_MODES = {"player": MODES, "team": MODES_TEAM}
 TYPE_TO_MODE_DEFAULT = {"player": MODE_DEFAULT, "team": MODE_DEFAULT_TEAM}
-TYPE_TO_ADD_PARTICIPANT_WINDOW_ARGS = {"player": ("Add Players", "Players"), "team": ("Add Teams", "Teams")}
 
 
 def get_function(object_type, action, multiple=False, shallow=False, specification=None):

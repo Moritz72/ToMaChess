@@ -1,4 +1,5 @@
 from inspect import getfullargspec
+from .class_custom_parameter import Custom_Parameter
 from .functions_tiebreak import get_buchholz, get_buchholz_sum, get_sonneborn_berger, get_blacks,\
     get_number_of_wins, get_opponent_average_rating, get_cumulative_score, get_number_of_black_wins,\
     get_direct_encounter, get_board_points, get_berliner_wertung
@@ -62,19 +63,13 @@ def get_tiebreak_list(default, team=False):
     return sorted(TIEBREAK_LIST, key=lambda x: x != default)
 
 
-class Tiebreak:
-    def __init__(self, **args):
-        self.args = dict()
+class Tiebreak(Custom_Parameter):
+    def initialize_args_and_args_display(self, args):
         if "args" in args:
             self.args = args["args"]
         if "functions" not in self.args:
             self.args["functions"] = get_tiebreak_list("None")
         self.args_display = {"functions": "Criterion"}
-        self.fill_in_default()
-        self.window_update_necessary = False
-
-    def get_dict(self):
-        return {"args": self.args}
 
     def fill_in_default(self):
         for key, value in FUNC_ARGS[self.args["functions"][0]].items():
@@ -94,11 +89,7 @@ class Tiebreak:
             self.args = args
             self.window_update_necessary = False
 
-    def get_args_and_args_display(self):
-        return self.args, self.args_display
-
-    @staticmethod
-    def is_valid():
+    def is_valid(self):
         return True
 
     def evaluate(self, args):

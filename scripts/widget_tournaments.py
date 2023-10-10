@@ -1,27 +1,26 @@
-from PyQt5.QtWidgets import QHeaderView
-from PyQt5.QtCore import Qt, pyqtSignal
+from PySide6.QtWidgets import QHeaderView
+from PySide6.QtCore import Qt, Signal
 from .table_widget_search import Table_Widget_Search
 from .widget_default_generic import Widget_Default_Generic
 from .functions_tournament import load_tournaments_shallow_like, update_tournaments_shallow, remove_tournaments,\
-    add_tournament, load_tournament
-from .functions_gui import add_content_to_table, add_button_to_table, get_button
+    add_tournament, load_tournament, TOURNAMENT_ATTRIBUTE_LIST
+from .functions_gui import add_button_to_table, get_button, add_tournament_to_table, close_window
 from .window_tournament_new import Window_Tournament_New
 
 
 class Widget_Tournaments(Widget_Default_Generic):
-    selected_tournament = pyqtSignal()
+    selected_tournament = Signal()
 
     def __init__(self):
         super().__init__(
-            "Tournaments",
-            load_tournaments_shallow_like, update_tournaments_shallow, remove_tournaments, None
+            "Tournaments", load_tournaments_shallow_like, update_tournaments_shallow, remove_tournaments, None
         )
         self.new_tournament_window = None
 
     @staticmethod
     def get_table():
         table = Table_Widget_Search(
-            5, 3.5, 55, [None, None, 5, 7, 3.5], ["Name", "Mode", "Participants", "", ""], translate=True
+            5, 3.5, 55, [None, None, 5, 7, 3.5], TOURNAMENT_ATTRIBUTE_LIST + ["", ""], translate=True
         )
 
         header_horizontal, header_vertical = table.horizontalHeader(), table.verticalHeader()
@@ -32,12 +31,10 @@ class Widget_Tournaments(Widget_Default_Generic):
 
     def get_buttons(self):
         add_button = get_button(
-            "large", (14, 5), "Add\nTournament",
-            connect_function=lambda: self.open_new_tournament_window({}), translate=True
+            "large", (14, 5), "Add\nTournament", connect_function=self.open_new_tournament, translate=True
         )
         add_button_team = get_button(
-            "large", (14, 5), "Add Team\nTournament",
-            connect_function=lambda: self.open_new_tournament_window({"participant_type": "team"}), translate=True
+            "large", (14, 5), "Add Team\nTournament", connect_function=self.open_new_tournament_team, translate=True
         )
         save_button = get_button("large", (14, 5), "Save", connect_function=self.update_database, translate=True)
         return add_button, add_button_team, save_button
@@ -50,9 +47,7 @@ class Widget_Tournaments(Widget_Default_Generic):
         obj.set_uuid_associate(self.collection_current.get_uuid())
 
     def fill_in_row(self, row, obj=None):
-        add_content_to_table(self.table, obj.get_name(), row, 0, bold=True)
-        add_content_to_table(self.table, obj.get_mode(), row, 1, edit=False, translate=True)
-        add_content_to_table(self.table, obj.get_participant_count(), row, 2, edit=False, align=Qt.AlignCenter)
+        add_tournament_to_table(self.table, row, obj, edit=True)
         add_button_to_table(
             self.table, row, 3, "medium", None, "Open", connect_function=self.open_tournament, bold=True, translate=True
         )
@@ -61,10 +56,15 @@ class Widget_Tournaments(Widget_Default_Generic):
     def open_tournament(self):
         self.selected_tournament.emit()
 
+    def open_new_tournament(self):
+        self.open_new_tournament_window({"participant_type": "player"})
+
+    def open_new_tournament_team(self):
+        self.open_new_tournament_window({"participant_type": "team"})
+
     def open_new_tournament_window(self, args):
-        if self.new_tournament_window is not None:
-            self.new_tournament_window.close()
-        self.new_tournament_window = Window_Tournament_New(**args)
+        close_window(self.new_tournament_window)
+        self.new_tournament_window = Window_Tournament_New(**args, parent=self)
         self.new_tournament_window.added_tournament.connect(self.add_tournament)
         self.new_tournament_window.show()
 

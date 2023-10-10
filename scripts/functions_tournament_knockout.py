@@ -99,8 +99,7 @@ def get_uuids_in_current_level(participant_standings):
         (uuid, standing) for uuid, standing in participant_standings.items()
         if standing["beaten_by_seat"] is None and standing["level"] == current_level
     ]
-
-    if current_level == 0:
-        through = 2 * (1 << (len(participant_standings).bit_length() - 1)) - len(participant_standings)
-        return [uuid for uuid, standing in uuids_and_standings if standing["seating"] > through]
-    return [uuid for uuid, standing in uuids_and_standings if standing["level"] >= current_level]
+    return sorted(
+        [uuid for uuid, standing in uuids_and_standings if standing["level"] >= current_level],
+        key=lambda x: participant_standings[x]["seating"]
+    )

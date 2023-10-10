@@ -1,5 +1,5 @@
-from PyQt5.QtWidgets import QMainWindow
-from PyQt5.QtCore import Qt
+from PySide6.QtWidgets import QMainWindow, QApplication
+from PySide6.QtCore import Qt
 from .class_size_handler import SIZE_HANDLER
 from .class_settings_handler import SETTINGS_HANDLER
 from .class_translation_handler import TRANSLATION_HANDLER
@@ -27,6 +27,7 @@ class Window_Main(QMainWindow):
         set_window_title(self, "ToMaChess")
 
     def set_stacked_widget(self, string, args=None, index=None):
+        self.close_windows()
         args = args or dict()
         if self.side_menu is not None:
             self.removeDockWidget(self.side_menu)
@@ -44,3 +45,12 @@ class Window_Main(QMainWindow):
         set_stylesheet(f"{SETTINGS_HANDLER.settings['style'][0]}.qss")
         index = 0 if self.stacked_widget is None else self.stacked_widget.currentIndex()
         self.set_stacked_widget("Default", index=index)
+
+    def close_windows(self):
+        for window in QApplication.topLevelWidgets():
+            if window is not self:
+                window.close()
+
+    def closeEvent(self, event):
+        self.close_windows()
+        super().closeEvent(event)

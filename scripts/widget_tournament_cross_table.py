@@ -1,17 +1,14 @@
-from math import ceil
-from PyQt5.QtWidgets import QWidget, QVBoxLayout, QTableWidget
-from PyQt5.QtCore import Qt
+from math import ceil, sqrt
+from PySide6.QtWidgets import QWidget, QVBoxLayout, QTableWidget
+from PySide6.QtCore import Qt
 from .functions_gui import add_content_to_table, set_up_table, size_table, clear_table, add_blank_to_table
 
 
 def get_line_breaked_entry(entry):
     if len(entry) == 0:
         return ""
-    interval = ceil(len(entry)**.5)
-    entry_new = ""
-    for i in range(0, len(entry), interval):
-        entry_new += entry[i:i+interval]+'\n'
-    return entry_new[:-1]
+    interval = ceil(sqrt(len(entry)))
+    return '\n'.join([entry[i:i + interval] for i in range(0, len(entry), interval)])
 
 
 def get_results_matrix(results, participant_number, id_to_index):
@@ -25,9 +22,8 @@ def get_results_matrix(results, participant_number, id_to_index):
 
 
 def get_appropriate_width_for_matrix(results_matrix):
-    return 2 * max(
-        [1.5] + [entry.index('\n') if '\n' in entry else len(entry) for row in results_matrix for entry in row]
-    )
+    entry_widths = [entry.index('\n') if '\n' in entry else len(entry) for row in results_matrix for entry in row]
+    return 2 * max([1.5] + entry_widths)
 
 
 class Widget_Tournament_Cross_Table(QWidget):
@@ -35,13 +31,12 @@ class Widget_Tournament_Cross_Table(QWidget):
         super().__init__()
         self.tournament = tournament
 
-        self.layout = QVBoxLayout()
+        self.layout = QVBoxLayout(self)
         self.layout.setAlignment(Qt.AlignCenter | Qt.AlignTop)
-        self.setLayout(self.layout)
 
         self.table = QTableWidget()
         self.fill_in_table()
-        self.layout.addWidget(self.table, Qt.AlignCenter)
+        self.layout.addWidget(self.table)
 
     def fill_in_table(self):
         participants = [entry[0] for entry in self.tournament.get_standings()[2]]

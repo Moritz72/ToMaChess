@@ -43,3 +43,11 @@ def recursive_buckets(lis, functions, reverse=True):
 
 def shorten_float(value):
     return int(value) if float(value).is_integer() else float(str(value).rstrip('0').rstrip('.'))
+
+
+def remove_duplicates(list_of_hashables):
+    return list({hashable: None for hashable in list_of_hashables}.keys())
+
+
+def remove_uuid_duplicates(object_list):
+    return list({obj.get_uuid(): obj for obj in object_list}.values())

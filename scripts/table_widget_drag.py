@@ -1,6 +1,5 @@
-from PyQt5.QtWidgets import QTableWidget, QAbstractItemView, QTableWidgetItem
-from PyQt5.QtCore import Qt
-from PyQt5.QtGui import QDropEvent
+from PySide6.QtWidgets import QTableWidget, QAbstractItemView, QTableWidgetItem
+from PySide6.QtGui import QDropEvent
 
 
 class Table_Widget_Drag(QTableWidget):
@@ -63,8 +62,7 @@ class Table_Widget_Drag(QTableWidget):
             return False
         elif rect.bottom() - pos.y() < margin:
             return True
-        return rect.contains(pos, True) and not (int(self.model().flags(index)) & Qt.ItemIsDropEnabled) \
-            and pos.y() >= rect.center().y()
+        return rect.contains(pos, True) and pos.y() >= rect.center().y()
 
 
 class Table_Widget_Drag_Light(Table_Widget_Drag):

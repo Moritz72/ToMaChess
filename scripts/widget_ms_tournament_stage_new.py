@@ -1,21 +1,21 @@
-from PyQt5.QtWidgets import QWidget, QHBoxLayout, QHeaderView, QVBoxLayout
-from PyQt5.QtCore import Qt, pyqtSignal
+from PySide6.QtWidgets import QWidget, QHBoxLayout, QHeaderView, QVBoxLayout
+from PySide6.QtCore import Qt, Signal
 from .table_widget_drag import Table_Widget_Drag_Light
 from .window_tournament_new import Window_Tournament_New
 from .window_choice_table import Window_Choice_Table
 from .window_advance_participants import Window_Advance_Participants
-from .functions_type import TYPE_TO_ADD_PARTICIPANT_WINDOW_ARGS, get_function
+from .functions_type import get_function
+from .functions_util import remove_duplicates
 from .functions_gui import add_content_to_table, add_button_to_table, set_up_table, size_table, get_button,\
-    add_widgets_in_layout
+    add_widgets_in_layout, close_window
 
 
 class Widget_MS_Tournament_Stage_New(QWidget):
-    update_necessary = pyqtSignal()
+    update_necessary = Signal()
 
-    def __init__(self, stage, parent_window, participant_type="player"):
+    def __init__(self, stage, participant_type="player"):
         super().__init__()
         self.stage = stage
-        self.parent_window = parent_window
         self.participant_type = participant_type
 
         self.load_function = get_function(participant_type, "load", multiple=True, specification="list")
@@ -25,8 +25,7 @@ class Widget_MS_Tournament_Stage_New(QWidget):
         self.add_participants_window, self.add_particiapants_tournament = None, None
         self.advance_participants_window, self.advance_participants_tournament = None, None
 
-        self.layout = QHBoxLayout()
-        self.setLayout(self.layout)
+        self.layout = QHBoxLayout(self)
 
         self.layout.addWidget(QWidget())
         self.table = Table_Widget_Drag_Light(self.swap_table)
@@ -78,11 +77,14 @@ class Widget_MS_Tournament_Stage_New(QWidget):
         layout_buttons.setAlignment(Qt.AlignTop | Qt.AlignLeft)
         add_widgets_in_layout(self.layout, layout_buttons, (add_button,))
 
+    def get_parent(self):
+        return self.parent().parent().parent().parent().parent()
+
     def get_lower_tournaments(self):
-        return self.parent_window.get_stage_widget(self.stage - 1).tournaments
+        return self.get_parent().get_stage_widget(self.stage - 1).tournaments
 
     def get_lower_participant_counts(self):
-        return [len(advance_list) for advance_list in self.parent_window.get_stage_widget(self.stage - 1).advance_lists]
+        return [len(advance_list) for advance_list in self.get_parent().get_stage_widget(self.stage - 1).advance_lists]
 
     def update_tournament_order(self):
         self.tournaments = [self.tournaments[i] for i in self.table.permutation]
@@ -105,8 +107,9 @@ class Widget_MS_Tournament_Stage_New(QWidget):
         self.fill_in_table()
 
     def open_new_tournament_window(self):
+        close_window(self.new_tournament_window)
         self.new_tournament_window = Window_Tournament_New(
-            participant_type=self.participant_type, add_participants=False
+            participant_type=self.participant_type, add_participants=False, parent=self
         )
         self.new_tournament_window.added_tournament.connect(self.add_tournament)
         self.new_tournament_window.show()
@@ -131,18 +134,17 @@ class Widget_MS_Tournament_Stage_New(QWidget):
         lower_tournaments = self.get_lower_tournaments()
         lower_participant_counts = self.get_lower_participant_counts()
 
-        for i in range(len(self.advance_lists)):
-            self.advance_lists[i] = [
-                (tournament, placement) for tournament, placement in self.advance_lists[i]
+        for i, advance_list in enumerate(self.advance_lists):
+            self.advance_lists[i] = remove_duplicates([
+                (tournament, placement) for tournament, placement in advance_list
                 if tournament in lower_tournaments
                 and placement <= lower_participant_counts[lower_tournaments.index(tournament)]
-            ]
-            self.advance_lists[i] = list({entry: None for entry in self.advance_lists[i]}.keys())
+            ])
 
         self.fill_in_table()
 
     def update_added_participants(self):
-        participants = self.load_function("", *self.add_participants_window.get_checked_uuids())
+        participants = self.load_function("", self.add_participants_window.get_checked_uuids())
         self.add_particiapants_tournament.set_participants(participants)
         index = self.tournaments.index(self.add_particiapants_tournament)
         self.advance_lists[index] = [(None, i + 1) for i in range(len(self.tournaments[index].get_participants()))]
@@ -153,15 +155,11 @@ class Widget_MS_Tournament_Stage_New(QWidget):
 
     def open_add_participants(self):
         row = self.table.currentRow()
-        if self.add_participants_window is not None:
-            self.add_participants_window.close()
+        close_window(self.add_participants_window)
         self.add_particiapants_tournament = self.tournaments[row]
-        checked_uuids = [
-            (participant.get_uuid(), participant.get_uuid_associate())
-            for participant in self.add_particiapants_tournament.get_participants()
-        ]
+        checked_uuids = {participant.get_uuid() for participant in self.add_particiapants_tournament.get_participants()}
         self.add_participants_window = Window_Choice_Table(
-            *TYPE_TO_ADD_PARTICIPANT_WINDOW_ARGS[self.participant_type], checked_uuids=checked_uuids
+            "Add Participants", self.participant_type, checked_uuids=checked_uuids, parent=self
         )
         self.add_participants_window.window_closed.connect(self.update_added_participants)
         self.add_participants_window.show()
@@ -183,11 +181,10 @@ class Widget_MS_Tournament_Stage_New(QWidget):
 
     def open_advance_participants(self):
         row = self.table.currentRow()
-        if self.advance_participants_window is not None:
-            self.advance_participants_window.close()
+        close_window(self.advance_participants_window)
         self.advance_participants_tournament = self.tournaments[row]
         self.advance_participants_window = Window_Advance_Participants(
-            self.advance_lists[row], self.get_lower_tournaments(), self.get_lower_participant_counts()
+            self.advance_lists[row], self.get_lower_tournaments(), self.get_lower_participant_counts(), parent=self
         )
         self.advance_participants_window.window_closed.connect(self.update_advance_participants)
         self.advance_participants_window.show()

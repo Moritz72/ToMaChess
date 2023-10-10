@@ -1,11 +1,11 @@
-from PyQt5.QtWidgets import QStackedWidget
-from PyQt5.QtCore import pyqtSignal
+from PySide6.QtWidgets import QStackedWidget
+from PySide6.QtCore import Signal
 from .stacked_widget_tournament import Stacked_Widget_Tournament
 from .functions_ms_tournament import update_ms_tournament
 
 
 class Stacked_Widget_MS_Tournament(QStackedWidget):
-    make_side_menu = pyqtSignal()
+    make_side_menu = Signal()
 
     def __init__(self, window_main, ms_tournament, stage):
         super().__init__()
@@ -22,19 +22,20 @@ class Stacked_Widget_MS_Tournament(QStackedWidget):
             if not tournament.is_valid():
                 continue
             tournament_widget = Stacked_Widget_Tournament(self.window_main, tournament, self.ms_tournament.get_name())
-            tournament_widget.make_side_menu.connect(self.load_next_round)
+            tournament_widget.make_side_menu.connect(self.check_for_changes)
             self.addWidget(tournament_widget)
             self.tournament_widgets.append(tournament_widget)
 
     def get_buttons_args(self):
         buttons_args = []
-        cut = 1 + 2 * (not self.is_current)
+        cut_out = 1 + 2 * (not self.is_current)
+        cut_out_change_index = 2 * self.is_current
         tournaments_buttons_args = [
-            tournament_widget.get_buttons_args()[:-cut] for tournament_widget in self.tournament_widgets
+            tournament_widget.get_buttons_args()[:-cut_out] for tournament_widget in self.tournament_widgets
         ]
 
         for i, tournament_buttons_args in enumerate(tournaments_buttons_args):
-            for args in tournament_buttons_args[:-2]:
+            for args in tournament_buttons_args[:len(tournament_buttons_args) - cut_out_change_index]:
                 temp = args["connect_function"]
                 del args["connect_function"]
                 args["connect_function"] = lambda _, index=i, func=temp: (func(_), self.setCurrentIndex(index))
@@ -60,7 +61,7 @@ class Stacked_Widget_MS_Tournament(QStackedWidget):
     def open_default(self):
         self.window_main.set_stacked_widget("Default")
 
-    def load_next_round(self):
+    def check_for_changes(self):
         update_ms_tournament("", self.ms_tournament)
         if self.ms_tournament.current_stage_is_done() and self.stage + 1 < self.ms_tournament.get_stages():
             self.ms_tournament.advance_stage()
@@ -69,9 +70,10 @@ class Stacked_Widget_MS_Tournament(QStackedWidget):
         self.make_side_menu.emit()
 
     def move_up_stage(self):
-        self.window_main.set_stacked_widget(
-            "MS_Tournament", {"ms_tournament": self.ms_tournament, "stage": self.stage + 1}
-        )
+        if self.ms_tournament.get_stage() > self.stage:
+            self.window_main.set_stacked_widget(
+                "MS_Tournament", {"ms_tournament": self.ms_tournament, "stage": self.stage + 1}
+            )
 
     def move_down_stage(self):
         self.window_main.set_stacked_widget(

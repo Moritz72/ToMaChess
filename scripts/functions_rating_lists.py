@@ -16,8 +16,9 @@ def get_uuid_from_numbers(n, m):
 
 def renew_certificate(certificate):
     try:
-        url = f"https://raw.githubusercontent.com/Moritz72/ToMaChess/master/certificates/{certificate.split('/')[-1]}"
-        response = get(url)
+        response = get(
+            f"https://raw.githubusercontent.com/Moritz72/ToMaChess/master/certificates/{os.path.basename(certificate)}"
+        )
         response.raise_for_status()
         with open(certificate, 'wb') as file:
             file.write(response.content)

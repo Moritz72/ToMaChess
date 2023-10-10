@@ -45,20 +45,14 @@ class Tournament_Knockout_Team(Tournament_Knockout):
             "pairing_method": "Pairing Method",
             "armageddon": None
         }
-        self.variables = {"participant_standings": None, "results_individual": []} | self.variables
-
-    def set_participants(self, participants):
-        super().set_participants(participants)
-        if len(self.get_participant_uuids()) < 2 or self.get_round() > 1:
-            return
-        for dictionary in self.get_variable("participant_standings").values():
-            dictionary["score"] = [0, 0, 0]
-
-    def seat_participants(self):
-        return
+        self.variables = {"participant_standings": dict(), "results_individual": []} | self.variables
 
     def is_valid_parameters(self):
         return super().is_valid_parameters() and self.get_parameter("boards") > 0
+
+    @staticmethod
+    def get_initial_score():
+        return [0, 0, 0]
 
     def get_totals(self):
         games, games_per_tiebreak = self.get_parameter("games"), self.get_parameter("games_per_tiebreak")
@@ -83,7 +77,7 @@ class Tournament_Knockout_Team(Tournament_Knockout):
         table = sorted((
             (
                 participant,
-                participant_standings[participant.get_uuid()]["level"] - 1,
+                participant_standings[participant.get_uuid()]["level"],
                 shorten_float(participant_standings[participant.get_uuid()]["score"][0]),
                 shorten_float(participant_standings[participant.get_uuid()]["score"][1]),
                 shorten_float(participant_standings[participant.get_uuid()]["score"][2])

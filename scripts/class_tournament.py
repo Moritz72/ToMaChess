@@ -14,7 +14,8 @@ class Tournament:
         self.name = name
         self.shallow_participant_count = shallow_particpant_count
         self.parameters = parameters or dict()
-        self.variables = variables or {"round": 1, "pairings": None, "results": []}
+        self.variables = variables or dict()
+        self.variables = {"round": 1, "pairings": None, "results": [], "drop_outs": []} | self.variables
         self.order = order
         self.uuid = uuid or str(uuid4())
         self.uuid_associate = uuid_associate
@@ -65,6 +66,9 @@ class Tournament:
     def get_uuid_associate(self):
         return self.uuid_associate
 
+    def get_uuid_tuple(self):
+        return self.uuid, self.uuid_associate
+
     def set_uuid_associate(self, uuid_associate):
         self.uuid_associate = uuid_associate
 
@@ -83,22 +87,28 @@ class Tournament:
     def get_shallow_participant_count(self):
         return self.shallow_participant_count
 
-    def get_participants(self):
-        return self.participants
+    def get_participants(self, drop_outs=True):
+        if drop_outs:
+            return self.participants
+        return [
+            participant for participant in self.participants
+            if participant.get_uuid() not in self.get_variable("drop_outs")
+        ]
 
-    def get_participant_count(self):
-        return len(self.get_participants()) or self.get_shallow_participant_count() or len(self.get_participants())
+    def get_participant_count(self, drop_outs=True):
+        return len(self.get_participants(drop_outs)) or \
+               self.get_shallow_participant_count() or len(self.get_participants(drop_outs))
 
-    def get_participant_uuids(self):
-        return [participant.get_uuid() for participant in self.get_participants()]
+    def get_participant_uuids(self, drop_outs=True):
+        return [participant.get_uuid() for participant in self.get_participants(drop_outs)]
 
-    def get_uuid_to_participant_dict(self):
-        return {participant.get_uuid(): participant for participant in self.get_participants()}
+    def get_uuid_to_participant_dict(self, drop_outs=True):
+        return {participant.get_uuid(): participant for participant in self.get_participants(drop_outs)}
 
-    def get_uuid_to_individual_dict(self):
+    def get_uuid_to_individual_dict(self, drop_outs=True):
         if self.is_team_tournament():
             return {
-                uuid: individual for participant in self.get_participants()
+                uuid: individual for participant in self.get_participants(drop_outs)
                 for uuid, individual in participant.get_uuid_to_member_dict().items()
             }
 
@@ -120,6 +130,9 @@ class Tournament:
     def get_parameters(self):
         return self.parameters
 
+    def get_changeable_parameters(self, initial=False):
+        return {key: value for key, value in self.get_parameters().items() if key not in ("category_ranges",)}
+
     def get_parameter(self, key):
         return self.parameters[key]
 
@@ -135,7 +148,7 @@ class Tournament:
     def set_variable(self, key, value):
         self.variables[key] = value
 
-    def get_data(self, include_order=True):
+    def get_data(self):
         parameters = self.get_parameters().copy()
         for parameter, value in parameters.items():
             if not isinstance(value, (bool, str, int, list, tuple, dict, type(None))):
@@ -143,13 +156,9 @@ class Tournament:
                     "class": value.__class__.__name__,
                     "dict": value.get_dict(),
                 }
-        if include_order:
-            return self.get_mode(), self.get_name(), self.get_participant_count(), dumps(parameters), \
-                   dumps(self.get_variables()), \
-                   dumps([participant.get_uuid() for participant in self.get_participants()]), \
-                   self.get_uuid(), self.get_uuid_associate()
         return self.get_mode(), self.get_name(), self.get_participant_count(), dumps(parameters), \
-            dumps(self.get_variables()), self.get_uuid(), self.get_uuid_associate()
+            dumps(self.get_variables()), dumps([participant.get_uuid() for participant in self.get_participants()]), \
+            self.get_uuid(), self.get_uuid_associate()
 
     def get_round(self):
         return self.get_variable("round")
@@ -208,7 +217,7 @@ class Tournament:
         return True
 
     def is_valid(self):
-        return self.is_valid_parameters() and self.get_name() and self.get_participant_count() > 1
+        return self.is_valid_parameters() and self.get_name() and self.get_participant_count(drop_outs=False) > 1
 
     @staticmethod
     def is_valid_pairings(results):
@@ -226,9 +235,41 @@ class Tournament:
     def is_done():
         return False
 
+    def set_parameters_validate(self, keys, values):
+        temps = [self.get_parameter(key) for key in keys]
+        for key, value in zip(keys, values):
+            self.set_parameter(key, value)
+        if not self.is_valid_parameters():
+            for key, temp in zip(keys, temps):
+                self.set_parameter(key, temp)
+            return False
+        return True
+
     def get_standings(self, category_range=None):
         return get_standings_with_tiebreaks(self, dict(), category_range)
 
     def load_pairings(self):
         if self.get_pairings() is not None or self.is_done():
             return
+
+    def clear_pairings(self):
+        self.set_pairings(None)
+
+    def drop_out_participants(self, uuids=[]):
+        if self.get_participant_count(drop_outs=False) <= len(uuids) + 1:
+            return False
+        self.get_variable("drop_outs").extend(uuids)
+        return True
+
+    def drop_in_participants(self, participants=[]):
+        uuids = self.get_participant_uuids()
+        self.get_participants().extend(
+            [participant for participant in participants if participant.get_uuid() not in uuids]
+        )
+        self.possess_participants()
+        self.seat_participants()
+        drop_outs = list(
+            set(self.get_variable("drop_outs")).difference({participant.get_uuid() for participant in participants})
+        )
+        self.set_variable("drop_outs", drop_outs)
+        return True

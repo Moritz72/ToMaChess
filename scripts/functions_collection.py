@@ -1,9 +1,15 @@
 from .class_database_handler import DATABASE_HANDLER
 from .class_collection import Collection
 
+COLLECTION_ATTRIBUTE_LIST = ["Name", "Type"]
+
 
 def is_default(collection):
     return collection.get_name() == "Default"
+
+
+def sort_collections(collections):
+    return sorted(collections, key=lambda x: (not is_default(x), x.get_name()))
 
 
 def filter_default(collections):
@@ -23,19 +29,19 @@ def load_collections(table_root, object_type):
     if object_type not in ("Players", "Tournaments", "Teams", "Multi-Stage Tournaments"):
         return
     entries = DATABASE_HANDLER.get_entries(f"{table_root}collections", ("object_type",), (object_type,))
-    return sorted((Collection(*entry) for entry in entries), key=lambda x: (not is_default(x), x.get_name()))
+    return sort_collections([Collection(*entry) for entry in entries])
 
 
 def load_collections_all(table_root):
     DATABASE_HANDLER.cursor.execute(f"SELECT * FROM {table_root}collections")
-    return [Collection(*entry) for entry in DATABASE_HANDLER.cursor.fetchall()]
+    return sort_collections([Collection(*entry) for entry in DATABASE_HANDLER.cursor.fetchall()])
 
 
 def load_collections_like(table_root, name, limit):
     entries = DATABASE_HANDLER.get_entries_like(
         f"{table_root}collections", tuple(), tuple(), ("name",), (name,), ("object_type", "name"), (True, True), limit
     )
-    return [Collection(*entry) for entry in entries]
+    return sort_collections([Collection(*entry) for entry in entries])
 
 
 def add_collection(table_root, collection):

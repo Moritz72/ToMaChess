@@ -2,10 +2,11 @@ from random import shuffle
 
 
 def get_pairings_slide(n, first_seed_white=True):
-    n += n % 2
     pairings = [(i, i + int(n / 2)) for i in range(int(n / 2))]
     for i in range(first_seed_white, len(pairings), 2):
         pairings[i] = (pairings[i][1], pairings[i][0])
+    if n % 2:
+        pairings.append((n - 1, n))
     return pairings
 
 
@@ -19,10 +20,11 @@ def get_pairings_fold(n, first_seed_white=True):
 
 
 def get_pairings_adjacent(n, first_seed_white=True):
-    n += n % 2
     pairings = [(i, i + 1) for i in range(0, n, 2)]
     for i in range(first_seed_white, len(pairings), 2):
         pairings[i] = (pairings[i][1], pairings[i][0])
+    if pairings[-1][0] == n:
+        pairings[-1] = (pairings[-1][1], pairings[-1][0])
     return pairings
 
 
@@ -30,9 +32,11 @@ def get_pairings_random(n, first_seed_white=True):
     indices = [i for i in range(n)]
     shuffle(indices)
     pairings = []
-    for i in range(0, n, 2):
+    for i in range(0, n - (n % 2), 2):
         if indices[i + 1] == 0 and first_seed_white:
             pairings.append((indices[i + 1], indices[i]))
+        elif indices[i + 1] != 0 and not first_seed_white:
+            pairings.append((indices[i], indices[i + 1]))
         else:
             pairings.append((indices[i], indices[i + 1]))
     if n % 2:
@@ -52,9 +56,7 @@ def get_pairings_cycle(n, i):
     if mod % 2:
         pairings[0] = (pairings[0][1], pairings[0][0])
     if bye:
-        pairings = pairings[1:] + [pairings[0]]
-        if mod % 2 == div % 2:
-            pairings[-1] = (pairings[-1][1], pairings[-1][0])
+        pairings = pairings[1:]
     return pairings
 
 
@@ -73,9 +75,7 @@ def get_pairings_berger(n, i):
     if mod % 2 != div % 2:
         pairings = [(p_2, p_1) for p_1, p_2 in pairings]
     if bye:
-        pairings = pairings[1:] + [pairings[0]]
-        if mod % 2 != div % 2:
-            pairings[-1] = (pairings[-1][1], pairings[-1][0])
+        pairings = pairings[1:]
     return pairings
 
 

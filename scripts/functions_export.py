@@ -21,7 +21,7 @@ LINE_WIDTHS = (.5, 1.5, 2)
 
 
 def get_path(*parts):
-    return os.path.join(SETTINGS_HANDLER.settings['pdf_path'], *parts)
+    return os.path.join(SETTINGS_HANDLER.settings["pdf_path"], *parts)
 
 
 def make_new_folder(tournament, sub_folder=""):

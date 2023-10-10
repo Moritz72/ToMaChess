@@ -15,7 +15,7 @@ class Tournament_Custom(Tournament):
         self.parameters = {
             "games_per_round": 5,
             "rounds": 4,
-            "point_system": ["1 - ½ - 0", "2 - 1- 0", "3 - 1 - 0"],
+            "point_system": ["1 - ½ - 0", "2 - 1 - 0", "3 - 1 - 0"],
             "tiebreak_1": Tiebreak(args={"functions": get_tiebreak_list("Buchholz")}),
             "tiebreak_2": Tiebreak(args={"functions": get_tiebreak_list("Buchholz Sum")}),
             "tiebreak_3": Tiebreak(args={"functions": get_tiebreak_list("None")}),
@@ -39,7 +39,7 @@ class Tournament_Custom(Tournament):
         return get_score_dict_by_point_system(self.get_parameter("point_system")[0])
 
     def is_valid_parameters(self):
-        return self.get_parameter("rounds") > 0
+        return self.get_parameter("rounds") >= max(1, self.get_round() - 1)
 
     def is_done(self):
         return self.get_round() > self.get_parameter("rounds")
@@ -53,5 +53,5 @@ class Tournament_Custom(Tournament):
     def load_pairings(self):
         if self.get_pairings() is not None or self.is_done():
             return
-        participant_uuids = self.get_participant_uuids() + [None]
+        participant_uuids = self.get_participant_uuids(drop_outs=False) + [None]
         self.set_pairings(self.get_parameter("games_per_round") * [(participant_uuids, participant_uuids)])

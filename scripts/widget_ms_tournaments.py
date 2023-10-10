@@ -1,15 +1,15 @@
-from PyQt5.QtWidgets import QHeaderView
-from PyQt5.QtCore import Qt, pyqtSignal
+from PySide6.QtWidgets import QHeaderView
+from PySide6.QtCore import Qt, Signal
 from .table_widget_search import Table_Widget_Search
 from .widget_default_generic import Widget_Default_Generic
 from .functions_ms_tournament import load_ms_tournaments_shallow_like, update_ms_tournaments_shallow,\
-    remove_ms_tournaments, add_ms_tournament, load_ms_tournament
-from .functions_gui import add_content_to_table, add_button_to_table, get_button
+    remove_ms_tournaments, add_ms_tournament, load_ms_tournament, MS_TOURNAMENT_ATTRIBUTE_STRING
+from .functions_gui import add_button_to_table, get_button, add_ms_tournament_to_table, close_window
 from .window_ms_tournament_new import Window_MS_Tournament_New
 
 
 class Widget_MS_Tournaments(Widget_Default_Generic):
-    selected_tournament = pyqtSignal()
+    selected_tournament = Signal()
 
     def __init__(self):
         super().__init__(
@@ -20,7 +20,9 @@ class Widget_MS_Tournaments(Widget_Default_Generic):
 
     @staticmethod
     def get_table():
-        table = Table_Widget_Search(4, 3.5, 55, [None, 5, 7, 3.5], ["Name", "Participants", "", ""], translate=True)
+        table = Table_Widget_Search(
+            4, 3.5, 55, [None, 5, 7, 3.5], MS_TOURNAMENT_ATTRIBUTE_STRING + ["", ""], translate=True
+        )
 
         header_horizontal, header_vertical = table.horizontalHeader(), table.verticalHeader()
         header_horizontal.setSectionResizeMode(0, QHeaderView.Stretch)
@@ -47,8 +49,7 @@ class Widget_MS_Tournaments(Widget_Default_Generic):
         obj.set_uuid_associate(self.collection_current.get_uuid())
 
     def fill_in_row(self, row, obj=None):
-        add_content_to_table(self.table, obj.get_name(), row, 0, bold=True)
-        add_content_to_table(self.table, obj.get_participant_count(), row, 1, edit=False, align=Qt.AlignCenter)
+        add_ms_tournament_to_table(self.table, row, obj)
         add_button_to_table(
             self.table, row, 2, "medium", None, "Open", connect_function=self.open_tournament, bold=True, translate=True
         )
@@ -58,9 +59,8 @@ class Widget_MS_Tournaments(Widget_Default_Generic):
         self.selected_tournament.emit()
 
     def open_new_tournament_window(self, args):
-        if self.new_tournament_window is not None:
-            self.new_tournament_window.close()
-        self.new_tournament_window = Window_MS_Tournament_New(**args)
+        close_window(self.new_tournament_window)
+        self.new_tournament_window = Window_MS_Tournament_New(**args, parent=self)
         self.new_tournament_window.added_tournament.connect(self.add_tournament)
         self.new_tournament_window.show()
 

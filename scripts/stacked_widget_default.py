@@ -1,5 +1,5 @@
-from PyQt5.QtWidgets import QStackedWidget
-from PyQt5.QtCore import pyqtSignal
+from PySide6.QtWidgets import QStackedWidget
+from PySide6.QtCore import Signal
 from .widget_players import Widget_Players
 from .widget_tournaments import Widget_Tournaments
 from .widget_teams import Widget_Teams
@@ -9,7 +9,7 @@ from .widget_settings import Widget_Settings
 
 
 class Stacked_Widget_Default(QStackedWidget):
-    make_side_menu = pyqtSignal()
+    make_side_menu = Signal()
 
     def __init__(self, window_main):
         super().__init__()

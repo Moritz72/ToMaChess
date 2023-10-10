@@ -224,6 +224,9 @@ msgstr "Confirm Results"
 msgid "None"
 msgstr "None"
 
+msgid "Buchholz"
+msgstr "Buchholz"
+
 msgid "Buchholz Sum"
 msgstr "Buchholz Sum"
 
@@ -373,3 +376,18 @@ msgstr "Cycle"
 
 msgid "Berger"
 msgstr "Berger"
+
+msgid "Actions"
+msgstr "Actions"
+
+msgid "Reload Pairings"
+msgstr "Reload Pairings"
+
+msgid "Edit Parameters"
+msgstr "Edit Parameters"
+
+msgid "Drop Out Participants"
+msgstr "Drop Out Participants"
+
+msgid "Drop In Participants"
+msgstr "Drop In Participants"

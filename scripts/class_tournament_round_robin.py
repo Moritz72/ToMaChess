@@ -42,8 +42,20 @@ class Tournament_Round_Robin(Tournament):
     def get_score_dict(self):
         return get_score_dict_by_point_system(self.get_parameter("point_system")[0])
 
+    def get_changeable_parameters(self, initial=False):
+        if initial:
+            return super().get_changeable_parameters(initial)
+        return {
+            key: value for key, value in super().get_changeable_parameters(initial).items()
+            if key not in ("pairing_method",)
+        }
+
     def is_valid_parameters(self):
-        return self.get_parameter("cycles") > 0
+        participant_number = len(self.get_participants())
+        if participant_number % 2:
+            return self.get_parameter("cycles") * participant_number >= max(1, self.get_round() - 1)
+        return self.get_parameter("cycles") * (participant_number - 1) >= max(1, self.get_round() - 1) \
+            or (self.get_parameter("cycles") > 0 and participant_number == 0)
 
     def is_valid_pairings(self, results):
         uuids = [uuid_1 for (uuid_1, _), (_, _) in results] + [uuid_2 for (_, _), (uuid_2, _) in results]
@@ -64,15 +76,15 @@ class Tournament_Round_Robin(Tournament):
         pairings = PAIRING_FUNCTIONS[self.get_parameter("pairing_method")[0]](len(self.get_participants()), 1)
         for ((uuid_1, _), (uuid_2, _)), (p_1, p_2) in zip(results, pairings):
             uuid_to_seat[uuid_1], uuid_to_seat[uuid_2] = p_1, p_2
-        self.set_participants(sorted(self.get_participants(), key=lambda x: uuid_to_seat[x.get_uuid()]))
+        self.set_participants(sorted(
+            self.get_participants(), key=lambda x: uuid_to_seat[x.get_uuid()] if x.get_uuid() in uuid_to_seat else 0
+        ))
 
     def get_round_name(self, r):
         if self.get_parameter("cycles") == 1:
             return super().get_round_name(r)
         participant_number = len(self.get_participants())
-        if participant_number % 2:
-            participant_number += 1
-        div, mod = divmod(r - 1, participant_number - 1)
+        div, mod = divmod(r - 1, participant_number + (participant_number % 2) - 1)
         return "Round", f" {div + 1}.{mod + 1}"
 
     def get_standings(self, category_range=None):
@@ -84,14 +96,12 @@ class Tournament_Round_Robin(Tournament):
     def load_pairings(self):
         if self.get_pairings() is not None or self.is_done():
             return
-
-        participant_number = len(self.get_participants())
         roun = self.get_round()
+        participant_number = len(self.get_participants())
+        uuids = self.get_participant_uuids()
 
         if roun == 1 and self.get_parameter("choose_seating"):
-            pairings = int(participant_number / 2) * [(self.get_participant_uuids(), self.get_participant_uuids())]
-            if participant_number % 2:
-                pairings.append((self.get_participant_uuids(), None))
+            pairings = int(participant_number / 2) * [(uuids, uuids)]
             self.set_pairings(pairings)
             return
 
@@ -99,8 +109,9 @@ class Tournament_Round_Robin(Tournament):
             shuffle(self.get_participants())
 
         uuids = self.get_participant_uuids()
-        if participant_number % 2:
-            uuids = uuids + [None]
         pairing_indices = PAIRING_FUNCTIONS[self.get_parameter("pairing_method")[0]](participant_number, roun)
         pairings = [(uuids[i_1], uuids[i_2]) for i_1, i_2 in pairing_indices]
         self.set_pairings(pairings)
+
+    def drop_in_participants(self, participants=[]):
+        return False

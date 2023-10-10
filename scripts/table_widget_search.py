@@ -1,4 +1,4 @@
-from PyQt5.QtWidgets import QTableWidget
+from PySide6.QtWidgets import QTableWidget
 from .functions_gui import set_up_table, size_table, get_table_value
 
 

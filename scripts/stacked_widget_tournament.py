@@ -1,11 +1,12 @@
-from PyQt5.QtWidgets import QStackedWidget
-from PyQt5.QtCore import pyqtSignal
+from PySide6.QtWidgets import QStackedWidget
+from PySide6.QtCore import Signal
 from .widget_tournament_standings import Widget_Tournament_Standings
 from .widget_tournament_cross_table import Widget_Tournament_Cross_Table
 from .widget_tournament_standings_categories import Widget_Tournament_Standings_Categories
 from .widget_tournament_round import Widget_Tournament_Round
 from .widget_tournament_round_team import Widget_Tournament_Round_Team
-from .window_confirm import Window_Confirm
+from .window_tournament_actions import Window_Tournament_Actions
+from .functions_gui import close_window
 from .functions_tournament import update_tournament
 from .functions_export import tournament_standings_to_pdf, tournament_participants_to_pdf, tournament_pairings_to_pdf,\
     tournament_results_to_pdf
@@ -17,8 +18,8 @@ def get_round_widget(tournament, roun, current):
     else:
         results = tournament.get_results()[roun - 1]
     return Widget_Tournament_Round(
-        results, tournament.get_uuid_to_participant_dict(), tournament.get_possible_scores(),
-        tournament.is_valid_pairings
+        results, tournament.get_uuid_to_participant_dict(), tournament.get_variable("drop_outs"),
+        tournament.get_possible_scores(), tournament.is_valid_pairings
     )
 
 
@@ -41,14 +42,13 @@ def get_round_widget_team(tournament, roun, current):
         results = tournament.get_results()[roun - 1]
         results_individual = tournament.get_results_individual()[roun - 1]
     return Widget_Tournament_Round_Team(
-        results, uuid_to_participant_dict, tournament.get_possible_scores(),
-        tournament.is_valid_pairings_match, boards, results_individual,
-        tournament.get_uuid_to_individual_dict()
+        results, uuid_to_participant_dict, tournament.get_variable("drop_outs"), tournament.get_possible_scores(),
+        tournament.is_valid_pairings_match, boards, results_individual, tournament.get_uuid_to_individual_dict()
     )
 
 
 class Stacked_Widget_Tournament(QStackedWidget):
-    make_side_menu = pyqtSignal()
+    make_side_menu = Signal()
 
     def __init__(self, window_main, tournament, sub_folder=""):
         super().__init__()
@@ -56,8 +56,7 @@ class Stacked_Widget_Tournament(QStackedWidget):
         self.tournament = tournament
         self.sub_folder = sub_folder
         self.get_round_widget = get_round_widget_team if self.tournament.is_team_tournament() else get_round_widget
-        self.window_confirm = Window_Confirm("Undo Last Round")
-        self.window_confirm.confirmed.connect(self.undo_last_round)
+        self.window_tournament_actions = None
 
         self.table_widgets = [
             Widget_Tournament_Standings(self.tournament), Widget_Tournament_Cross_Table(self.tournament)
@@ -105,7 +104,7 @@ class Stacked_Widget_Tournament(QStackedWidget):
             for i, text in enumerate(texts)
         ]
         buttons_args.append({"enabled": False})
-        buttons_args.append({"text": "Undo Last Round", "connect_function": self.undo_last_round_confirm})
+        buttons_args.append({"text": "Actions", "connect_function": self.open_actions, "bold": True})
         buttons_args.append({"text": "Back", "connect_function": self.open_default, "bold": True})
         return buttons_args
 
@@ -114,6 +113,14 @@ class Stacked_Widget_Tournament(QStackedWidget):
 
     def open_default(self):
         self.window_main.set_stacked_widget("Default")
+
+    def open_actions(self):
+        close_window(self.window_tournament_actions)
+        self.window_tournament_actions = Window_Tournament_Actions(self.tournament, parent=self)
+        self.window_tournament_actions.reload_local_signal.connect(self.reload_local)
+        self.window_tournament_actions.undo_signal.connect(self.undo_last_round)
+        self.window_tournament_actions.reload_global_signal.connect(self.reload_global)
+        self.window_tournament_actions.show()
 
     def pairings_confirmed(self):
         if not self.tournament.is_team_tournament():
@@ -126,13 +133,9 @@ class Stacked_Widget_Tournament(QStackedWidget):
         self.add_new_round()
         self.update_rounds()
 
-    def undo_last_round_confirm(self):
+    def undo_last_round(self):
         if self.tournament.get_round() == 1:
             return
-        self.window_confirm.show()
-
-    def undo_last_round(self):
-        self.window_confirm.close()
         self.removeWidget(self.widget(self.count() - 1))
         if not self.tournament.is_done():
             self.removeWidget(self.widget(self.count() - 1))
@@ -140,14 +143,41 @@ class Stacked_Widget_Tournament(QStackedWidget):
         self.add_new_round()
         self.update_rounds()
 
+    def reload_local(self):
+        if self.tournament.get_pairings() is None:
+            return
+        self.removeWidget(self.widget(self.count() - 1))
+        self.tournament.clear_pairings()
+        self.tournament.load_pairings()
+        self.add_new_round()
+        self.make_side_menu.emit()
+
+    def reload_global(self):
+        if self.tournament.get_pairings() is None:
+            self.add_new_round()
+        else:
+            self.reload_local()
+        self.update_rounds()
+
     def update_rounds(self):
-        update_tournament("", self.tournament)
+        if not self.sub_folder:
+            update_tournament("", self.tournament)
         for table_widget in self.table_widgets:
             table_widget.update()
         self.make_side_menu.emit()
+        self.update_window_tournament_actions()
 
     def add_new_round(self):
         self.tournament.load_pairings()
         if self.tournament.get_pairings() is not None:
             self.add_round_widget(self.tournament.get_round(), True)
         self.set_index()
+        self.update_window_tournament_actions()
+
+    def update_window_tournament_actions(self):
+        try:
+            if self.window_tournament_actions is None:
+                return
+            self.window_tournament_actions.add_buttons()
+        except RuntimeError:
+            pass

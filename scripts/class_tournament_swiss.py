@@ -4,6 +4,7 @@ from .functions_swiss_bbp import get_pairings_bbp
 from .class_tiebreak import Tiebreak, get_tiebreak_list
 from .functions_pairing import PAIRING_FUNCTIONS
 from .functions_tournament_util import get_score_dict_by_point_system, get_standings_with_tiebreaks
+from .functions_player import sort_players_by_rating
 
 
 class Tournament_Swiss(Tournament):
@@ -16,7 +17,7 @@ class Tournament_Swiss(Tournament):
         )
         self.mode = "Swiss"
         self.parameters = {
-            "rounds": 4,
+            "rounds": 5,
             "pairing_method_first_round": ["Slide", "Fold", "Adjacent", "Random", "Custom"],
             "top_seed_color_first_round": ["White", "Black", "Random"],
             "point_system": ["1 - ½ - 0", "2 - 1 - 0", "3 - 1 - 0"],
@@ -37,9 +38,7 @@ class Tournament_Swiss(Tournament):
         }
 
     def seat_participants(self):
-        self.set_participants(sorted(
-            self.get_participants(), key=lambda x: 0 if x.get_rating() is None else x.get_rating(), reverse=True
-        ))
+        self.set_participants(sort_players_by_rating(self.get_participants()))
 
     @staticmethod
     def get_globals():
@@ -49,7 +48,7 @@ class Tournament_Swiss(Tournament):
         return get_score_dict_by_point_system(self.get_parameter("point_system")[0])
 
     def is_valid_parameters(self):
-        return self.get_parameter("rounds") > 0
+        return self.get_parameter("rounds") >= max(1, self.get_round() - 1)
 
     def is_valid_pairings(self, results):
         uuids = [uuid_1 for (uuid_1, _), (_, _) in results] + [uuid_2 for (_, _), (uuid_2, _) in results]
@@ -67,8 +66,7 @@ class Tournament_Swiss(Tournament):
     def load_pairings(self):
         if self.get_pairings() is not None or self.is_done():
             return
-
-        uuids = self.get_participant_uuids()
+        uuids = self.get_participant_uuids(drop_outs=False)
         participant_number = len(uuids)
         first_round = self.get_variable("round") == 1
         first_round_method = self.get_parameter("pairing_method_first_round")[0]
@@ -78,7 +76,7 @@ class Tournament_Swiss(Tournament):
             if participant_number % 2:
                 pairings.append((uuids, None))
         elif first_round:
-            match self.get_parameter("top_seed_color_first_round"):
+            match self.get_parameter("top_seed_color_first_round")[0]:
                 case "White":
                     first_seed_white = True
                 case "Black":
@@ -91,6 +89,7 @@ class Tournament_Swiss(Tournament):
             pairings = [(uuids[i_1], uuids[i_2]) for i_1, i_2 in pairing_indices]
         else:
             pairings = get_pairings_bbp(
-                self.get_participants(), self.get_results(), self.get_parameter("rounds"), self.get_score_dict()
+                self.get_participants(), self.get_results(), self.get_parameter("rounds"), self.get_score_dict(),
+                self.get_variable("drop_outs")
             )
         self.set_pairings(pairings)

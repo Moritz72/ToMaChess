@@ -1,10 +1,10 @@
-from PyQt5.QtWidgets import QHeaderView
-from PyQt5.QtCore import Qt
+from PySide6.QtWidgets import QHeaderView
+from PySide6.QtCore import Qt
 from .class_player import Player
 from .table_widget_search import Table_Widget_Search
 from .widget_default_generic import Widget_Default_Generic
-from .functions_player import load_players_like, update_players, add_players, remove_players
-from .functions_gui import add_content_to_table, add_button_to_table, get_button
+from .functions_player import load_players_like, update_players, add_players, remove_players, PLAYER_ATTRIBUTE_LIST
+from .functions_gui import add_button_to_table, get_button, add_player_to_table
 
 
 class Widget_Players(Widget_Default_Generic):
@@ -14,8 +14,7 @@ class Widget_Players(Widget_Default_Generic):
     @staticmethod
     def get_table():
         table = Table_Widget_Search(
-            7, 3.5, 55, [None, 3.5, 5, 4.5, 4, 5, 3.5], ["Name", "Sex", "Birth", "Federation", "Title", "Rating", ""],
-            translate=True
+            7, 3.5, 55, [None, 3.5, 5, 4.5, 4, 5, 3.5], PLAYER_ATTRIBUTE_LIST + [""], translate=True
         )
 
         header_horizontal, header_vertical = table.horizontalHeader(), table.verticalHeader()
@@ -41,14 +40,5 @@ class Widget_Players(Widget_Default_Generic):
         obj.set_uuid_associate(self.collection_current.get_uuid())
 
     def fill_in_row(self, row, obj=None):
-        if obj is None:
-            name = sex = birthday = country = title = rating = ""
-        else:
-            name, sex, birthday, country, title, rating = obj.get_data()[:6]
-        add_content_to_table(self.table, name, row, 0, bold=True)
-        add_content_to_table(self.table, sex, row, 1, align=Qt.AlignCenter)
-        add_content_to_table(self.table, birthday, row, 2, align=Qt.AlignCenter)
-        add_content_to_table(self.table, country, row, 3, align=Qt.AlignCenter)
-        add_content_to_table(self.table, title, row, 4, align=Qt.AlignCenter)
-        add_content_to_table(self.table, rating, row, 5, align=Qt.AlignCenter)
+        add_player_to_table(self.table, row, obj, edit=True)
         add_button_to_table(self.table, row, 6, "medium", None, '-', connect_function=self.table.delete_current_row)

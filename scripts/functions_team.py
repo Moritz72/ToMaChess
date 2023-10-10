@@ -2,21 +2,28 @@ from .class_database_handler import DATABASE_HANDLER
 from .class_team import Team
 from .class_player import Player
 
+UUID_TUPLE = ("uuid", "uuid_associate")
+TEAM_ATTRIBUTE_LIST = ["Name", "Members"]
+TEAM_COLUMNS = ("name", "members", "uuid", "uuid_associate")
+TEAM_PLAYER_COLUMNS = ("uuid_player", "uuid_associate_player", "uuid_team", "uuid_associate_team", "member_order")
+
+
+def get_table(table_root):
+    return f"{table_root}teams"
+
 
 def load_team_shallow(table_root, uuid, uuid_associate):
-    entry = DATABASE_HANDLER.get_entries(f"{table_root}teams", ("uuid", "uuid_associate"), (uuid, uuid_associate))[0]
+    entry = DATABASE_HANDLER.get_entries(get_table(table_root), UUID_TUPLE, (uuid, uuid_associate))[0]
     return Team([], *entry)
 
 
 def load_teams_shallow_all(table_root, uuid_associate):
-    entries = DATABASE_HANDLER.get_entries(f"{table_root}teams", ("uuid_associate",), (uuid_associate,))
+    entries = DATABASE_HANDLER.get_entries(get_table(table_root), ("uuid_associate",), (uuid_associate,))
     return [Team([], *entry) for entry in entries]
 
 
 def load_team(table_root, uuid, uuid_associate):
-    entry_team = DATABASE_HANDLER.get_entries(
-        f"{table_root}teams", ("uuid", "uuid_associate"), (uuid, uuid_associate)
-    )[0]
+    entry_team = DATABASE_HANDLER.get_entries(get_table(table_root), UUID_TUPLE, (uuid, uuid_associate))[0]
     table_players = f"{table_root}players"
     table_junction = f"{table_root}players_to_teams"
     query = (
@@ -32,7 +39,7 @@ def load_team(table_root, uuid, uuid_associate):
 
 
 def load_teams_all(table_root, uuid_associate):
-    entries_team = DATABASE_HANDLER.get_entries(f"{table_root}teams", ("uuid_associate",), (uuid_associate,))
+    entries_team = DATABASE_HANDLER.get_entries(get_table(table_root), ("uuid_associate",), (uuid_associate,))
     table_players = f"{table_root}players"
     table_junction = f"{table_root}players_to_teams"
     query = (
@@ -51,10 +58,13 @@ def load_teams_all(table_root, uuid_associate):
     return list(team_dict.values())
 
 
-def load_teams_list(table_root, uuid_list, uuid_associate_list):
-    entries_team = DATABASE_HANDLER.get_entries_list(
-        f"{table_root}teams", ("uuid", "uuid_associate"), (uuid_list, uuid_associate_list)
-    )
+def load_teams_list(table_root, uuid_list, uuid_associate_list=None):
+    if uuid_associate_list is None:
+        entries_team = DATABASE_HANDLER.get_entries_list(get_table(table_root), ("uuid",), (uuid_list,))
+    else:
+        entries_team = DATABASE_HANDLER.get_entries_list(
+            get_table(table_root), UUID_TUPLE, (uuid_list, uuid_associate_list)
+        )
     table_players = f"{table_root}players"
     table_junction = f"{table_root}players_to_teams"
     query = (
@@ -78,32 +88,25 @@ def load_teams_list(table_root, uuid_list, uuid_associate_list):
 
 def load_teams_shallow_like(table_root, uuid_associate, name, limit):
     entries = DATABASE_HANDLER.get_entries_like(
-        f"{table_root}teams", ("uuid_associate",), (uuid_associate,), ("name",), (name,), ("name",), (True,), limit
+        get_table(table_root), ("uuid_associate",), (uuid_associate,), ("name",), (name,), ("name",), (True,), limit
     )
     return [Team([], *entry) for entry in entries]
 
 
 def add_team(table_root, team):
-    DATABASE_HANDLER.add_entry(f"{table_root}teams", ("name", "members", "uuid", "uuid_associate"), team.get_data())
+    DATABASE_HANDLER.add_entry(get_table(table_root), TEAM_COLUMNS, team.get_data())
     DATABASE_HANDLER.add_entries(
-        f"{table_root}players_to_teams",
-        ("uuid_player", "uuid_associate_player", "uuid_team", "uuid_associate_team", "member_order"),
-        tuple(
-            (member.get_uuid(), member.get_uuid_associate(), team.get_uuid(), team.get_uuid_associate(), i)
-            for i, member in enumerate(team.get_members())
-        )
+        f"{table_root}players_to_teams", TEAM_PLAYER_COLUMNS,
+        tuple(member.get_uuid_tuple() + team.get_uuid_tuple() + (i,) for i, member in enumerate(team.get_members()))
     )
 
 
 def add_teams(table_root, teams):
+    DATABASE_HANDLER.add_entries(get_table(table_root), TEAM_COLUMNS, tuple(team.get_data() for team in teams))
     DATABASE_HANDLER.add_entries(
-        f"{table_root}teams", ("name", "members", "uuid", "uuid_associate"), tuple(team.get_data() for team in teams)
-    )
-    DATABASE_HANDLER.add_entries(
-        f"{table_root}players_to_teams",
-        ("uuid_player", "uuid_associate_player", "uuid_team", "uuid_associate_team", "member_order"),
+        f"{table_root}players_to_teams", TEAM_PLAYER_COLUMNS,
         tuple(
-            (member.get_uuid(), member.get_uuid_associate(), team.get_uuid(), team.get_uuid_associate(), i)
+            member.get_uuid_tuple() + team.get_uuid_tuple() + (i,)
             for team in teams for i, member in enumerate(team.get_members())
         )
     )
@@ -111,32 +114,25 @@ def add_teams(table_root, teams):
 
 def update_team_shallow(table_root, team):
     DATABASE_HANDLER.update_entry(
-        f"{table_root}teams", ("uuid", "uuid_associate"), (team.get_uuid(), team.get_uuid_associate()),
-        ("name", "members", "uuid", "uuid_associate"), team.get_data()
+        get_table(table_root), UUID_TUPLE, team.get_uuid_tuple(), TEAM_COLUMNS, team.get_data()
     )
 
 
 def update_teams_shallow(table_root, teams):
     DATABASE_HANDLER.update_entries(
-        f"{table_root}teams", ("uuid", "uuid_associate"),
-        tuple((team.get_uuid(), team.get_uuid_associate()) for team in teams),
-        ("name", "members", "uuid", "uuid_associate"), tuple(team.get_data() for team in teams)
+        get_table(table_root), UUID_TUPLE, tuple(team.get_uuid_tuple() for team in teams),
+        TEAM_COLUMNS, tuple(team.get_data() for team in teams)
     )
 
 
-def update_team(database_handler, table_root, team):
+def update_team(table_root, team):
     update_team_shallow(table_root, team)
-    database_handler.delete_entries(
-        f"{table_root}players_to_teams",
-        ("uuid_team", "uuid_associate_team"), (team.get_uuid(), team.get_uuid_associate())
+    DATABASE_HANDLER.delete_entries(
+        f"{table_root}players_to_teams", ("uuid_team", "uuid_associate_team"), team.get_uuid_tuple()
     )
-    database_handler.add_entries(
-        f"{table_root}players_to_teams",
-        ("uuid_player", "uuid_associate_player", "uuid_team", "uuid_associate_team", "member_order"),
-        tuple(
-            (member.get_uuid(), member.get_uuid_associate(), team.get_uuid(), team.get_uuid_associate(), i)
-            for i, member in enumerate(team.get_members())
-        )
+    DATABASE_HANDLER.add_entries(
+        f"{table_root}players_to_teams", TEAM_PLAYER_COLUMNS,
+        tuple(member.get_uuid_tuple() + team.get_uuid_tuple() + (i,) for i, member in enumerate(team.get_members()))
     )
 
 
@@ -144,26 +140,24 @@ def update_teams(table_root, teams):
     update_teams_shallow(table_root, teams)
     DATABASE_HANDLER.delete_entries(
         f"{table_root}players_to_teams", ("uuid_team", "uuid_associate_team"),
-        tuple((team.get_uuid(), team.get_uuid_associate()) for team in teams)
+        tuple(team.get_uuid_tuple() for team in teams)
     )
     DATABASE_HANDLER.add_entries(
-        f"{table_root}players_to_teams",
-        ("uuid_player", "uuid_associate_player", "uuid_team", "uuid_associate_team", "member_order"),
+        f"{table_root}players_to_teams", TEAM_PLAYER_COLUMNS,
         tuple(
-            (member.get_uuid(), member.get_uuid_associate(), team.get_uuid(), team.get_uuid_associate(), i)
+            member.get_uuid_tuple() + team.get_uuid_tuple() + (i,)
             for team in teams for i, member in enumerate(team.get_members())
         )
     )
 
 
 def remove_team(table_root, team):
-    DATABASE_HANDLER.delete_entry(
-        f"{table_root}teams", ("uuid", "uuid_associate"), (team.get_uuid(), team.get_uuid_associate())
-    )
+    DATABASE_HANDLER.delete_entry(get_table(table_root), UUID_TUPLE, team.get_uuid_tuple())
 
 
 def remove_teams(table_root, teams):
-    DATABASE_HANDLER.delete_entries(
-        f"{table_root}teams", ("uuid", "uuid_associate"),
-        tuple((team.get_uuid(), team.get_uuid_associate()) for team in teams)
-    )
+    DATABASE_HANDLER.delete_entries(get_table(table_root), UUID_TUPLE, tuple(team.get_uuid_tuple() for team in teams))
+
+
+def remove_teams_all(table_root, uuid_associate):
+    DATABASE_HANDLER.delete_entry(get_table(table_root), ("uuid_associate",), (uuid_associate,))

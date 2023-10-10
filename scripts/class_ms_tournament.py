@@ -1,14 +1,14 @@
 from uuid import uuid4
 from json import dumps
 from .functions_tournament_util import get_placements_from_standings
+from .functions_util import remove_uuid_duplicates
 
 
 class MS_Tournament:
     def __init__(
-            self, participants, stages_tournaments, name, shallow_participant_count=None, stages_advance_lists=[],
+            self, stages_tournaments, name, shallow_participant_count=None, stages_advance_lists=[],
             draw_lots=True, stage=0, order=None, uuid=None, uuid_associate="00000000-0000-0000-0000-000000000003"
     ):
-        self.participants = participants
         if order is not None and stages_tournaments:
             tournaments_dict = {tournament.get_uuid(): tournament for tournament in stages_tournaments}
             self.stages_tournaments = [[tournaments_dict[uuid] for uuid in uuids] for uuids in order]
@@ -43,6 +43,9 @@ class MS_Tournament:
 
     def get_uuid_associate(self):
         return self.uuid_associate
+
+    def get_uuid_tuple(self):
+        return self.uuid, self.uuid_associate
 
     def set_uuid_associate(self, uuid_associate):
         self.uuid_associate = uuid_associate
@@ -87,7 +90,10 @@ class MS_Tournament:
         return self.get_stage_advance_list(self.stage)
 
     def get_participants(self):
-        return self.participants
+        return remove_uuid_duplicates([
+            participant for stage_tournaments in self.get_stages_tournaments()
+            for stage_tournament in stage_tournaments for participant in stage_tournament.get_participants()
+        ])
 
     def get_participant_count(self):
         return len(self.get_participants()) or self.shallow_participant_count
@@ -122,7 +128,7 @@ class MS_Tournament:
         participants_next_stage = [
             [
                 participant for tournament, placement in advance_list
-                for participant in participants_placements[tournament][placement-1]
+                for participant in participants_placements[tournament][placement - 1]
             ]
             for advance_list in self.get_current_advance_list()
         ]
@@ -130,3 +136,5 @@ class MS_Tournament:
         self.increment_stage()
         for tournament, participants in zip(self.get_current_tournaments(), participants_next_stage):
             tournament.set_participants(participants)
+        if all(not tournament.is_valid() for tournament in self.get_current_tournaments()):
+            self.stage -= 1

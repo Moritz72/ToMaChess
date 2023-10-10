@@ -1,4 +1,5 @@
 from random import random
+from .class_custom_parameter import Custom_Parameter
 
 
 def determine_color_default(participant_1, participant_2):
@@ -15,19 +16,13 @@ def determine_color_choice(participant_1, participant_2):
     return [participant_1, participant_2], [participant_1, participant_2]
 
 
-class Armageddon:
-    def __init__(self, **args):
-        self.args = dict()
+class Armageddon(Custom_Parameter):
+    def initialize_args_and_args_display(self, args):
         if "args" in args:
             self.args = args["args"]
         if "enabled" not in self.args:
             self.args["enabled"] = False
         self.args_display = {"enabled": "With Armageddon"}
-        self.fill_in_default()
-        self.window_update_necessary = False
-
-    def get_dict(self):
-        return {"args": self.args}
 
     def fill_in_default(self):
         if self.args["enabled"]:
@@ -49,9 +44,6 @@ class Armageddon:
             self.args = args
             self.window_update_necessary = False
 
-    def get_args_and_args_display(self):
-        return self.args, self.args_display
-
     def is_armageddon(self, games, games_per_tiebreak, roun):
         return self.args["enabled"] and roun - games - games_per_tiebreak * self.args["after_rounds"] >= 1
 
@@ -64,6 +56,5 @@ class Armageddon:
             case "Choice":
                 return determine_color_choice(participant_1, participant_2)
 
-    @staticmethod
-    def is_valid():
+    def is_valid(self):
         return True

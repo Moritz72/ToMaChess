@@ -1,9 +1,20 @@
 from json import loads
 from .class_database_handler import DATABASE_HANDLER
 from .class_ms_tournament import MS_Tournament
-from .functions_player import load_players_all, add_players
-from .functions_team import load_teams_all, add_teams
-from .functions_tournament import load_tournaments_shallow_all, add_tournaments_shallow, update_tournaments
+from .functions_player import load_players_all, add_players, remove_players_all
+from .functions_team import load_teams_all, add_teams, remove_teams_all
+from .functions_tournament import load_tournaments_shallow_all, add_tournaments_shallow, update_tournaments_shallow
+from .functions_util import remove_uuid_duplicates
+
+UUID_TUPLE = ("uuid", "uuid_associate")
+MS_TOURNAMENT_ATTRIBUTE_STRING = ["Name", "Participants"]
+MS_TOURNAMENT_COLUMNS = (
+    "name", "participants", "stages_advance_lists", "draw_lots", "stage", "tournament_order", "uuid", "uuid_associate"
+)
+
+
+def get_table(table_root):
+    return f"{table_root}ms_tournaments"
 
 
 def json_loads_entry(entry):
@@ -11,94 +22,18 @@ def json_loads_entry(entry):
         entry[i] = loads(entry[i])
 
 
-def load_ms_tournament_shallow(table_root, uuid, uuid_associate):
-    entry = list(DATABASE_HANDLER.get_entries(
-        f"{table_root}ms_tournaments", ("uuid", "uuid_associate"), (uuid, uuid_associate)
-    )[0])
-    json_loads_entry(entry)
-    return MS_Tournament([], [], *entry)
-
-
-def load_ms_tournaments_shallow_all(table_root, uuid_associate):
-    entries = [
-        list(entry) for entry
-        in DATABASE_HANDLER.get_entries(f"{table_root}ms_tournaments", ("uuid_associate",), (uuid_associate,))
-    ]
-    for entry in entries:
-        json_loads_entry(entry)
-    return [MS_Tournament([], [], *entry) for entry in entries]
-
-
-def load_ms_tournament(table_root, uuid, uuid_associate):
-    entry = list(DATABASE_HANDLER.get_entries(
-        f"{table_root}ms_tournaments", ("uuid", "uuid_associate"), (uuid, uuid_associate)
-    )[0])
-    json_loads_entry(entry)
-    tournaments = load_tournaments_shallow_all(f"{table_root}ms_tournaments_", uuid)
-    if tournaments[0].is_team_tournament():
-        participants = load_teams_all(f"{table_root}ms_tournaments_", uuid)
-    else:
-        participants = load_players_all(f"{table_root}ms_tournaments_", uuid)
-    for tournament in tournaments:
-        tournament.set_participants(participants)
-    return MS_Tournament(participants, tournaments, *entry)
-
-
-def load_ms_tournaments_shallow_like(table_root, uuid_associate, name, limit):
-    entries = [
-        list(entry) for entry in DATABASE_HANDLER.get_entries_like(
-            f"{table_root}ms_tournaments", ("uuid_associate",), (uuid_associate,),
-            ("name",), (name,), ("name",), (True,), limit
-        )
-    ]
-    for entry in entries:
-        json_loads_entry(entry)
-    return [MS_Tournament([], [], *entry) for entry in entries]
-
-
-def add_ms_tournament(table_root, ms_tournament):
-    DATABASE_HANDLER.add_entry(
-        f"{table_root}ms_tournaments",
-        (
-            "name", "participants", "stages_advance_lists", "draw_lots", "stage", "tournament_order", "uuid",
-            "uuid_associate"
-        ),
-        ms_tournament.get_data()
-    )
-    add_tournaments_shallow(
-        f"{table_root}ms_tournaments_",
-        tuple(
-            tournament
-            for stage_tournaments in ms_tournament.get_stages_tournaments() for tournament in stage_tournaments
-        )
-    )
+def add_ms_tournament_participants(table_root, ms_tournament):
     if ms_tournament.is_team_tournament():
-        unique_members = list({
-            member.get_uuid(): member for member in
+        unique_members = remove_uuid_duplicates(
             [member for team in ms_tournament.get_participants() for member in team.get_members()]
-        }.values())
-        add_players(f"{table_root}ms_tournaments_", unique_members)
-        add_teams(f"{table_root}ms_tournaments_", ms_tournament.get_participants())
+        )
+        add_players(get_table(table_root) + '_', unique_members)
+        add_teams(get_table(table_root) + '_', ms_tournament.get_participants())
     else:
-        add_players(f"{table_root}ms_tournaments_", ms_tournament.get_participants())
+        add_players(get_table(table_root) + '_', ms_tournament.get_participants())
 
 
-def add_ms_tournaments(table_root, ms_tournaments):
-    DATABASE_HANDLER.add_entries(
-        f"{table_root}ms_tournaments",
-        (
-            "name", "participants", "stages_advance_lists", "draw_lots", "stage", "tournament_order", "uuid",
-            "uuid_associate"
-        ),
-        tuple(ms_tournament.get_data() for ms_tournament in ms_tournaments)
-    )
-    add_tournaments_shallow(
-        f"{table_root}ms_tournaments_",
-        [
-            tournament for ms_tournament in ms_tournaments
-            for stage_tournaments in ms_tournament.get_stages_tournaments() for tournament in stage_tournaments
-        ]
-    )
+def add_ms_tournaments_participants(table_root, ms_tournaments):
     players = []
     teams = []
     for ms_tournament in ms_tournaments:
@@ -107,54 +42,113 @@ def add_ms_tournaments(table_root, ms_tournaments):
             teams.extend(ms_tournament.get_participants())
         else:
             players.extend(ms_tournament.get_participants())
-    add_players(f"{table_root}ms_tournaments_", players)
-    add_teams(f"{table_root}ms_tournaments_", teams)
+    add_players(get_table(table_root) + '_', players)
+    add_teams(get_table(table_root) + '_', teams)
 
 
-def update_ms_tournament_shallow(table_root, ms_tournament):
-    DATABASE_HANDLER.update_entry(
-        f"{table_root}ms_tournaments",
-        ("uuid", "uuid_associate"), (ms_tournament.get_uuid(), ms_tournament.get_uuid_associate()),
-        (
-            "name", "participants", "stages_advance_lists", "draw_lots", "stage", "tournament_order", "uuid",
-            "uuid_associate"
-        ),
-        ms_tournament.get_data()
-    )
+def load_ms_tournament_shallow(table_root, uuid, uuid_associate):
+    entry = list(DATABASE_HANDLER.get_entries(get_table(table_root), UUID_TUPLE, (uuid, uuid_associate))[0])
+    json_loads_entry(entry)
+    return MS_Tournament([], *entry)
 
 
-def update_ms_tournaments_shallow(table_root, ms_tournaments):
-    DATABASE_HANDLER.update_entries(
-        f"{table_root}ms_tournaments", ("uuid", "uuid_associate"),
-        tuple((ms_tournament.get_uuid(), ms_tournament.get_uuid_associate()) for ms_tournament in ms_tournaments),
-        (
-            "name", "participants", "stages_advance_lists", "draw_lots", "stage", "tournament_order", "uuid",
-            "uuid_associate"
-        ),
-        tuple(ms_tournament.get_data() for ms_tournament in ms_tournaments)
-    )
+def load_ms_tournaments_shallow_all(table_root, uuid_associate):
+    entries = [
+        list(entry)
+        for entry in DATABASE_HANDLER.get_entries(get_table(table_root), ("uuid_associate",), (uuid_associate,))
+    ]
+    for entry in entries:
+        json_loads_entry(entry)
+    return [MS_Tournament([], *entry) for entry in entries]
 
 
-def update_ms_tournament(table_root, ms_tournament):
-    update_ms_tournament_shallow(table_root, ms_tournament)
-    update_tournaments(
-        f"{table_root}ms_tournaments_",
+def load_ms_tournament(table_root, uuid, uuid_associate):
+    entry = list(DATABASE_HANDLER.get_entries(get_table(table_root), UUID_TUPLE, (uuid, uuid_associate))[0])
+    json_loads_entry(entry)
+    tournaments = load_tournaments_shallow_all(get_table(table_root) + '_', uuid)
+    if tournaments[0].is_team_tournament():
+        participants = load_teams_all(get_table(table_root) + '_', uuid)
+    else:
+        participants = load_players_all(get_table(table_root) + '_', uuid)
+    for tournament in tournaments:
+        if tournament.get_participant_count():
+            tournament.set_participants(participants)
+    return MS_Tournament(tournaments, *entry)
+
+
+def load_ms_tournaments_shallow_like(table_root, uuid_associate, name, limit):
+    entries = [
+        list(entry) for entry in DATABASE_HANDLER.get_entries_like(
+            get_table(table_root), ("uuid_associate",), (uuid_associate,), ("name",), (name,), ("name",), (True,), limit
+        )
+    ]
+    for entry in entries:
+        json_loads_entry(entry)
+    return [MS_Tournament([], *entry) for entry in entries]
+
+
+def add_ms_tournament(table_root, ms_tournament):
+    DATABASE_HANDLER.add_entry(get_table(table_root), MS_TOURNAMENT_COLUMNS, ms_tournament.get_data())
+    add_tournaments_shallow(
+        get_table(table_root) + '_',
         tuple(
             tournament
             for stage_tournaments in ms_tournament.get_stages_tournaments() for tournament in stage_tournaments
         )
     )
+    add_ms_tournament_participants(table_root, ms_tournament)
+
+
+def add_ms_tournaments(table_root, ms_tournaments):
+    DATABASE_HANDLER.add_entries(
+        get_table(table_root), MS_TOURNAMENT_COLUMNS,
+        tuple(ms_tournament.get_data() for ms_tournament in ms_tournaments)
+    )
+    add_tournaments_shallow(
+        get_table(table_root) + '_',
+        [
+            tournament for ms_tournament in ms_tournaments
+            for stage_tournaments in ms_tournament.get_stages_tournaments() for tournament in stage_tournaments
+        ]
+    )
+    add_ms_tournaments_participants(table_root, ms_tournaments)
+
+
+def update_ms_tournament_shallow(table_root, ms_tournament):
+    DATABASE_HANDLER.update_entry(
+        get_table(table_root), UUID_TUPLE, ms_tournament.get_uuid_tuple(),
+        MS_TOURNAMENT_COLUMNS, ms_tournament.get_data()
+    )
+
+
+def update_ms_tournaments_shallow(table_root, ms_tournaments):
+    DATABASE_HANDLER.update_entries(
+        get_table(table_root), UUID_TUPLE, tuple(ms_tournament.get_uuid_tuple() for ms_tournament in ms_tournaments),
+        MS_TOURNAMENT_COLUMNS, tuple(ms_tournament.get_data() for ms_tournament in ms_tournaments)
+    )
+
+
+def update_ms_tournament(table_root, ms_tournament):
+    ms_tournament.possess_participants_and_tournaments()
+    update_ms_tournament_shallow(table_root, ms_tournament)
+    update_tournaments_shallow(
+        get_table(table_root) + '_',
+        tuple(
+            tournament
+            for stage_tournaments in ms_tournament.get_stages_tournaments() for tournament in stage_tournaments
+        )
+    )
+    if ms_tournament.is_team_tournament():
+        remove_teams_all(get_table(table_root) + '_', ms_tournament.get_uuid())
+    remove_players_all(get_table(table_root) + '_', ms_tournament.get_uuid())
+    add_ms_tournament_participants(table_root, ms_tournament)
 
 
 def remove_ms_tournament(table_root, ms_tournament):
-    DATABASE_HANDLER.delete_entry(
-        f"{table_root}ms_tournaments",
-        ("uuid", "uuid_associate"), (ms_tournament.get_uuid(), ms_tournament.get_uuid_associate())
-    )
+    DATABASE_HANDLER.delete_entry(get_table(table_root), UUID_TUPLE, ms_tournament.get_uuid_tuple())
 
 
 def remove_ms_tournaments(table_root, ms_tournaments):
     DATABASE_HANDLER.delete_entries(
-        f"{table_root}ms_tournaments", ("uuid", "uuid_associate"),
-        tuple((ms_tournament.get_uuid(), ms_tournament.get_uuid_associate()) for ms_tournament in ms_tournaments)
+        get_table(table_root), UUID_TUPLE, tuple(ms_tournament.get_uuid_tuple() for ms_tournament in ms_tournaments)
     )

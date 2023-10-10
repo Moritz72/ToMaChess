@@ -1,6 +1,6 @@
 from abc import abstractmethod
-from PyQt5.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout
-from PyQt5.QtCore import Qt, QTimer
+from PySide6.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout
+from PySide6.QtCore import Qt, QTimer
 from .functions_collection import load_collections
 from .functions_gui import add_widgets_in_layout, get_lineedit, get_combo_box
 
@@ -24,8 +24,8 @@ class Widget_Default_Generic(QWidget):
         self.search_timer.setSingleShot(True)
         self.search_timer.timeout.connect(self.fill_in_table)
 
-        self.layout = QHBoxLayout()
-        self.setLayout(self.layout)
+        self.layout = QHBoxLayout(self)
+
         self.layout.addWidget(QWidget())
         self.table = self.get_table()
         layout = QVBoxLayout()

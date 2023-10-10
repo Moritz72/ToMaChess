@@ -1,5 +1,5 @@
-from PyQt5.QtWidgets import QApplication
-from PyQt5.QtCore import QFile, QTextStream
+from PySide6.QtWidgets import QApplication
+from PySide6.QtCore import QFile, QTextStream
 from .functions_util import get_root_directory
 
 

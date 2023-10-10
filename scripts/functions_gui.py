@@ -1,14 +1,14 @@
-from PyQt5.QtWidgets import QComboBox, QLineEdit, QCheckBox, QSpinBox, QTableWidgetItem, QPushButton, QLabel, \
+from PySide6.QtWidgets import QComboBox, QLineEdit, QCheckBox, QSpinBox, QTableWidgetItem, QPushButton, QLabel, \
     QScrollArea, QMainWindow, QVBoxLayout, QWidget, QHeaderView, QApplication, QSizePolicy, QStyledItemDelegate
-from PyQt5.QtCore import Qt, QThread, pyqtSignal
-from PyQt5.QtGui import QFont
+from PySide6.QtCore import Qt, QThread, Signal
+from PySide6.QtGui import QFont
 from .class_size_handler import SIZE_HANDLER
 from .class_settings_handler import SETTINGS_HANDLER
 from .class_translation_handler import TRANSLATION_HANDLER
 
 
 class Function_Worker(QThread):
-    finished = pyqtSignal()
+    finished = Signal()
 
     def __init__(self, function, parent):
         super().__init__(parent=parent)
@@ -23,7 +23,7 @@ class Options_Button(QPushButton):
     def __init__(self, var, size, widget_size, text="", bold=False, translate=False):
         super().__init__(TRANSLATION_HANDLER.tl(text) if translate else text)
         self.obj = var
-        self.window = Options_Window(self.obj, translate)
+        self.window = Options_Window(self.obj, translate, parent=self)
         self.window.options_closed.connect(self.get_args_and_args_display_from_window)
         self.clicked.connect(self.window.show)
 
@@ -39,10 +39,10 @@ class Options_Button(QPushButton):
 
 
 class Options_Window(QMainWindow):
-    options_closed = pyqtSignal()
+    options_closed = Signal()
 
-    def __init__(self, obj, translate=False):
-        super().__init__()
+    def __init__(self, obj, translate=False, parent=None):
+        super().__init__(parent=parent)
         set_window_title(self, "Options")
 
         self.obj = obj
@@ -64,24 +64,29 @@ class Options_Window(QMainWindow):
 
         parameter_widgets = []
         for _, display, widget in self.args_widget_data:
-            connect_widget(widget, lambda _: self.update_widget_data(self.get_new_args()))
+            connect_widget(widget, self.update_widget_data)
             parameter_widgets.extend([get_label(display, "large", translate=self.translate), widget, QLabel()])
 
         widget = QWidget()
-        layout = QVBoxLayout()
+        layout = QVBoxLayout(widget)
         get_scroll_area_widgets_and_layouts(layout, parameter_widgets[:-1], margins=(20, 20, 40, 20), spacing=10)
-        widget.setLayout(layout)
         self.setCentralWidget(widget)
         self.setFixedWidth(layout.sizeHint().width())
         self.setFixedHeight(min(layout.sizeHint().height() + 2, int(QApplication.primaryScreen().size().height() * .4)))
 
-    def get_new_args(self):
-        return {arg: get_value_from_suitable_widget(widget) for arg, _, widget in self.args_widget_data}
-
-    def update_widget_data(self, args):
-        self.obj.update(args)
+    def update_widget_data(self):
+        self.obj.update({arg: get_value_from_suitable_widget(widget) for arg, _, widget in self.args_widget_data})
         if self.obj.window_update_necessary:
             self.make_window_from_object()
+
+
+def close_window(window):
+    try:
+        if window is None:
+            return
+        window.close()
+    except RuntimeError:
+        pass
 
 
 def add_widgets_to_layout(layout, widgets):
@@ -92,16 +97,6 @@ def add_widgets_to_layout(layout, widgets):
 def add_widgets_in_layout(layout, layout_inner, widgets):
     add_widgets_to_layout(layout_inner, widgets)
     layout.addLayout(layout_inner)
-
-
-def clear_layout(layout, s=0):
-    for i in range(len(layout) - 1, s - 1, -1):
-        if layout.itemAt(i) is not None:
-            if layout.itemAt(i).scroll_area():
-                layout.itemAt(i).scroll_area().setParent(None)
-            else:
-                clear_layout(layout.itemAt(i))
-            layout.removeItem(layout.itemAt(i))
 
 
 def get_scroll_area_widgets_and_layouts(
@@ -128,6 +123,35 @@ def get_scroll_area_widgets_and_layouts(
 
 def set_window_title(window, title):
     window.setWindowTitle(TRANSLATION_HANDLER.tl(title))
+
+
+def set_window_size(window, size):
+    if window.parent() is None:
+        return
+    window_center = window.parent().window().geometry().center()
+    screen = QApplication.instance().screenAt(window_center)
+    if screen is None:
+        return set_window_size(window.parent.window(), size)
+
+    screen_geometry = screen.availableGeometry()
+    window_left = window_center.x() - size.width() // 2
+    window_top = window_center.y() - size.height() // 2
+    space_left = window_center.x() - size.width() // 2 - screen_geometry.x()
+    space_right = screen_geometry.x() + screen_geometry.width() - (window_center.x() + size.width() // 2)
+    space_top = window_center.y() - size.height() // 2 - screen_geometry.y()
+    space_bottom = screen_geometry.y() + screen_geometry.height() - (window_center.y() + size.height() // 2)
+
+    if space_left < 0:
+        window_left -= space_left
+    elif space_right < 0:
+        window_left += space_right
+    if space_top < 40:
+        window_top -= space_top - 40
+    elif space_bottom < 0:
+        window_top += space_bottom
+
+    window.setGeometry(window_left, window_top, 0, 0)
+    window.setFixedSize(size)
 
 
 def set_up_table(table, rows, columns, header_horizontal=None, header_vertical=None, translate=False):
@@ -176,7 +200,6 @@ def size_table(table, rows, row_height, max_width=None, widths=[], header_width=
 def set_fixed_size(widget, size_handler, size, widget_size):
     if widget_size is None:
         return
-    font_size = size_handler.font_sizes[size]
     size_factor = size_handler.widget_size_factor
     if widget_size[0] is not None:
         widget.setFixedWidth(int(widget_size[0] * size_factor))
@@ -230,7 +253,7 @@ def get_button(
     button.setCheckable(checkable)
     button.setEnabled(enabled)
     if connect_function is not None:
-        button.clicked.connect(connect_function)
+        button.clicked[bool].connect(connect_function)
     return button
 
 
@@ -357,6 +380,74 @@ def add_blank_to_table(table, row, column):
     blank_widget = QWidget()
     blank_widget.setObjectName("blank_widget")
     table.setCellWidget(row, column, blank_widget)
+
+
+def add_object_data_to_table(table, row, contents, edits, bolds, aligns, translates):
+    for i, (content, edit, bold, align, translate) in enumerate(zip(contents, edits, bolds, aligns, translates)):
+        add_content_to_table(table, content, row, i, edit=edit, bold=bold, align=align, translate=translate)
+
+
+def add_collection_to_table(table, row, collection, edit=False):
+    if collection is None:
+        contents = ("", "")
+    else:
+        contents = (collection.get_name(), collection.get_object_type())
+    edits = (edit, False)
+    bolds = (True, False)
+    aligns = (None, None)
+    translates = (False, True)
+    add_object_data_to_table(table, row, contents, edits, bolds, aligns, translates)
+
+
+def add_player_to_table(table, row, player, edit=False):
+    if player is None:
+        contents = ("", "", "", "", "", "")
+    else:
+        contents = (
+            player.get_name(), player.get_sex(), player.get_birthday(),
+            player.get_country(), player.get_title(), player.get_rating()
+        )
+    edits = (edit, edit, edit, edit, edit, edit)
+    bolds = (True, False, False, False, False, False)
+    aligns = (None, Qt.AlignCenter, Qt.AlignCenter, Qt.AlignCenter, Qt.AlignCenter, Qt.AlignCenter)
+    translates = (False, False, False, False, False, False)
+    add_object_data_to_table(table, row, contents, edits, bolds, aligns, translates)
+
+
+def add_team_to_table(table, row, team, edit=False):
+    if team is None:
+        contents = ("", "")
+    else:
+        contents = (team.get_name(), team.get_member_count())
+    edits = (edit, False)
+    bolds = (True, False)
+    aligns = (None, Qt.AlignCenter)
+    translates = (False, False)
+    add_object_data_to_table(table, row, contents, edits, bolds, aligns, translates)
+
+
+def add_tournament_to_table(table, row, tournament, edit=False):
+    if tournament is None:
+        contents = ("", "", "")
+    else:
+        contents = (tournament.get_name(), tournament.get_mode(), tournament.get_participant_count())
+    edits = (edit, False, False)
+    bolds = (True, False, False)
+    aligns = (None, None, Qt.AlignCenter)
+    translates = (False, True, False)
+    add_object_data_to_table(table, row, contents, edits, bolds, aligns, translates)
+
+
+def add_ms_tournament_to_table(table, row, ms_tournament, edit=False):
+    if ms_tournament is None:
+        contents = ("", "")
+    else:
+        contents = (ms_tournament.get_name(), ms_tournament.get_participant_count())
+    edits = (edit, False)
+    bolds = (True, False)
+    aligns = (None, Qt.AlignCenter)
+    translates = (False, False)
+    add_object_data_to_table(table, row, contents, edits, bolds, aligns, translates)
 
 
 def clear_table(table):

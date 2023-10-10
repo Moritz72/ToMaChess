@@ -1,22 +1,21 @@
 from math import inf
-from PyQt5.QtWidgets import QMainWindow, QHBoxLayout, QWidget, QTableWidget, QApplication, QHeaderView, QVBoxLayout
-from PyQt5.QtCore import Qt
+from PySide6.QtWidgets import QMainWindow, QHBoxLayout, QWidget, QTableWidget, QApplication, QHeaderView, QVBoxLayout
+from PySide6.QtCore import Qt, QSize
 from .functions_categories import INTEGER_CATEGORIES
 from .functions_gui import get_button, add_button_to_table, add_combobox_to_table, set_up_table, size_table,\
-    add_content_to_table, get_table_value, set_window_title
+    add_content_to_table, get_table_value, set_window_title, set_window_size
 
 
 class Window_Add_Categories(QMainWindow):
 
-    def __init__(self, categories):
-        super().__init__()
+    def __init__(self, categories, parent=None):
+        super().__init__(parent=parent)
         set_window_title(self, "Add Categories")
 
         self.categories = categories
 
         self.widget = QWidget()
-        self.layout = QHBoxLayout()
-        self.widget.setLayout(self.layout)
+        self.layout = QHBoxLayout(self.widget)
         self.setCentralWidget(self.widget)
 
         self.table = QTableWidget()
@@ -27,16 +26,20 @@ class Window_Add_Categories(QMainWindow):
         layout.addWidget(self.table)
         self.layout.addLayout(layout)
 
-        add_row_button = get_button(
+        self.add_row_button = get_button(
             "large", (10, 6), "Add\nCategory", connect_function=self.add_category_row, translate=True
         )
         layout = QVBoxLayout()
         layout.setAlignment(Qt.AlignTop)
-        layout.addWidget(add_row_button)
+        layout.addWidget(self.add_row_button)
         self.layout.addLayout(layout)
+        self.size_window()
 
-        self.setFixedWidth(self.table.maximumWidth() + add_row_button.width())
-        self.setFixedHeight(int(QApplication.primaryScreen().size().height() * .3))
+    def size_window(self):
+        set_window_size(self, QSize(
+            self.table.maximumWidth() + self.add_row_button.width(),
+            int(QApplication.primaryScreen().size().height() * .3)
+        ))
 
     def resize_table(self):
         size_table(self.table, self.table.rowCount(), 3.5, max_width=29.5, widths=[12, 7, 7, 3.5])
@@ -69,9 +72,8 @@ class Window_Add_Categories(QMainWindow):
     def remove_invalid_rows(self):
         for row in range(self.table.rowCount() - 1, -1, -1):
             category, bottom, top = self.get_row_values(row)
-            invalid = bottom == "" == top or (category in INTEGER_CATEGORIES and (
-                    (bottom != "" and not bottom.isdigit()) or (top != "" and not top.isdigit())
-            ))
+            invalid_part = (bottom != "" and not bottom.isdigit()) or (top != "" and not top.isdigit())
+            invalid = bottom == "" == top or (category in INTEGER_CATEGORIES and invalid_part)
             if invalid:
                 self.table.removeRow(row)
         self.resize_table()

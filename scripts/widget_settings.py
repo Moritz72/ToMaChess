@@ -1,6 +1,6 @@
-from PyQt5.QtWidgets import QWidget, QGridLayout, QHBoxLayout
-from PyQt5.QtCore import Qt
-from .class_settings_handler import SETTINGS_DISPLAY, SETTINGS_VALID, SETTINGS_HANDLER
+from PySide6.QtWidgets import QWidget, QGridLayout, QHBoxLayout
+from PySide6.QtCore import Qt
+from .class_settings_handler import SETTINGS_DISPLAY, SETTINGS_HANDLER
 from .functions_gui import get_suitable_widget, get_value_from_suitable_widget, get_button, get_label,\
     get_button_threaded, get_scroll_area_widgets_and_layouts
 from .functions_rating_lists import update_list_by_name
@@ -16,11 +16,10 @@ def get_update_lists_widget(parent):
         connect_function=lambda: update_list_by_name("DSB"), translate=True
     )
     widget = QWidget()
-    layout = QHBoxLayout()
+    layout = QHBoxLayout(widget)
     layout.setContentsMargins(0, 0, 0, 0)
     layout.addWidget(button_fide)
     layout.addWidget(button_dsb)
-    widget.setLayout(layout)
     return widget
 
 
@@ -28,8 +27,7 @@ class Widget_Settings(QWidget):
     def __init__(self, window_main):
         super().__init__()
         self.window_main = window_main
-        self.layout = QHBoxLayout()
-        self.setLayout(self.layout)
+        self.layout = QHBoxLayout(self)
 
         layout = QGridLayout()
         layout.setHorizontalSpacing(50)
@@ -65,8 +63,6 @@ class Widget_Settings(QWidget):
 
     def save_settings(self):
         for i, key in enumerate(SETTINGS_HANDLER.settings):
-            value = get_value_from_suitable_widget(self.layout_inner.itemAtPosition(i, 2).widget())
-            if SETTINGS_VALID[key](value):
-                SETTINGS_HANDLER.settings[key] = value
+            SETTINGS_HANDLER.set(key, get_value_from_suitable_widget(self.layout_inner.itemAtPosition(i, 2).widget()))
         SETTINGS_HANDLER.save()
         self.window_main.reload()

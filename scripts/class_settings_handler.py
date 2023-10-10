@@ -1,6 +1,6 @@
 import os.path
 from json import loads, dumps
-from PyQt5.QtGui import QFontDatabase
+from PySide6.QtGui import QFontDatabase
 from .functions_util import read_file, write_file, get_root_directory
 
 SETTINGS_VALID = {
@@ -20,7 +20,7 @@ SETTINGS_DISPLAY = {
     "pdf_path": "PDF Output Path"
 }
 
-DEFAULT_FONTS = ("MS Shell Dlg 2", "Arial")
+DEFAULT_FONTS = ("Arial",)
 
 
 def get_font_list():
@@ -46,6 +46,10 @@ class Settings_Handler:
     def __init__(self):
         self.settings = None
 
+    def set(self, key, value):
+        if SETTINGS_VALID[key](value):
+            self.settings[key] = value
+
     def save(self):
         write_file(os.path.join(get_root_directory(), "settings.json"), dumps(self.settings))
 
@@ -53,7 +57,9 @@ class Settings_Handler:
         settings_path = os.path.join(get_root_directory(), "settings.json")
         if not os.path.exists(settings_path):
             self.reset()
-        self.settings = get_defaults() | loads(read_file(settings_path))
+        self.settings = get_defaults()
+        for key, value in loads(read_file(settings_path)).items():
+            self.set(key, value)
         self.save()
 
     def reset(self):

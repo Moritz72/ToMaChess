@@ -1,29 +1,30 @@
-from PyQt5.QtWidgets import QWidget, QVBoxLayout, QHeaderView, QComboBox, QTableWidget
-from PyQt5.QtCore import Qt, QTimer, pyqtSignal
+from PySide6.QtWidgets import QWidget, QVBoxLayout, QHeaderView, QComboBox, QTableWidget
+from PySide6.QtCore import Qt, QTimer, Signal
 from .functions_gui import add_content_to_table, add_button_to_table, add_combobox_to_table, clear_table,\
     set_up_table, size_table, add_blank_to_table
 
 
 class Widget_Tournament_Round(QWidget):
-    confirmed_pairings = pyqtSignal()
-    confirmed_results = pyqtSignal()
+    confirmed_pairings = Signal()
+    confirmed_results = Signal()
 
-    def __init__(self, results, uuid_to_participant_dict, possible_scores, is_valid_pairings, headers=("", "")):
+    def __init__(
+            self, results, uuid_to_participant_dict, drop_outs, possible_scores, is_valid_pairings, headers=("", "")
+    ):
         super().__init__()
         self.results = results
         self.uuid_to_participant_dict = uuid_to_participant_dict | {None: None}
+        self.drop_outs = drop_outs
         self.possible_scores = possible_scores
         self.is_valid_pairings = is_valid_pairings
         self.headers = headers
 
-        self.layout = QVBoxLayout()
+        self.layout = QVBoxLayout(self)
         self.layout.setAlignment(Qt.AlignCenter | Qt.AlignTop)
-        self.setLayout(self.layout)
 
         self.table = QTableWidget()
         self.fill_in_table()
         self.layout.addWidget(self.table)
-
         self.setMaximumHeight(
             self.table.maximumHeight() + self.layout.contentsMargins().top() + self.layout.contentsMargins().bottom()
         )
@@ -103,22 +104,29 @@ class Widget_Tournament_Round(QWidget):
         choose_pairing, choose_result = False, False
 
         for i, ((uuid_1, score_1), (uuid_2, score_2)) in enumerate(self.results):
-            if not isinstance(uuid_1, (list, tuple)):
+            if isinstance(uuid_1, (str, type(None))):
                 uuid_1 = [uuid_1]
-            if not isinstance(uuid_2, (list, tuple)):
+            if isinstance(uuid_2, (str, type(None))):
                 uuid_2 = [uuid_2]
+
+            scores_to_enter = score_1 is None or score_2 is None
+            forfeit_1 = len(uuid_1) == 1 and (uuid_1[0] is None or uuid_1[0] in self.drop_outs)
+            forfeit_2 = len(uuid_2) == 1 and (uuid_2[0] is None or uuid_2[0] in self.drop_outs)
             participant_1 = [self.uuid_to_participant_dict[uuid] for uuid in uuid_1]
             participant_2 = [self.uuid_to_participant_dict[uuid] for uuid in uuid_2]
+
             if len(participant_1 + participant_2) > 2:
                 choose_pairing = True
-            if participant_1 == [None] and participant_2 == [None]:
-                score_1, score_2 = '-', '-'
-            elif participant_1 == [None]:
-                score_1, score_2 = '-', '+'
-            elif participant_2 == [None]:
-                score_1, score_2 = '+', '-'
-            else:
-                choose_result = True
+            match (scores_to_enter, forfeit_1, forfeit_2):
+                case (True, True, True):
+                    score_1, score_2 = '-', '-'
+                case (True, True, False):
+                    score_1, score_2 = '-', '+'
+                case (True, False, True):
+                    score_1, score_2 = '+', '-'
+                case (True, False, False):
+                    choose_result = True
+
             self.add_pairing_row(i, participant_1, participant_2, score_1, score_2)
 
         return choose_pairing, choose_result

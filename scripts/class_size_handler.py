@@ -1,4 +1,4 @@
-from PyQt5.QtWidgets import QApplication
+from PySide6.QtWidgets import QApplication
 from .class_settings_handler import SETTINGS_HANDLER
 
 
