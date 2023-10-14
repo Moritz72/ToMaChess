@@ -15,6 +15,7 @@ class Tournament_Round_Robin_Team(Tournament_Round_Robin):
         self.mode = "Round Robin (Team)"
         self.parameters = {
             "boards": 8,
+            "enforce_lineups": True,
             "cycles": 1,
             "pairing_method": ["Cycle", "Berger"],
             "choose_seating": False,
@@ -27,6 +28,7 @@ class Tournament_Round_Robin_Team(Tournament_Round_Robin):
         } | self.parameters
         self.parameter_display = {
             "boards": "Boards",
+            "enforce_lineups": "Enforce Lineups",
             "cycles": "Cycles",
             "pairing_method": "Pairing Method",
             "choose_seating": None,

@@ -224,12 +224,16 @@ class Tournament:
         return all(uuid_1 != uuid_2 for (uuid_1, _), (uuid_2, _) in results if (uuid_1, uuid_2) != (None, None))
 
     def is_valid_pairings_match(self, team_uuids, results_match):
-        if self.is_team_tournament():
-            team_member_lists = tuple(
-                None if uuid is None
-                else list(self.get_uuid_to_participant_dict()[uuid].get_uuid_to_member_dict()) for uuid in team_uuids
-            )
-            return is_valid_team_seatings(team_uuids, team_member_lists, results_match)
+        if not self.is_team_tournament():
+            return
+        if not self.get_parameter("enforce_lineups"):
+            uuids_no_none = tuple(uuid for uuid in team_uuids if uuid is not None)
+            return len(set(uuids_no_none)) == len(uuids_no_none)
+        participant_dict = self.get_uuid_to_participant_dict()
+        team_member_lists = tuple(
+            None if uuid is None else list(participant_dict[uuid].get_uuid_to_member_dict()) for uuid in team_uuids
+        )
+        return is_valid_team_seatings(team_uuids, team_member_lists, results_match)
 
     @staticmethod
     def is_done():

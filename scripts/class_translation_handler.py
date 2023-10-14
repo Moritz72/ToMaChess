@@ -1,5 +1,7 @@
+import os.path
 import gettext
 from .class_settings_handler import SETTINGS_HANDLER
+from .functions_util import get_root_directory
 
 
 class Translation_Handler:
@@ -8,8 +10,9 @@ class Translation_Handler:
 
     def refresh(self):
         self.language = SETTINGS_HANDLER.settings["language"][0]
-        self.translation = gettext.translation("base", "locales", languages=[self.language])
-        self.translation_shortened = gettext.translation("short", "locales", languages=[self.language])
+        locales_path = os.path.join(get_root_directory(), "locales")
+        self.translation = gettext.translation("base", locales_path, languages=[self.language])
+        self.translation_shortened = gettext.translation("short", locales_path, languages=[self.language])
 
     def tl(self, text, short=False, insert=None):
         if isinstance(text, str):

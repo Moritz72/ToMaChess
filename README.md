@@ -13,7 +13,7 @@ Parameters: *Rounds*, *Pairings (First Round)*, *Top Seed (First Round)*, *Point
 *Round Robin* pairs the rounds by the Circle or Berger method.  
 Parameters: *Cycles*, *Pairing Method*, *Choose Seating*, *Point System* and *Tiebreak (1) - (4)*.  
   
-*Knockout* (Single-elimination) pairs rounds by the specified pairing method but, in succesive rounds, only pairs the winners of the previous round. Furthermore, if there is a tie after the number of games specified, the specified number of tiebreak games will be played until either the tie is resolved or the number of tiebreaks specified in the Armageddon parameter is reached.  
+*Knockout* (Single-elimination) pairs rounds by the specified pairing method but, in successive rounds, only pairs the winners of the previous round. Furthermore, if there is a tie after the number of games specified, the specified number of tiebreak games will be played until either the tie is resolved or the number of tiebreaks specified in the Armageddon parameter is reached.  
 Parameters *Games per Match*, *Games per Tiebreak*, *Pairing Method* and *Armageddon*.  
   
 *Custom* does not pair by itself at all, instead the user can manually pair all games of all rounds.  
@@ -27,8 +27,8 @@ The available tiebreak criteria are
 - *Games as black*  
 - *Wins as black*  
 - *Wins* (with additional parameter *Include Forfeits*)  
-- *Average Rating* (with additional parameters *Cut (bottom)*, *Cut (top)*)  
-- *Cumulative Score* (with additional parameters *Cut (bottom)*, *Cut (top)*)  
+- *Average Rating* (with additional parameters *Cut (bottom)* and *Cut (top)*)  
+- *Cumulative Score* (with additional parameters *Cut (bottom)* and *Cut (top)*)  
 - *Direct Encounter*  
   
 ### Armageddon  
@@ -38,10 +38,10 @@ For the *Armageddon* parameter the user can specify additional parameters *With 
 Players can be manually added. Additionally, one can use the FIDE Standard rating list as well as the German national rating list after creating them by clicking the corresponding buttons in the settings.  
   
 ## Teams  
-Teams are ordered sets of players. One can add players to a team, remove players from a team an change the lineup.  
+Teams are ordered sets of players. One can add players to a team, remove players from a team and change the lineup.  
   
 ### Team Tournaments  
-Team tournaments work like regular tournaments, except for some restrictions and changes e.g. for tiebreaks or Armageddon.  
+Team tournaments work much like regular tournaments, except for some restrictions and changes e.g. for tiebreaks or Armageddon.  
   
 There is an additional parameter *Boards* which specifies on how many boards the matches are played and there are two tiebreak criteria exclusive to team tournaments: *Board Points* and *Berliner Wertung*.  
   
@@ -63,4 +63,4 @@ If the option *Draw Lots in Case of Tie* is disabled, it is also possible to cre
 - *PDF Output Path*  
   
 ## License  
-This project is licensed under the [GPLv3](https://www.gnu.org/licenses/gpl-3.0.de.html).  
+This project is licensed under the [GPLv3](https://www.gnu.org/licenses/gpl-3.0.html).  

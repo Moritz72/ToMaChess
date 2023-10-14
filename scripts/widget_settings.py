@@ -1,6 +1,7 @@
-from PySide6.QtWidgets import QWidget, QGridLayout, QHBoxLayout
+from PySide6.QtWidgets import QWidget, QGridLayout, QVBoxLayout, QHBoxLayout
 from PySide6.QtCore import Qt
 from .class_settings_handler import SETTINGS_DISPLAY, SETTINGS_HANDLER
+from .functions_util import get_version
 from .functions_gui import get_suitable_widget, get_value_from_suitable_widget, get_button, get_label,\
     get_button_threaded, get_scroll_area_widgets_and_layouts
 from .functions_rating_lists import update_list_by_name
@@ -27,7 +28,8 @@ class Widget_Settings(QWidget):
     def __init__(self, window_main):
         super().__init__()
         self.window_main = window_main
-        self.layout = QHBoxLayout(self)
+        self.layout = QVBoxLayout(self)
+        self.set_header()
 
         layout = QGridLayout()
         layout.setHorizontalSpacing(50)
@@ -40,6 +42,16 @@ class Widget_Settings(QWidget):
             self.layout, layout_inner=layout, horizontal_bar=True
         )
         self.fill_in_layout()
+
+    def set_header(self):
+        version = get_version()
+        if version is None:
+            text = "ToMaChess"
+        else:
+            text = f"ToMaChess {version}"
+        header = get_label(text, "extra_large", bold=True)
+        header.setAlignment(Qt.AlignCenter)
+        self.layout.addWidget(header)
 
     def fill_in_layout(self):
         settings = SETTINGS_HANDLER.settings

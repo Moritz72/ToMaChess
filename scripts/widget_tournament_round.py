@@ -51,14 +51,14 @@ class Widget_Tournament_Round(QWidget):
     def add_pairing_row_result(self, row, column, score_1, score_2, choose_pairing):
         if score_1 is not None and score_2 is not None:
             add_content_to_table(
-                self.table, f"{score_1}:{score_2}", row, column, edit=False, align=Qt.AlignCenter, bold=True
+                self.table, f"{score_1} : {score_2}", row, column, edit=False, align=Qt.AlignCenter, bold=True
             )
         elif choose_pairing:
             add_content_to_table(self.table, f":", row, column, edit=False, align=Qt.AlignCenter, bold=True)
         else:
             add_combobox_to_table(
-                self.table, [" : "] + [":".join(score) for score in self.possible_scores],
-                row, column, "medium", None, down_arrow=False
+                self.table, [" : "] + [" : ".join(score) for score in self.possible_scores],
+                row, column, "medium", None, down_arrow=False, bold=True, align=Qt.AlignCenter
             )
 
     def add_pairing_row(self, row, participant_1, participant_2, score_1=None, score_2=None):
@@ -149,10 +149,10 @@ class Widget_Tournament_Round(QWidget):
 
     def enter_score_in_results(self, row):
         if self.table.cellWidget(row, 2) is None:
-            score_1, score_2 = self.table.item(row, 2).text().split(':')
+            score_1, score_2 = self.table.item(row, 2).text().split(' : ')
         else:
-            score_1, score_2 = self.table.cellWidget(row, 2).currentText().split(':')
-        if score_1 == " " or score_2 == " ":
+            score_1, score_2 = self.table.cellWidget(row, 2).currentText().split(' : ')
+        if not score_1 or not score_2:
             return False
         self.enter_data_in_results(row, 0, 1, score_1)
         self.enter_data_in_results(row, 1, 1, score_2)

@@ -1,4 +1,4 @@
-from PySide6.QtWidgets import QMainWindow, QHBoxLayout, QWidget, QTableWidget, QApplication, QHeaderView, QVBoxLayout
+from PySide6.QtWidgets import QMainWindow, QHBoxLayout, QWidget, QTableWidget, QHeaderView, QVBoxLayout
 from PySide6.QtCore import Qt, Signal, QSize
 from .functions_gui import get_button, add_button_to_table, add_combobox_to_table, set_up_table, size_table,\
     set_window_title, set_window_size
@@ -37,9 +37,7 @@ class Window_Advance_Participants(QMainWindow):
         layout.addWidget(add_row_button)
         self.layout.addLayout(layout)
 
-        set_window_size(self, QSize(
-            self.table.maximumWidth() + add_row_button.width(), int(QApplication.primaryScreen().size().height() * .5)
-        ))
+        set_window_size(self, QSize(self.table.maximumWidth() + add_row_button.width(), 0), factor_y=.5)
 
     def resize_table(self):
         size_table(self.table, self.table.rowCount(), 3.5, max_width=30, widths=[None, 8, 3.5])

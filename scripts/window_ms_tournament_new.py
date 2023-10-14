@@ -1,4 +1,4 @@
-from PySide6.QtWidgets import QMainWindow, QHBoxLayout, QApplication, QWidget, QVBoxLayout
+from PySide6.QtWidgets import QMainWindow, QHBoxLayout, QWidget, QVBoxLayout
 from PySide6.QtCore import Qt, Signal, QSize
 from .class_ms_tournament import MS_Tournament
 from .widget_ms_tournament_stage_new import Widget_MS_Tournament_Stage_New
@@ -29,10 +29,9 @@ class Window_MS_Tournament_New(QMainWindow):
         self.add_stage()
         self.add_stage()
 
-        set_window_size(self, QSize(
-            int(QApplication.primaryScreen().size().height() * .8),
-            int(QApplication.primaryScreen().size().height() * .8)
-        ))
+        set_window_size(self, QSize(0, 0), factor_y=.8)
+        self.setFixedWidth(self.height())
+        self.move(self.pos().x() - self.width() // 2, self.pos().y())
 
     def add_top_line(self):
         name_label = get_label("Name", "large", translate=True)

@@ -33,6 +33,7 @@ class Tournament_Knockout_Team(Tournament_Knockout):
         self.mode = "Knockout (Team)"
         self.parameters = {
             "boards": 8,
+            "enforce_lineups": True,
             "games": 1,
             "games_per_tiebreak": 1,
             "pairing_method": ["Slide", "Fold", "Adjacent", "Random"],
@@ -40,6 +41,7 @@ class Tournament_Knockout_Team(Tournament_Knockout):
         } | self.parameters
         self.parameter_display = {
             "boards": "Boards",
+            "enforce_lineups": "Enforce Lineups",
             "games": "Games per Match",
             "games_per_tiebreak": None,
             "pairing_method": "Pairing Method",

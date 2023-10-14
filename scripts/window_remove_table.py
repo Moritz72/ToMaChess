@@ -1,4 +1,4 @@
-from PySide6.QtWidgets import QMainWindow, QApplication, QTableWidget, QHeaderView
+from PySide6.QtWidgets import QMainWindow, QTableWidget, QHeaderView
 from PySide6.QtCore import Qt, Signal, QSize
 from .functions_player import PLAYER_ATTRIBUTE_LIST
 from .functions_team import TEAM_ATTRIBUTE_LIST
@@ -86,7 +86,7 @@ class Window_Remove_Table(QMainWindow):
         self.table = TYPE_TO_WIDGET[object_type](objects)
         self.setCentralWidget(self.table)
 
-        set_window_size(self, QSize(self.table.maximumWidth(), int(QApplication.primaryScreen().size().height() * .8)))
+        set_window_size(self, QSize(self.table.maximumWidth(), 0), factor_y=.8)
 
     def get_removed_objects(self):
         return self.table.removed_objects

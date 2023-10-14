@@ -168,12 +168,12 @@ class Tournament_Knockout(Tournament):
         participant_standings = self.get_variable("participant_standings")
 
         uuids = get_uuids_in_current_level(participant_standings)
-        if len(uuids) & (len(uuids) - 1):
-            through = 2 * (1 << (len(uuids).bit_length() - 1)) - len(uuids)
-            uuids = uuids[through:]
-
         score_sum = sum(participant_standings[uuid]["score"][0] for uuid in uuids) / len(uuids)
         pairing_method = self.get_parameter("pairing_method")[0]
+
+        if score_sum == 0 and (len(uuids) & (len(uuids) - 1)):
+            through = 2 * (1 << (len(uuids).bit_length() - 1)) - len(uuids)
+            uuids = uuids[through:]
 
         if score_sum == 0 and pairing_method == "Custom":
             pairings = int(len(uuids) / 2) * [(uuids, uuids)]

@@ -1,4 +1,4 @@
-from PySide6.QtWidgets import QMainWindow, QHeaderView, QApplication
+from PySide6.QtWidgets import QMainWindow, QHeaderView
 from PySide6.QtCore import Qt, Signal, QSize
 from .table_widget_search import Table_Widget_Search
 from .widget_default_generic import Widget_Default_Generic
@@ -108,9 +108,7 @@ class Window_Choice_Table(QMainWindow):
         self.size_window()
 
     def size_window(self):
-        set_window_size(self, QSize(
-            self.widget.table.maximumWidth() + 120, int(QApplication.primaryScreen().size().height() * .8)
-        ))
+        set_window_size(self, QSize(self.widget.table.maximumWidth() + 120, 0), factor_y=.8)
 
     def get_checked_uuids(self):
         return self.widget.checked_uuids

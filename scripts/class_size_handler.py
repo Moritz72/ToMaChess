@@ -7,7 +7,7 @@ def get_dp():
 
 
 def get_font_sizes(font_size):
-    return {"medium": font_size, "large": int(font_size * 1.2)}
+    return {"medium": font_size, "large": int(font_size * 1.2), "extra_large": int(font_size * 1.5)}
 
 
 def get_widget_size_factor(font_size, dp):

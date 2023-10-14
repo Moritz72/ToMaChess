@@ -15,6 +15,7 @@ class Tournament_Swiss_Team(Tournament_Swiss):
         self.mode = "Swiss (Team)"
         self.parameters = {
             "boards": 8,
+            "enforce_lineups": True,
             "rounds": 5,
             "pairing_method_first_round": ["Slide", "Fold", "Adjacent", "Random"],
             "top_seed_color_first_round": ["White", "Black", "Random"],
@@ -27,6 +28,7 @@ class Tournament_Swiss_Team(Tournament_Swiss):
         } | self.parameters
         self.parameter_display = {
             "boards": "Boards",
+            "enforce_lineups": "Enforce Lineups",
             "rounds": "Rounds",
             "pairing_method_first_round": "Pairings (First Round)",
             "top_seed_color_first_round": None,

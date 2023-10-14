@@ -10,7 +10,7 @@ pip install -r requirements.txt
 
 call deactivate
 
-python -m PyInstaller --paths venv\lib\site-packages --icon=build_from_source\logo.ico --noconsole --runtime-hook=build_from_source\use_lib.py ToMaChess.py
+python -m PyInstaller --paths venv\lib\site-packages --icon=build_from_source\resources\logo.ico --noconsole --runtime-hook=build_from_source\resources\use_lib.py ToMaChess.py
 
 python -m PyInstaller --clean -y ToMaChess.spec
 
@@ -81,13 +81,13 @@ for %%F in (
 	xcopy "%%F" "dist/ToMaChess/%%F" /E /I /H /K /Y
 )
 
-xcopy "LICENSE" "dist/ToMaChess\"
+xcopy "LICENSE" "dist/ToMaChess"
+
+xcopy /s "build_from_source/include_files" "dist/ToMaChess"
 
 move "dist/ToMaChess" "build_from_source/"
 
-rmdir \s \q dist
-
-xcopy "build_from_source/licenses" "build_from_source/ToMaChess/licenses" /E /I /H /K /Y
+rd "dist"
 
 echo.
 echo Executable built successfully!

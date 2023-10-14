@@ -1,4 +1,4 @@
-from PySide6.QtWidgets import QMainWindow, QHeaderView, QApplication
+from PySide6.QtWidgets import QMainWindow, QHeaderView
 from PySide6.QtCore import Qt, Signal, QSize
 from .table_widget_drag import Table_Widget_Drag
 from .functions_player import PLAYER_ATTRIBUTE_LIST
@@ -19,7 +19,7 @@ class Window_Line_Up(QMainWindow):
         self.fill_in_table()
         self.setCentralWidget(self.table)
 
-        set_window_size(self, QSize(self.table.maximumWidth(), int(QApplication.primaryScreen().size().height() * .8)))
+        set_window_size(self, QSize(self.table.maximumWidth(), 0), factor_y=.8)
 
     def add_row(self, row, obj):
         add_player_to_table(self.table, row, obj)

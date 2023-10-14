@@ -1,5 +1,5 @@
 from math import inf
-from PySide6.QtWidgets import QMainWindow, QHBoxLayout, QWidget, QTableWidget, QApplication, QHeaderView, QVBoxLayout
+from PySide6.QtWidgets import QMainWindow, QHBoxLayout, QWidget, QTableWidget, QHeaderView, QVBoxLayout
 from PySide6.QtCore import Qt, QSize
 from .functions_categories import INTEGER_CATEGORIES
 from .functions_gui import get_button, add_button_to_table, add_combobox_to_table, set_up_table, size_table,\
@@ -36,10 +36,7 @@ class Window_Add_Categories(QMainWindow):
         self.size_window()
 
     def size_window(self):
-        set_window_size(self, QSize(
-            self.table.maximumWidth() + self.add_row_button.width(),
-            int(QApplication.primaryScreen().size().height() * .3)
-        ))
+        set_window_size(self, QSize(self.table.maximumWidth() + self.add_row_button.width(), 0), factor_y=.3)
 
     def resize_table(self):
         size_table(self.table, self.table.rowCount(), 3.5, max_width=29.5, widths=[12, 7, 7, 3.5])

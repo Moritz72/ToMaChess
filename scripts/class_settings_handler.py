@@ -6,7 +6,7 @@ from .functions_util import read_file, write_file, get_root_directory
 SETTINGS_VALID = {
     "language": lambda x: True,
     "style": lambda x: True,
-    "font": lambda x: True,
+    "font": lambda x: x[0] in get_font_list(),
     "font_size": lambda x: 2 < x < 40,
     "bbp_path": lambda x: os.path.exists(os.path.join(x, "bbpPairings.exe")),
     "pdf_path": lambda x: os.path.exists(x) or x == ""
@@ -20,7 +20,7 @@ SETTINGS_DISPLAY = {
     "pdf_path": "PDF Output Path"
 }
 
-DEFAULT_FONTS = ("Arial",)
+DEFAULT_FONTS = ("Carlito", "Arial")
 
 
 def get_font_list():

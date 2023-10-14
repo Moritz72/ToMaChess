@@ -1,10 +1,54 @@
 from PySide6.QtWidgets import QComboBox, QLineEdit, QCheckBox, QSpinBox, QTableWidgetItem, QPushButton, QLabel, \
     QScrollArea, QMainWindow, QVBoxLayout, QWidget, QHeaderView, QApplication, QSizePolicy, QStyledItemDelegate
-from PySide6.QtCore import Qt, QThread, Signal
+from PySide6.QtCore import Qt, QThread, Signal, QTimer
 from PySide6.QtGui import QFont
 from .class_size_handler import SIZE_HANDLER
 from .class_settings_handler import SETTINGS_HANDLER
 from .class_translation_handler import TRANSLATION_HANDLER
+
+
+class Combo_Box_Editable(QComboBox):
+    def __init__(self):
+        super().__init__()
+        self.setEditable(True)
+        self.setLineEdit(Combo_Box_Editable_Line_Edit())
+        self.lineEdit().setReadOnly(True)
+        self.timer = QTimer()
+        self.timer.timeout.connect(self.time_up)
+        self.timer.start(20)
+
+    def set_alignment(self, alignment):
+        self.lineEdit().setAlignment(alignment)
+
+    def showPopup(self):
+        if not self.timer.isActive():
+            super().showPopup()
+
+    def hidePopup(self):
+        self.timer.start(20)
+        super().hidePopup()
+
+    def time_up(self):
+        self.timer.stop()
+
+
+class Combo_Box_Editable_Line_Edit(QLineEdit):
+    def mousePressEvent(self, event):
+        self.parent().showPopup()
+
+    def mouseDoubleClickEvent(self, event):
+        pass
+
+
+class Align_Delegate(QStyledItemDelegate):
+    def __init__(self, parent=None, align=None):
+        super().__init__(parent)
+        self.align = align
+
+    def initStyleOption(self, option, index):
+        super().initStyleOption(option, index)
+        if self.align is not None:
+            option.displayAlignment = self.align
 
 
 class Function_Worker(QThread):
@@ -121,19 +165,23 @@ def get_scroll_area_widgets_and_layouts(
     return scroll_area, widget_inner, layout_inner
 
 
+def get_screen(window):
+    if window.parent() is None:
+        return QApplication.primaryScreen()
+    window_center = window.parent().window().geometry().center()
+    screen = QApplication.instance().screenAt(window_center)
+    if screen is None:
+        return window.parent().window()
+    return screen
+
+
 def set_window_title(window, title):
     window.setWindowTitle(TRANSLATION_HANDLER.tl(title))
 
 
-def set_window_size(window, size):
-    if window.parent() is None:
-        return
+def set_window_size_absolute(window, size):
+    screen_geometry = get_screen(window).availableGeometry()
     window_center = window.parent().window().geometry().center()
-    screen = QApplication.instance().screenAt(window_center)
-    if screen is None:
-        return set_window_size(window.parent.window(), size)
-
-    screen_geometry = screen.availableGeometry()
     window_left = window_center.x() - size.width() // 2
     window_top = window_center.y() - size.height() // 2
     space_left = window_center.x() - size.width() // 2 - screen_geometry.x()
@@ -152,6 +200,15 @@ def set_window_size(window, size):
 
     window.setGeometry(window_left, window_top, 0, 0)
     window.setFixedSize(size)
+
+
+def set_window_size(window, size, factor_x=None, factor_y=None):
+    screen_geometry = get_screen(window).availableGeometry()
+    if factor_x is not None:
+        size.setWidth(int(factor_x * screen_geometry.width()))
+    if factor_y is not None:
+        size.setHeight(int(factor_y * screen_geometry.height()))
+    set_window_size_absolute(window, size)
 
 
 def set_up_table(table, rows, columns, header_horizontal=None, header_vertical=None, translate=False):
@@ -321,9 +378,14 @@ def get_spin_box(value, size, widget_size, bold=False, align=None):
     return spin_box
 
 
-def get_combo_box(choices, size, widget_size, current=None, bold=False, down_arrow=True, translate=False):
-    combo_box = QComboBox()
-    combo_box.setItemDelegate(QStyledItemDelegate(combo_box))
+def get_combo_box(choices, size, widget_size, current=None, bold=False, align=None, down_arrow=True, translate=False):
+    if align is None:
+        combo_box = QComboBox()
+    else:
+        combo_box = Combo_Box_Editable()
+        combo_box.set_alignment(align)
+        set_font(combo_box.lineEdit(), SIZE_HANDLER, size, bold)
+    combo_box.setItemDelegate(Align_Delegate(combo_box, align))
     if down_arrow:
         combo_box.setStyleSheet(
             "QComboBox::drop-down {width: " + str(1.3 * SIZE_HANDLER.font_sizes[size]) + "px;}"
@@ -333,7 +395,10 @@ def get_combo_box(choices, size, widget_size, current=None, bold=False, down_arr
             "}"
         )
     else:
-        combo_box.setStyleSheet("QComboBox::drop-down {width: 0px;} QComboBox::down-arrow {width: 0px;}")
+        combo_box.setStyleSheet(
+            "QComboBox {padding-left: 0px; padding-right: 0px;}"
+            "QComboBox::drop-down {width: 0px;} QComboBox::down-arrow {width: 0px;}"
+        )
     set_fixed_size(combo_box, SIZE_HANDLER, size, widget_size)
     set_font(combo_box, SIZE_HANDLER, size, bold)
     for i, choice in enumerate(choices):
@@ -370,9 +435,10 @@ def add_button_to_table(
 
 
 def add_combobox_to_table(
-        table, choices, row, column, size, widget_size, current=None, bold=False, down_arrow=True, translate=False
+        table, choices, row, column, size, widget_size,
+        current=None, bold=False, align=None, down_arrow=True, translate=False
 ):
-    combobox = get_combo_box(choices, size, widget_size, current, bold, down_arrow, translate)
+    combobox = get_combo_box(choices, size, widget_size, current, bold, align, down_arrow, translate)
     table.setCellWidget(row, column, combobox)
 
 

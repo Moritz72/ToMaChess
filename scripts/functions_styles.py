@@ -1,10 +1,11 @@
+import os.path
 from PySide6.QtWidgets import QApplication
 from PySide6.QtCore import QFile, QTextStream
 from .functions_util import get_root_directory
 
 
 def get_stylesheet(stylesheet):
-    return QFile(f"{get_root_directory()}/styles/{stylesheet}")
+    return QFile(os.path.join(get_root_directory(), "styles", stylesheet))
 
 
 def set_stylesheet(stylesheet):

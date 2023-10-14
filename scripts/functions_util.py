@@ -21,6 +21,24 @@ def get_root_directory():
     return os.path.abspath(os.path.join(os.path.dirname(os.path.abspath(__file__)), os.pardir))
 
 
+def get_readme_text():
+    readme = os.path.join(get_root_directory(), "README.txt")
+    if not os.path.exists(readme):
+        return ""
+    return read_file(readme)
+
+
+def get_version():
+    readme = os.path.join(get_root_directory(), "README.txt")
+    if not os.path.exists(readme):
+        return None
+    with open(readme) as file:
+        first_line = file.readline().rstrip()
+        if len(first_line) > 10 and first_line[:10] == "ToMaChess ":
+            return first_line[10:]
+        return None
+
+
 def get_image(name):
     return os.path.join(get_root_directory(), "images", name)
 
