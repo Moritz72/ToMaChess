@@ -42,7 +42,6 @@ for %%F in ("dist\ToMaChess\*") do (
                 dist\ToMaChess\VCRUNTIME140_1.dll
 	) do (
 		if "%%F" == "%%E" (
-                        attrib +h %%F
 			set "excludeFile=true"
 		)
 	)
@@ -54,13 +53,13 @@ for %%F in ("dist\ToMaChess\*") do (
 for /D %%F in ("dist\ToMaChess\*") do (
 	set "excludeFile="
 	for %%E in (
+                dist\ToMaChess\certifi
 		dist\ToMaChess\lib
 		dist\ToMaChess\PIL
 		dist\ToMaChess\PySide6
 		dist\ToMaChess\shiboken6
 	) do (
 		if "%%F" == "%%E" (
-                        attrib +h %%F
 			set "excludeFile=true"
 		)
 	)
@@ -69,14 +68,12 @@ for /D %%F in ("dist\ToMaChess\*") do (
 	)
 )
 
-attrib -h "dist/ToMaChess/ToMaChess.exe"
-
 for %%F in (
 	bbp
-	certificates
 	images
 	locales
 	styles
+        css
 ) do (
 	xcopy "%%F" "dist/ToMaChess/%%F" /E /I /H /K /Y
 )

@@ -1,0 +1,42 @@
+h2 {
+    text-align: center;
+}
+table {
+    border-collapse: collapse;
+    margin: 0 auto;
+}
+table, th, td {
+    border: 1px solid black;
+}
+th, td {
+    padding: 10px;
+    text-align: center;
+}
+th {
+    background-color: #dddddd;
+}
+caption {
+    text-align: left;
+	font-weight: bold;
+	margin-left: 5px;
+	margin-bottom: 5px;
+}
+.board {
+    text-align: center;
+	font-weight: bold;
+    background-color: #eeeeee;
+}
+.player_1 {
+    text-align: left;
+    padding-right: 30px;
+}
+.player_2 {
+    text-align: right;
+    padding-left: 30px;
+}
+.result {
+    text-align: center;
+    font-weight: bold;
+    padding-left: 25px;
+    padding-right: 25px;
+}

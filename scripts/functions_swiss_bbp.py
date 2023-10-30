@@ -1,7 +1,8 @@
+import os
 import os.path
 from subprocess import run
 from .class_settings_handler import SETTINGS_HANDLER
-from .functions_util import read_file, write_file
+from .functions_util import read_file, write_file, get_app_data_directory
 
 
 def get_data_from_player_results(players, results, drop_outs):
@@ -62,7 +63,10 @@ def write_input_file(player_ratings, player_results, rounds, score_dict, bbp_dir
     lines += f"BBF  {float(score_dict['-'])}\r\n"
     lines += f"BBU  {float(score_dict['+'])}\r\n"
 
-    write_file(os.path.join(bbp_directory, "input.txt"), lines)
+    path = os.path.join(get_app_data_directory(), "temp")
+    if not os.path.exists(path):
+        os.mkdir(path)
+    write_file(os.path.join(path, "bbp_input.txt"), lines)
 
 
 def process_pairings(pairings_raw, players):
@@ -74,16 +78,16 @@ def process_pairings(pairings_raw, players):
 
 
 def get_pairings_bbp(players, results, rounds, score_dict, drop_outs):
-    bbp_directory = SETTINGS_HANDLER.settings["bbp_path"]
+    bbp_directory = SETTINGS_HANDLER.get("bbp_path")
     player_ratings, player_results = get_data_from_player_results(players, results, drop_outs)
     write_input_file(player_ratings, player_results, rounds, score_dict, bbp_directory)
     path_bbp = os.path.join(bbp_directory, "bbpPairings.exe")
-    path_input = os.path.join(bbp_directory, "input.txt")
-    path_output = os.path.join(bbp_directory, "output.txt")
+    path_input = os.path.join(get_app_data_directory(), "temp", "bbp_input.txt")
+    path_output = os.path.join(get_app_data_directory(), "temp", "bbp_output.txt")
 
     try:
-        run([path_bbp, "--dutch", path_input, "-p", path_output], check=True)
+        run([path_bbp, "--dutch", path_input, "-p", path_output], check=True, shell=True)
     except:
         return
-    pairings_raw = read_file(os.path.join(bbp_directory, "output.txt"))
+    pairings_raw = read_file(path_output)
     return process_pairings(pairings_raw, players)

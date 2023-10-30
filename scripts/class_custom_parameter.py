@@ -30,3 +30,7 @@ class Custom_Parameter:
     @abstractmethod
     def is_valid(self):
         pass
+
+    @abstractmethod
+    def get_display_status(self):
+        pass

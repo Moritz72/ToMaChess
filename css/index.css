@@ -1,0 +1,34 @@
+body {
+    text-align: center;
+}
+h2 {
+    text-align: center;
+}
+.table-info {
+    border-collapse: collapse;
+    margin: 0 auto;
+}
+.table-info td {
+    border: 0px;
+	padding: 5px;
+	padding-left: 10px;
+    text-align: left;
+}
+.table-links {
+    border-collapse: collapse;
+    margin: 0 auto;
+}
+.table-links th, .table-links td {
+    border: 1px solid black;
+	padding: 5px;
+    text-align: left;
+}
+.table-links th {
+    background-color: #dddddd;
+}
+.bold {
+    font-weight: bold;
+}
+.large {
+    font-size: 200%;
+}

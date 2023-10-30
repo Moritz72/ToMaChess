@@ -96,3 +96,6 @@ class Tiebreak(Custom_Parameter):
         func_args = self.args.copy() | args
         func = TIEBREAKS[func_args.pop("functions")[0]]
         return func(**{key: value for key, value in func_args.items() if key in getfullargspec(func).args})
+
+    def get_display_status(self):
+        return self.args["functions"][0]

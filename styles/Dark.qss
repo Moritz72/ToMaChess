@@ -18,6 +18,14 @@ QPushButton, QLineEdit, QAbstractSpinBox, QComboBox, QAbstractSpinBox:up-button,
   border: 1px solid #404040;
 }
 
+QLineEdit#positive {
+  border: 2px solid #006000;
+}
+
+QLineEdit#negative {
+  border: 2px solid #600000;
+}
+
 QSplitter::handle, QMainWindow::separator {
   background-color: #404040;
 }

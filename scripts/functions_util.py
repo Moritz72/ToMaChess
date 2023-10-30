@@ -21,11 +21,8 @@ def get_root_directory():
     return os.path.abspath(os.path.join(os.path.dirname(os.path.abspath(__file__)), os.pardir))
 
 
-def get_readme_text():
-    readme = os.path.join(get_root_directory(), "README.txt")
-    if not os.path.exists(readme):
-        return ""
-    return read_file(readme)
+def get_app_data_directory():
+    return os.path.join(os.getenv("APPDATA"), "ToMaChess")
 
 
 def get_version():
@@ -43,11 +40,18 @@ def get_image(name):
     return os.path.join(get_root_directory(), "images", name)
 
 
+def make_app_data_folder():
+    path = get_app_data_directory()
+    if not os.path.exists(path):
+        os.mkdir(path)
+
+
 def remove_temporary_files():
-    for file in ("zip_file.zip", "extracted_file"):
-        path = os.path.join(get_root_directory(), file)
-        if os.path.exists(path):
-            os.remove(path)
+    path = os.path.join(get_app_data_directory(), "temp")
+    if not os.path.exists(path):
+        os.mkdir(path)
+    for file in os.listdir(path):
+        os.remove(os.path.join(get_app_data_directory(), "temp", file))
 
 
 def recursive_buckets(lis, functions, reverse=True):

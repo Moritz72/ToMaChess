@@ -391,3 +391,21 @@ msgstr "Drop Out Participants"
 
 msgid "Drop In Participants"
 msgstr "Drop In Participants"
+
+msgid "Enforce Lineups"
+msgstr "Enforce Lineups"
+
+msgid "True"
+msgstr "Yes"
+
+msgid "False"
+msgstr "No"
+
+msgid "Server Address"
+msgstr "Server Address"
+
+msgid "Server Username"
+msgstr "Server Username"
+
+msgid "Server Password"
+msgstr "Server Password"

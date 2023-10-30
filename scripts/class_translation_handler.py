@@ -9,7 +9,7 @@ class Translation_Handler:
         self.language, self.translation, self.translation_shortened = None, None, None
 
     def refresh(self):
-        self.language = SETTINGS_HANDLER.settings["language"][0]
+        self.language = SETTINGS_HANDLER.get("language")[0]
         locales_path = os.path.join(get_root_directory(), "locales")
         self.translation = gettext.translation("base", locales_path, languages=[self.language])
         self.translation_shortened = gettext.translation("short", locales_path, languages=[self.language])

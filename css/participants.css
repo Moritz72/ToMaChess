@@ -1,0 +1,48 @@
+h2 {
+    text-align: center;
+}
+table {
+    border-collapse: collapse;
+    margin: 0 auto;
+}
+table, th, td {
+    border: 1px solid black;
+}
+th, td {
+    padding: 10px;
+    text-align: center;
+}
+th {
+    background-color: #dddddd;
+}
+caption {
+    text-align: left;
+	font-weight: bold;
+	margin-left: 5px;
+	margin-bottom: 5px;
+}
+.placement {
+    text-align: center;
+	font-weight: bold;
+    background-color: #eeeeee;
+}
+.name {
+    text-align: left;
+	font-weight: bold;
+    padding-right: 30px;
+}
+.sex {
+    text-align: center;
+}
+.birth {
+    text-align: center;
+}
+.federation {
+    text-align: center;
+}
+.title {
+    text-align: center;
+}
+.rating {
+    text-align: center;
+}

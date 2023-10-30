@@ -2,6 +2,7 @@ from PySide6.QtWidgets import QStackedWidget
 from PySide6.QtCore import Signal
 from .stacked_widget_tournament import Stacked_Widget_Tournament
 from .functions_ms_tournament import update_ms_tournament
+from .functions_server import make_index_file_ms_tournament
 
 
 class Stacked_Widget_MS_Tournament(QStackedWidget):
@@ -15,6 +16,7 @@ class Stacked_Widget_MS_Tournament(QStackedWidget):
         self.is_current = (self.stage == self.ms_tournament.get_stage())
         self.tournament_widgets = []
 
+        make_index_file_ms_tournament(self.ms_tournament)
         self.add_tournament_widgets()
 
     def add_tournament_widgets(self):
@@ -59,6 +61,7 @@ class Stacked_Widget_MS_Tournament(QStackedWidget):
         return offset + self.tournament_widgets[self.currentIndex()].get_active_button_index()
 
     def open_default(self):
+        update_ms_tournament("", self.ms_tournament)
         self.window_main.set_stacked_widget("Default")
 
     def check_for_changes(self):
@@ -71,11 +74,13 @@ class Stacked_Widget_MS_Tournament(QStackedWidget):
 
     def move_up_stage(self):
         if self.ms_tournament.get_stage() > self.stage:
+            update_ms_tournament("", self.ms_tournament)
             self.window_main.set_stacked_widget(
                 "MS_Tournament", {"ms_tournament": self.ms_tournament, "stage": self.stage + 1}
             )
 
     def move_down_stage(self):
+        update_ms_tournament("", self.ms_tournament)
         self.window_main.set_stacked_widget(
             "MS_Tournament", {"ms_tournament": self.ms_tournament, "stage": self.stage - 1}
         )

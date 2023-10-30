@@ -18,8 +18,10 @@ def get_range_string(bottom, top):
     return f"{bottom} - {top}"
 
 
-def get_category_range_title(category, bottom, top):
-    return f"{TRANSLATION_HANDLER.tl(category)} {get_range_string(bottom, top)}"
+def get_category_range_title(category, bottom, top, translate=True):
+    if translate:
+        return f"{TRANSLATION_HANDLER.tl(category)} {get_range_string(bottom, top)}"
+    return f"{category} {get_range_string(bottom, top)}"
 
 
 def object_in_category_range(obj, category, bottom, top):

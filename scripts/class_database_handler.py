@@ -1,12 +1,12 @@
 import os
 import os.path
 from sqlite3 import connect
-from .functions_util import get_root_directory
+from .functions_util import get_app_data_directory
 
 
 class Database_Handler:
     def __init__(self):
-        data_path = os.path.join(get_root_directory(), "data")
+        data_path = os.path.join(get_app_data_directory(), "data")
         if not os.path.exists(data_path):
             os.mkdir(data_path)
         self.conn = connect(os.path.join(data_path, "database.db"), check_same_thread=False)

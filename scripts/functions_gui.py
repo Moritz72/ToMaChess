@@ -265,7 +265,7 @@ def set_fixed_size(widget, size_handler, size, widget_size):
 
 
 def get_font(font_size=None, bold=False):
-    font = QFont(SETTINGS_HANDLER.settings["font"][0])
+    font = QFont(SETTINGS_HANDLER.get("font")[0])
     if font_size is not None:
         font.setPointSize(font_size)
     font.setBold(bold)

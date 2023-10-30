@@ -42,7 +42,7 @@ class Window_Main(QMainWindow):
     def reload(self):
         SIZE_HANDLER.refresh()
         TRANSLATION_HANDLER.refresh()
-        set_stylesheet(f"{SETTINGS_HANDLER.settings['style'][0]}.qss")
+        set_stylesheet(f"{SETTINGS_HANDLER.get('style')[0]}.qss")
         index = 0 if self.stacked_widget is None else self.stacked_widget.currentIndex()
         self.set_stacked_widget("Default", index=index)
 

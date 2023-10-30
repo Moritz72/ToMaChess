@@ -2,7 +2,9 @@
 ![Icon](./images/logo.png)  
 *ToMaChess* is a gui application to manage chess tournaments written in Python.  
   
-The most recent release (in form of an executable) can be downloaded at [Releases](https://github.com/Moritz72/ToMaChess/releases).  
+The most recent release can be downloaded at [Releases](https://github.com/Moritz72/ToMaChess/releases).  
+  
+![demo_menu](./images/demo_menu.png)
   
 ## Tournaments  
 There are currently four tournament modes available: *Swiss*, *Round Robin*, *Knockout* and *Custom*.  
@@ -18,6 +20,8 @@ Parameters *Games per Match*, *Games per Tiebreak*, *Pairing Method* and *Armage
   
 *Custom* does not pair by itself at all, instead the user can manually pair all games of all rounds.  
 Parameters: *Games per Round*, *Rounds*, *Point System* and *Tiebreak (1) - (4)*.  
+  
+![demo_tournaments](./images/demo_tournaments.png)  
   
 ### Tiebreak Criteria  
 The available tiebreak criteria are  
@@ -35,10 +39,14 @@ The available tiebreak criteria are
 For the *Armageddon* parameter the user can specify additional parameters *With Armageddon*, *After Tiebreak* and *Color Determination* (In Order, Random or Choice).  
   
 ## Players  
-Players can be manually added. Additionally, one can use the FIDE Standard rating list as well as the German national rating list after creating them by clicking the corresponding buttons in the settings.  
+Players can be manually added. Additionally, one can use the FIDE Standard rating list, the German national rating list and the USCF rating list after creating them by clicking the corresponding buttons in the settings.  
+  
+![demo_players](./images/demo_players.png)  
   
 ## Teams  
 Teams are ordered sets of players. One can add players to a team, remove players from a team and change the lineup.  
+  
+![demo_teams](./images/demo_teams.png)  
   
 ### Team Tournaments  
 Team tournaments work much like regular tournaments, except for some restrictions and changes e.g. for tiebreaks or Armageddon.  
@@ -50,9 +58,16 @@ It is also possible to combine multiple tournaments to a multi-stage tournament.
   
 A multi-stage tournament consists of a first stage with a number of tournaments where the participants are predetermined. On top of that, it has an arbitrary number of further stages where the participants of the stage tournaments are the participants that got a certain placement in  a certain tournament of the previous stage.  
   
+![demo_ms_tournaments](./images/demo_ms_tournaments.png)  
+  
 For example one could have *Round Robin* tournaments *Group A* up to *Group H* with four players each in the first stage and then in the second stage a *Knockout* tournament *Finals* with all participants who placed first or second in their respective group.  
   
 If the option *Draw Lots in Case of Tie* is disabled, it is also possible to create a regular tournament with play-offs in case of a tie for first place. This can be achieved by creating a multi-stage tournament with only the desired regular tournament as the first stage and a *Knockout* tournament with only the first place as a participant as a second stage.  
+  
+## Exporting
+Tournament standings, pairings and results can be automtically exported as pdf files by specifying *PDF Output Path* in the settings.  
+  
+Similarly, one can configure *Server Address*, *Server Username* and *Server Password* to automatically export tournament data in form of html files to an FTP-server.  
   
 ## Settings  
 - *Language* (English, German or Japanese)  
@@ -61,6 +76,9 @@ If the option *Draw Lots in Case of Tie* is disabled, it is also possible to cre
 - *Font Size*  
 - *bbpPairings Path*  
 - *PDF Output Path*  
+- *Server Address*  
+- *Server Username*  
+- *Server Password*  
   
 ## License  
 This project is licensed under the [GPLv3](https://www.gnu.org/licenses/gpl-3.0.html).  

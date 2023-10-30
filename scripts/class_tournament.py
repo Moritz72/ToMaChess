@@ -1,6 +1,7 @@
 from json import dumps
 from uuid import uuid4
 from copy import deepcopy
+from .class_custom_parameter import Custom_Parameter
 from .functions_util import shorten_float
 from .functions_tournament_util import get_standings_with_tiebreaks, get_team_result, is_valid_team_seatings
 
@@ -277,3 +278,18 @@ class Tournament:
         )
         self.set_variable("drop_outs", drop_outs)
         return True
+
+    def get_info(self):
+        info = {"Name": self.get_name(), "Participants": str(self.get_participant_count()), "Mode": self.get_mode()}
+        parameters_display = self.get_parameter_display()
+        for key, value in self.get_parameters().items():
+            if key == "category_ranges" or parameters_display[key] is None:
+                continue
+            match value:
+                case list():
+                    info[parameters_display[key]] = str(value[0])
+                case Custom_Parameter():
+                    info[parameters_display[key]] = value.get_display_status()
+                case _:
+                    info[parameters_display[key]] = str(value)
+        return info

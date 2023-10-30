@@ -391,3 +391,21 @@ msgstr "Teilnehmer ausschließen"
 
 msgid "Drop In Participants"
 msgstr "Teilnehmer hinzufügen"
+
+msgid "Enforce Lineups"
+msgstr "Aufstellungen bindend"
+
+msgid "True"
+msgstr "Ja"
+
+msgid "False"
+msgstr "Nein"
+
+msgid "Server Address"
+msgstr "Server Addresse"
+
+msgid "Server Username"
+msgstr "Server Benutzername"
+
+msgid "Server Password"
+msgstr "Server Passwort"

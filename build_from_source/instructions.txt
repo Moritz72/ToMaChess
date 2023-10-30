@@ -5,5 +5,5 @@ INSTRUCTIONS TO BUILD FROM SOURCE
 3. Install PyInstaller 5.10.1 via pip with the command "pip install PyInstaller==5.10.1"  
 4. Run the "build.bat" file in this folder and wait until it finishes.  
   
-If succesful, you will find a folder "ToMaChess" in this directory matching the one in the corresponding release at https://github.com/Moritz72/ToMaChess/releases.
+If succesful, you will find a folder "ToMaChess" in this directory matching the one you would get by installing the corresponding release at https://github.com/Moritz72/ToMaChess/releases.
   

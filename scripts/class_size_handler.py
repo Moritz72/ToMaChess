@@ -20,7 +20,7 @@ class Size_Handler:
 
     def refresh(self):
         self.dp = get_dp()
-        font_size = SETTINGS_HANDLER.settings["font_size"]
+        font_size = SETTINGS_HANDLER.get("font_size")
         self.font_sizes = get_font_sizes(font_size)
         self.widget_size_factor = get_widget_size_factor(font_size, self.dp)
 

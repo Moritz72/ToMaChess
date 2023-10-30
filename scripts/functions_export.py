@@ -21,11 +21,11 @@ LINE_WIDTHS = (.5, 1.5, 2)
 
 
 def get_path(*parts):
-    return os.path.join(SETTINGS_HANDLER.settings["pdf_path"], *parts)
+    return os.path.join(SETTINGS_HANDLER.get("pdf_path"), *parts)
 
 
 def make_new_folder(tournament, sub_folder=""):
-    if SETTINGS_HANDLER.settings["pdf_path"] == "":
+    if SETTINGS_HANDLER.get("pdf_path") == "":
         return False
     folder_path = get_path(sub_folder)
     try:
@@ -36,7 +36,7 @@ def make_new_folder(tournament, sub_folder=""):
             (folder_path,), (folder_path, TRANSLATION_HANDLER.tl("Standings")),
             (folder_path, TRANSLATION_HANDLER.tl("Pairings")), (folder_path, TRANSLATION_HANDLER.tl("Results"))
         ]
-        if "category_ranges" in tournament.get_parameters() and tournament.get_parameter("category_ranges"):
+        if tournament.get_parameter("category_ranges"):
             name = f"{TRANSLATION_HANDLER.tl('Standings')} ({TRANSLATION_HANDLER.tl('Categories')})"
             paths_parts.append((folder_path, name))
         for parts in paths_parts:
@@ -259,7 +259,7 @@ def tournament_standings_to_pdf(tournament, sub_folder=""):
 
     make_pdf_from_tables(filename, (table_data,))
 
-    if "category_ranges" not in tournament.get_parameters() or not tournament.get_parameter("category_ranges"):
+    if not tournament.get_parameter("category_ranges"):
         return
     filename = get_path(
         sub_folder, tournament.get_name(),

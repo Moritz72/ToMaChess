@@ -58,3 +58,8 @@ class Armageddon(Custom_Parameter):
 
     def is_valid(self):
         return True
+
+    def get_display_status(self):
+        if self.args["enabled"]:
+            return "Yes"
+        return "No"

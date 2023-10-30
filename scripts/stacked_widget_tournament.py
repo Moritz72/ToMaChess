@@ -10,6 +10,8 @@ from .functions_gui import close_window
 from .functions_tournament import update_tournament
 from .functions_export import tournament_standings_to_pdf, tournament_participants_to_pdf, tournament_pairings_to_pdf,\
     tournament_results_to_pdf
+from .functions_server import upload_latest_results, upload_latest_pairings, upload_participants, \
+    upload_latest_standings
 
 
 def get_round_widget(tournament, roun, current):
@@ -69,6 +71,7 @@ class Stacked_Widget_Tournament(QStackedWidget):
         self.add_round_widgets()
         self.set_index()
         tournament_participants_to_pdf(self.tournament, self.sub_folder)
+        upload_participants(self.tournament, self.sub_folder)
 
     def add_round_widget(self, roun, current):
         widget = self.get_round_widget(self.tournament, roun, current)
@@ -78,6 +81,7 @@ class Stacked_Widget_Tournament(QStackedWidget):
             widget.confirmed_results.connect(self.load_next_round)
             if self.tournament.is_team_tournament():
                 tournament_pairings_to_pdf(self.tournament, self.sub_folder)
+                upload_latest_pairings(self.tournament, self.sub_folder)
 
     def add_round_widgets(self):
         rounds = self.tournament.get_round()
@@ -112,6 +116,8 @@ class Stacked_Widget_Tournament(QStackedWidget):
         return self.currentIndex()
 
     def open_default(self):
+        if self.sub_folder == "":
+            update_tournament("", self.tournament)
         self.window_main.set_stacked_widget("Default")
 
     def open_actions(self):
@@ -124,12 +130,16 @@ class Stacked_Widget_Tournament(QStackedWidget):
 
     def pairings_confirmed(self):
         if not self.tournament.is_team_tournament():
+            self.tournament.set_pairings(self.sender().get_pairings())
             tournament_pairings_to_pdf(self.tournament, self.sub_folder)
+            upload_latest_pairings(self.tournament, self.sub_folder)
 
     def load_next_round(self):
         self.tournament.add_results(self.sender().get_results())
         tournament_results_to_pdf(self.tournament, self.sub_folder)
         tournament_standings_to_pdf(self.tournament, self.sub_folder)
+        upload_latest_standings(self.tournament, self.sub_folder)
+        upload_latest_results(self.tournament, self.sub_folder)
         self.add_new_round()
         self.update_rounds()
 

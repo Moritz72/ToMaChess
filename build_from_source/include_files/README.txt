@@ -1,4 +1,4 @@
-ToMaChess v1.0.1
+ToMaChess v1.0.2
 
 ABOUT
 	ToMaChess is a gui application to manage chess tournaments written in Python.
@@ -11,9 +11,9 @@ LICENSE
 	Licenses of python modules used (PySide6, reportlab, etc.) can be found in the "licenses" folder.
 
 TROUBLESHOOTING
-	It is recommended to make a backup of the "database.db" file in the "data" folder which stores all tournament, player, etc. data before deleting or modifying any files.
-	If the program does not start, delete the "settings.json" file and try again.
-	If the issues persist, download another copy of this program from https://github.com/Moritz72/ToMaChess/releases, start it up and then replace the "database.db" file in the "data" folder with your backup.
+	It is recommended to make a backup of the "database.db" file in "C:\Users\USERNAME\AppData\Roaming\ToMaChess\data" which stores all tournament, player, etc. data before deleting or modifying any files.
+	If the program does not start, delete the "settings.json" file in "C:\Users\USERNAME\AppData\Roaming\ToMaChess" and try again.
+	If the issues persist, uninstall and install this application again, delete "C:\Users\USERNAME\AppData\Roaming\ToMaChess", start it up and then replace the "database.db" file in the "data" folder with your backup.
 	If the issues still persist, create an issue at https://github.com/Moritz72/ToMaChess/issues.
 
 BUILD FROM SOURCE
