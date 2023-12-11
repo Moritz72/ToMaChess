@@ -10,7 +10,7 @@ pip install -r requirements.txt
 
 call deactivate
 
-python -m PyInstaller --paths venv\lib\site-packages --icon=build_from_source\resources\logo.ico --noconsole --runtime-hook=build_from_source\resources\use_lib.py ToMaChess.py
+python -m PyInstaller --paths venv\lib\site-packages --icon=build_from_source\resources\logo.ico --noconsole --runtime-hook=build_from_source\resources\use_lib.py ToMaChess.py --hidden-import charset_normalizer.md__mypyc
 
 python -m PyInstaller --clean -y ToMaChess.spec
 
@@ -58,6 +58,7 @@ for /D %%F in ("dist\ToMaChess\*") do (
 		dist\ToMaChess\PIL
 		dist\ToMaChess\PySide6
 		dist\ToMaChess\shiboken6
+                dist\ToMaChess\charset_normalizer
 	) do (
 		if "%%F" == "%%E" (
 			set "excludeFile=true"
@@ -74,6 +75,7 @@ for %%F in (
 	locales
 	styles
         css
+        sql
 ) do (
 	xcopy "%%F" "dist/ToMaChess/%%F" /E /I /H /K /Y
 )

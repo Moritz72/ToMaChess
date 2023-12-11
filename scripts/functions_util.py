@@ -1,31 +1,30 @@
 import os
 import os.path
+from typing import Sequence, Any, TypeVar, cast
 from codecs import open
-from itertools import groupby
+
+T = TypeVar('T')
 
 
-def read_file(path):
-    f = open(path, 'r', "utf-8")
-    res = f.read()
-    f.close()
-    return res
+def read_file(path: str) -> str:
+    with open(path, 'r', "utf-8") as file:
+        return file.read()
 
 
-def write_file(path, content):
-    f = open(path, 'w', "utf-8")
-    f.write(content)
-    f.close()
+def write_file(path: str, content: str) -> None:
+    with open(path, 'w', "utf-8") as file:
+        file.write(content)
 
 
-def get_root_directory():
+def get_root_directory() -> str:
     return os.path.abspath(os.path.join(os.path.dirname(os.path.abspath(__file__)), os.pardir))
 
 
-def get_app_data_directory():
-    return os.path.join(os.getenv("APPDATA"), "ToMaChess")
+def get_app_data_directory() -> str:
+    return os.path.join(cast(str, os.getenv("APPDATA")), "ToMaChess")
 
 
-def get_version():
+def get_version() -> str | None:
     readme = os.path.join(get_root_directory(), "README.txt")
     if not os.path.exists(readme):
         return None
@@ -36,40 +35,31 @@ def get_version():
         return None
 
 
-def get_image(name):
+def get_image(name: str) -> str:
     return os.path.join(get_root_directory(), "images", name)
 
 
-def make_app_data_folder():
+def make_app_data_folder() -> None:
     path = get_app_data_directory()
     if not os.path.exists(path):
         os.mkdir(path)
 
 
-def remove_temporary_files():
+def remove_temporary_files() -> None:
     path = os.path.join(get_app_data_directory(), "temp")
     if not os.path.exists(path):
         os.mkdir(path)
     for file in os.listdir(path):
-        os.remove(os.path.join(get_app_data_directory(), "temp", file))
+        os.remove(os.path.join(path, file))
 
 
-def recursive_buckets(lis, functions, reverse=True):
-    if len(functions) == 0:
-        return lis
-    dic = functions[0]([e[0] for e in lis])
-    lis = sorted(lis, key=lambda e: dic[e[0]], reverse=reverse)
-    temp = [(list(group), key) for key, group in groupby(lis, lambda x: dic[x[0]])]
-    return [[el[0], key]+el[1:] for group, key in temp for el in recursive_buckets(group, functions[1:], reverse)]
-
-
-def shorten_float(value):
+def shorten_float(value: float) -> float:
     return int(value) if float(value).is_integer() else float(str(value).rstrip('0').rstrip('.'))
 
 
-def remove_duplicates(list_of_hashables):
+def has_duplicates(list_of_hashables: Sequence[Any]) -> bool:
+    return len(set(list_of_hashables)) != len(list_of_hashables)
+
+
+def remove_duplicates(list_of_hashables: Sequence[T]) -> list[T]:
     return list({hashable: None for hashable in list_of_hashables}.keys())
-
-
-def remove_uuid_duplicates(object_list):
-    return list({obj.get_uuid(): obj for obj in object_list}.values())

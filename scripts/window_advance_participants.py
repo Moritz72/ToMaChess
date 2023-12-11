@@ -1,91 +1,108 @@
-from PySide6.QtWidgets import QMainWindow, QHBoxLayout, QWidget, QTableWidget, QHeaderView, QVBoxLayout
+from typing import cast
+from PySide6.QtWidgets import QMainWindow, QHBoxLayout, QWidget, QTableWidget, QHeaderView, QVBoxLayout, QComboBox
 from PySide6.QtCore import Qt, Signal, QSize
-from .functions_gui import get_button, add_button_to_table, add_combobox_to_table, set_up_table, size_table,\
-    set_window_title, set_window_size
+from PySide6.QtGui import QCloseEvent
+from .advance_list import Advance_List
+from .tournament import Tournament
+from .gui_functions import get_button, set_window_title, set_window_size
+from .gui_table import add_button_to_table, add_combobox_to_table, set_up_table, size_table
 
 
 class Window_Advance_Participants(QMainWindow):
     window_closed = Signal()
 
-    def __init__(self, advance_list, tournaments, participant_counts, parent=None):
+    def __init__(
+            self, advance_list: Advance_List, tournaments: list[Tournament], parent: QWidget | None = None
+    ) -> None:
         super().__init__(parent=parent)
-        self.setAttribute(Qt.WA_DeleteOnClose)
+        self.setAttribute(Qt.WidgetAttribute.WA_DeleteOnClose)
         set_window_title(self, "Add Participants")
 
-        self.advance_list = advance_list
-        self.tournaments = [tournament for tournament, count in zip(tournaments, participant_counts) if count > 0]
-        self.participant_counts = [count for count in participant_counts if count > 0]
-        if len(self.tournaments) == 0:
-            self.close()
+        self.advance_list: Advance_List = advance_list
+        self.participant_counts = [tournament.get_participant_count() for tournament in tournaments]
+        self.tournaments: list[Tournament] = [
+            tournament for (tournament, count) in zip(tournaments, self.participant_counts) if count > 0
+        ]
 
-        self.widget = QWidget()
-        self.layout = QHBoxLayout(self.widget)
+        self.widget: QWidget = QWidget()
+        self.layout_main: QHBoxLayout = QHBoxLayout(self.widget)
         self.setCentralWidget(self.widget)
 
         self.table = QTableWidget()
         self.fill_in_table()
         layout = QVBoxLayout()
-        layout.setAlignment(Qt.AlignTop)
+        layout.setAlignment(Qt.AlignmentFlag.AlignTop)
         layout.addWidget(self.table)
-        self.layout.addLayout(layout)
+        self.layout_main.addLayout(layout)
 
-        add_row_button = get_button(
-            "large", (10, 6), "Add\nParticipant", connect_function=self.add_new_row, translate=True
-        )
+        add_row_button = get_button("large", (10, 6), "Add\nParticipant", connect=self.add_new_row, translate=True)
         layout = QVBoxLayout()
-        layout.setAlignment(Qt.AlignTop)
+        layout.setAlignment(Qt.AlignmentFlag.AlignTop)
         layout.addWidget(add_row_button)
-        self.layout.addLayout(layout)
+        self.layout_main.addLayout(layout)
 
         set_window_size(self, QSize(self.table.maximumWidth() + add_row_button.width(), 0), factor_y=.5)
+        if len(self.tournaments) == 0:
+            self.close()
 
-    def resize_table(self):
+    def resize_table(self) -> None:
         size_table(self.table, self.table.rowCount(), 3.5, max_width=30, widths=[None, 8, 3.5])
 
-    def get_seatings_choices(self, tournament):
+    def get_seatings_choices(self, tournament: Tournament | None) -> list[int]:
         if tournament is None:
-            return [str(i + 1) for i in range(self.participant_counts[0])]
-        return [str(i + 1) for i in range(self.participant_counts[self.tournaments.index(tournament)])]
+            return [i + 1 for i in range(self.participant_counts[0])]
+        return [i + 1 for i in range(self.participant_counts[self.tournaments.index(tournament)])]
 
-    def add_row(self, tournament=None, placement=None):
+    def get_combo_box(self, row: int, column: int) -> QComboBox:
+        return cast(QComboBox, self.table.cellWidget(row, column))
+
+    def get_tournament(self, row: int) -> Tournament:
+        return cast(Tournament, self.get_combo_box(row, 0).currentData())
+
+    def get_placement(self, row: int) -> int:
+        return cast(int, self.get_combo_box(row, 1).currentData())
+
+    def add_row(self, tournament: Tournament | None = None, placement: int | None = None) -> None:
         row = self.table.rowCount()
         self.table.insertRow(row)
 
         add_combobox_to_table(self.table, self.tournaments, row, 0, "medium", None, current=tournament)
         add_combobox_to_table(
-            self.table, self.get_seatings_choices(tournament), row, 1, "medium", None,
-            current=placement if placement is None else str(placement)
+            self.table, self.get_seatings_choices(tournament), row, 1, "medium", None, current=placement
         )
-        add_button_to_table(self.table, row, 2, "medium", None, '-', connect_function=self.remove_row)
+        add_button_to_table(self.table, row, 2, "medium", None, '-', connect=self.remove_row)
 
-        self.table.cellWidget(row, 0).currentTextChanged.connect(self.update_placement_combobox)
+        self.get_combo_box(row, 0).currentTextChanged.connect(self.update_placement_combobox)
         self.resize_table()
 
-    def add_new_row(self):
+    def add_new_row(self) -> None:
         self.add_row()
 
-    def fill_in_table(self):
+    def fill_in_table(self) -> None:
         set_up_table(self.table, 0, 3, header_horizontal=["Tournament", "Placement", ""], translate=True)
         self.resize_table()
 
         header_horizontal, header_vertical = self.table.horizontalHeader(), self.table.verticalHeader()
-        header_horizontal.setSectionResizeMode(0, QHeaderView.Stretch)
-        header_vertical.setDefaultAlignment(Qt.AlignCenter)
+        header_horizontal.setSectionResizeMode(0, QHeaderView.ResizeMode.Stretch)
+        header_vertical.setDefaultAlignment(Qt.AlignmentFlag.AlignCenter)
 
         for tournament, placement in self.advance_list:
             self.add_row(tournament, placement)
 
-    def update_placement_combobox(self):
+    def update_placement_combobox(self) -> None:
         row = self.table.currentRow()
-        tournament = self.table.cellWidget(row, 0).currentData()
-        self.table.cellWidget(row, 1).clear()
-        self.table.cellWidget(row, 1).addItems(self.get_seatings_choices(tournament))
+        placement_box = self.get_combo_box(row, 1)
+        placement_box.clear()
+        for placement in self.get_seatings_choices(self.get_tournament(row)):
+            placement_box.addItem(str(placement), placement)
 
-    def remove_row(self):
-        row = self.table.currentRow()
-        self.table.removeRow(row)
+    def remove_row(self) -> None:
+        self.table.removeRow(self.table.currentRow())
         self.resize_table()
 
-    def closeEvent(self, event):
+    def closeEvent(self, event: QCloseEvent) -> None:
+        self.advance_list.fill([
+            (self.get_tournament(row), self.get_placement(row)) for row in range(self.table.rowCount())
+        ])
         self.window_closed.emit()
         super().closeEvent(event)

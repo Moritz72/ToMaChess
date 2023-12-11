@@ -212,9 +212,6 @@ msgstr "コピー"
 msgid "Add\nParticipant"
 msgstr "参加者\n追加"
 
-msgid "Choose..."
-msgstr "選択肢"
-
 msgid "Confirm Pairings"
 msgstr "組み合わせを確認する"
 
@@ -245,7 +242,7 @@ msgstr "黒番での勝利数"
 msgid "Average Rating"
 msgstr "平均レーティング"
 
-msgid "Cumulative Score"
+msgid "Progressive Scores"
 msgstr "累積得点"
 
 msgid "Direct Encounter"
@@ -409,3 +406,9 @@ msgstr "サーバユーザー名"
 
 msgid "Server Password"
 msgstr "サーバパスワード"
+
+msgid "Previous Stage"
+msgstr "前のステージ"
+
+msgid "Next Stage"
+msgstr "次のステージ "

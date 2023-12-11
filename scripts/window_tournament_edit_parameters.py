@@ -1,31 +1,32 @@
 from PySide6.QtWidgets import QMainWindow, QWidget, QVBoxLayout
 from PySide6.QtCore import Qt, Signal
+from .tournament import Tournament
 from .widget_tournament_parameters import Widget_Tournament_Parameters
-from .functions_gui import set_window_title, set_window_size, get_button
+from .gui_functions import set_window_title, set_window_size, get_button
 
 
 class Window_Tournament_Edit_Parameters(QMainWindow):
     saved_changes = Signal()
 
-    def __init__(self, tournament, parent=None):
+    def __init__(self, tournament: Tournament, parent: QWidget | None = None) -> None:
         super().__init__(parent=parent)
-        self.setAttribute(Qt.WA_DeleteOnClose)
+        self.setAttribute(Qt.WidgetAttribute.WA_DeleteOnClose)
         set_window_title(self, "Edit Parameters")
 
-        self.tournament = tournament
+        self.tournament: Tournament = tournament
 
-        self.widget = QWidget()
-        self.layout = QVBoxLayout(self.widget)
-        self.layout.setAlignment(Qt.AlignTop | Qt.AlignCenter)
+        self.widget: QWidget = QWidget()
+        self.layout_main: QVBoxLayout = QVBoxLayout(self.widget)
+        self.layout_main.setAlignment(Qt.AlignmentFlag.AlignTop | Qt.AlignmentFlag.AlignCenter)
         self.setCentralWidget(self.widget)
 
         self.widget_tournament_parameters = Widget_Tournament_Parameters(self.tournament)
-        save_button = get_button("large", (10, 5), "Save", connect_function=self.save_changes, translate=True)
-        self.layout.addWidget(self.widget_tournament_parameters)
-        self.layout.addWidget(save_button)
+        save_button = get_button("large", (10, 5), "Save", connect=self.save_changes, translate=True)
+        self.layout_main.addWidget(self.widget_tournament_parameters)
+        self.layout_main.addWidget(save_button)
         set_window_size(self, self.sizeHint())
 
-    def save_changes(self):
+    def save_changes(self) -> None:
         valid_parameters = self.widget_tournament_parameters.apply_parameters()
         if valid_parameters:
             self.saved_changes.emit()

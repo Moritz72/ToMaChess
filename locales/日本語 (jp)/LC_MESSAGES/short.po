@@ -77,7 +77,7 @@ msgstr "黒勝"
 msgid "Average Rating"
 msgstr "平均"
 
-msgid "Cumulative Score"
+msgid "Progressive Scores"
 msgstr "累積"
 
 msgid "Direct Encounter"

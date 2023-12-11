@@ -77,7 +77,7 @@ msgstr "SSie"
 msgid "Average Rating"
 msgstr "GegS"
 
-msgid "Cumulative Score"
+msgid "Progressive Scores"
 msgstr "KuPu"
 
 msgid "Direct Encounter"

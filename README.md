@@ -29,10 +29,10 @@ The available tiebreak criteria are
 - *Buchholz Sum* (with additional parameters *Cut (bottom)*, *Cut (top)* and *Virtual Opponents*)  
 - *Sonneborn-Berger* (with additional parameters *Cut (bottom)*, *Cut (top)* and *Virtual Opponents*)  
 - *Games as black*  
-- *Wins as black*  
 - *Wins* (with additional parameter *Include Forfeits*)  
-- *Average Rating* (with additional parameters *Cut (bottom)* and *Cut (top)*)  
-- *Cumulative Score* (with additional parameters *Cut (bottom)* and *Cut (top)*)  
+- *Wins as black*  (with additional parameter *Include Forfeits*)  
+- *Average Rating* (with additional parameters *Cut (bottom)*, *Cut (top)* and *Include Forfeits*)  
+- *Progressive Scores* (with additional parameters *Cut (bottom)* and *Cut (top)*)  
 - *Direct Encounter*  
   
 ### Armageddon  

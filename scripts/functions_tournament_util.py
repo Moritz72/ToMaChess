@@ -1,62 +1,81 @@
-from random import shuffle
-from .functions_util import recursive_buckets, shorten_float
-from .functions_categories import filter_list_by_category_range
+from __future__ import annotations
+from typing import TYPE_CHECKING, Sequence, Callable
+from .pairing import Pairing
+from .result_team import Result_Team
+from .category_range import Category_Range
+from .standings_table import Standings_Table
+from .functions_util import shorten_float, has_duplicates
+if TYPE_CHECKING:
+    from .tournament import Tournament
 
 
-def get_score_dict_by_point_system(point_system):
-    win, draw, loss = point_system.split(' - ')
-    if draw == '½':
-        draw = '.5'
-    win, draw, loss = shorten_float(float(win)), shorten_float(float(draw)), shorten_float(float(loss))
+def get_score_dict_by_point_system(point_system: str) -> dict[str, float]:
+    win_str, draw_str, loss_str = point_system.split(' - ')
+    if draw_str == '½':
+        draw_str = '.5'
+    win, draw, loss = shorten_float(float(win_str)), shorten_float(float(draw_str)), shorten_float(float(loss_str))
     return {'1': win, '½': draw, '0': loss, '+': win, '-': loss}
 
 
-def get_standings_header_vertical(table):
-    header_vertical = []
-    last_entry = None
-    for i, entry in enumerate(table):
-        if last_entry is None or entry[1:] != last_entry[1:]:
-            header_vertical.append(str(i + 1))
-        else:
-            header_vertical.append('')
-        last_entry = entry
-    return header_vertical
+def reverse_uuid_dict(uuid_dict: dict[str, float]) -> dict[float, list[str]]:
+    score_dict: dict[float, list[str]] = {score: [] for score in uuid_dict.values()}
+    for uuid, score in uuid_dict.items():
+        score_dict[score].append(uuid)
+    return score_dict
 
 
-def get_standings_with_tiebreaks(tournament, tiebreak_args, category_range=None):
-    uuid_to_participant_dict = tournament.get_uuid_to_participant_dict()
+def get_evaluation_dict(
+        current_score: tuple[float, ...], uuids: list[str], function: Callable[[list[str]], dict[str, float]]
+) -> dict[tuple[float, ...], list[str]]:
+    uuid_dict = function(uuids)
+    return {current_score + (score,): uuids for score, uuids in reverse_uuid_dict(uuid_dict).items()}
+
+
+def get_score_dict_recursive(
+        current_score: tuple[float, ...], uuids: list[str], functions: Sequence[Callable[[list[str]], dict[str, float]]]
+) -> dict[tuple[float, ...], list[str]]:
+    if len(functions) == 0:
+        return {current_score: uuids}
+    evaluation_dict = get_evaluation_dict(current_score, uuids, functions[0])
+    return {
+        score_rec: uuids_rec for score, uuids in evaluation_dict.items()
+        for score_rec, uuids_rec in get_score_dict_recursive(score, uuids, functions[1:]).items()
+    }
+
+
+def get_standings_with_tiebreaks(tournament: Tournament, category_range: Category_Range | None) -> Standings_Table:
+    participants = tournament.get_participants()
     if category_range is not None:
-        filtered_values = filter_list_by_category_range(uuid_to_participant_dict.values(), *category_range)
-        uuid_to_participant_dict = {
-            key: value for key, value in uuid_to_participant_dict.items() if value in filtered_values
-        }
-    tiebreaks = [value for key, value in tournament.get_parameters().items() if key.startswith("tiebreak_")]
-    header_horizontal = ["Name", "Points"]
-    rank_functions = [lambda x: tournament.get_simple_scores()]
+        participants = category_range.filter_list(participants)
+    uuid_to_participant_dict = tournament.get_uuid_to_participant_dict()
+    uuid_list = [participant.get_uuid() for participant in participants]
+    tiebreaks = [tb for tb in tournament.get_tiebreaks() if tb.criteria[0] != "None"]
+    headers = ["Name", "Points"] + [tb.criteria[0] for tb in tiebreaks]
 
-    for tb in tiebreaks:
-        if tb.args["functions"][0] == "None":
-            continue
-        header_horizontal.append(tb.args["functions"][0])
-        rank_functions.append(lambda x, tiebreak=tb: tiebreak.evaluate({"uuids": x} | tiebreak_args))
+    def evaluate_simple(_: list[str]) -> dict[str, float]:
+        return {uuid: score for uuid, score in tournament.get_simple_scores().items() if uuid in uuid_list}
 
-    table = [
-        [uuid_to_participant_dict[e[0]]] + e[1:]
-        for e in recursive_buckets([[e] for e in uuid_to_participant_dict], rank_functions)
-    ]
+    rank_functions = [evaluate_simple] + [tb.get_evaluation_function(tournament) for tb in tiebreaks]
+    score_dict = get_score_dict_recursive(tuple(), uuid_list, rank_functions)
 
-    return header_horizontal, get_standings_header_vertical(table), table
+    table_participants = []
+    table_scores = []
+    for score, uuids in score_dict.items():
+        for uuid in uuids:
+            table_participants.append(uuid_to_participant_dict[uuid])
+            table_scores.append(list(score))
+    return Standings_Table(table_participants, table_scores, headers)
 
 
-def get_team_result(individual_results, results_dict):
-    if all(score_1 == '-' and score_2 == '-' for (_, score_1), (_, score_2) in individual_results):
+def get_team_result(result_team: Result_Team, results_dict: dict[str, float]) -> tuple[str, str]:
+    if all(score_1 == '-' and score_2 == '-' for (_, score_1), (_, score_2) in result_team):
         return '-', '-'
-    if all(score_1 == '-' for (_, score_1), (_, _) in individual_results):
+    if all(score_1 == '-' for (_, score_1), (_, _) in result_team):
         return '-', '+'
-    if all(score_2 == '-' for (_, _), (_, score_2) in individual_results):
+    if all(score_2 == '-' for (_, _), (_, score_2) in result_team):
         return '+', '-'
-    sum_1 = sum(results_dict[score_1] for (_, score_1), (_, _) in individual_results)
-    sum_2 = sum(results_dict[score_2] for (_, _), (_, score_2) in individual_results)
+    sum_1 = sum(results_dict[score_1] for (_, score_1), (_, _) in result_team)
+    sum_2 = sum(results_dict[score_2] for (_, _), (_, score_2) in result_team)
     if sum_1 > sum_2:
         return '1', '0'
     if sum_2 > sum_1:
@@ -64,39 +83,19 @@ def get_team_result(individual_results, results_dict):
     return '½', '½'
 
 
-def is_valid_team_seatings(team_uuids, team_member_lists, results_match):
-    indices = [0, 0]
-    for result in results_match:
-        for i, ((uuid, _), index, team_member_list) in enumerate(zip(result, indices, team_member_lists)):
-            if uuid is None:
-                indices[i] = None
-                continue
-            number = team_member_list.index(uuid) + 1
-            if index is None or number <= index:
-                return False
-            indices[i] = number
+def is_valid_seating(pairings: Sequence[Pairing], uuids: Sequence[str], side: int, enforce_lineup: bool) -> bool:
+    if not enforce_lineup:
+        return not has_duplicates([pairing[side] for pairing in pairings])
+    index: int | None = 0
+    for pairing in pairings:
+        uuid = pairing[side]
+        if uuid is None:
+            index = None
+            continue
+        if not isinstance(uuid, str):
+            return False
+        number = uuids.index(uuid) + 1
+        if index is None or number <= index:
+            return False
+        index = number
     return True
-
-
-def get_placements_from_standings(standings, draw_lots):
-    _, header_vertical, table = standings
-    placements = []
-    entry_index = None
-    for row, header_item in zip(table, header_vertical):
-        if header_item == "":
-            placements[entry_index].append(row[0])
-            placements.append([])
-        else:
-            placements.append([row[0]])
-            entry_index = len(placements) - 1
-    for placement in placements:
-        shuffle(placement)
-    if not draw_lots:
-        return placements
-    i = 0
-    while i < len(placements):
-        for j in range(i + 1, i + len(placements[i])):
-            placements[j] = [placements[i].pop(0)]
-            i += 1
-        i += 1
-    return placements

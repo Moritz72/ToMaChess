@@ -1,77 +1,89 @@
+from dataclasses import dataclass, fields
 from PySide6.QtWidgets import QMainWindow, QWidget, QHBoxLayout
 from PySide6.QtCore import Qt, Signal
-from .window_choice_table import Window_Choice_Table
-from .window_remove_table import Window_Remove_Table
+from PySide6.QtGui import QCloseEvent
+from .team import Team
+from .window_choice_objects import Window_Choice_Players
+from .window_remove_objects import Window_Remove_Players
 from .window_team_line_up import Window_Line_Up
-from .functions_player import load_players_list, sort_players_by_rating
-from .functions_gui import get_button, set_window_title, set_window_size, close_window
+from .db_player import sort_players_by_rating
+from .gui_functions import get_button, set_window_title, set_window_size, close_window
+
+
+@dataclass
+class Windows:
+    add: Window_Choice_Players | None
+    remove: Window_Remove_Players | None
+    lineup: Window_Line_Up | None
 
 
 class Window_Team_Edit(QMainWindow):
     window_closed = Signal()
 
-    def __init__(self, team, parent=None):
+    def __init__(self, team: Team, parent: QWidget | None = None) -> None:
         super().__init__(parent=parent)
-        self.setAttribute(Qt.WA_DeleteOnClose)
+        self.setAttribute(Qt.WidgetAttribute.WA_DeleteOnClose)
         set_window_title(self, "Edit Team")
 
-        self.team = team
-        self.child_window = None
+        self.team: Team = team
+        self.windows: Windows = Windows(None, None, None)
 
         self.widget = QWidget()
-        self.layout = QHBoxLayout(self.widget)
+        self.layout_main: QHBoxLayout = QHBoxLayout(self.widget)
         self.setCentralWidget(self.widget)
 
         self.set_buttons()
         set_window_size(self, self.sizeHint())
 
-    def set_buttons(self):
-        self.layout.addWidget(get_button(
-            "large", (12, 6), "Add\nMembers", connect_function=self.open_window_add_members, translate=True
+    def set_buttons(self) -> None:
+        self.layout_main.addWidget(get_button(
+            "large", (12, 6), "Add\nMembers", connect=self.open_window_add_members, translate=True
         ))
-        self.layout.addWidget(get_button(
-            "large", (12, 6), "Remove\nMembers", connect_function=self.open_window_remove_members, translate=True
+        self.layout_main.addWidget(get_button(
+            "large", (12, 6), "Remove\nMembers", connect=self.open_window_remove_members, translate=True
         ))
-        self.layout.addWidget(get_button(
-            "large", (12, 6), "Change\nLineup", connect_function=self.open_window_line_up, translate=True
+        self.layout_main.addWidget(get_button(
+            "large", (12, 6), "Change\nLineup", connect=self.open_window_line_up, translate=True
         ))
 
-    def set_child_window(self, window):
-        self.child_window = window
-        self.child_window.show()
+    def close_windows(self) -> None:
+        for field in fields(self.windows):
+            close_window(getattr(self.windows, field.name))
+        self.windows = Windows(None, None, None)
 
-    def open_window_add_members(self):
-        close_window(self.child_window)
-        self.set_child_window(Window_Choice_Table(
-            "Add Members", "player", {member.get_uuid() for member in self.team.get_members()}, parent=self
-        ))
-        self.child_window.window_closed.connect(self.add_members)
+    def open_window_add_members(self) -> None:
+        self.close_windows()
+        tuples = {member.get_uuid_tuple() for member in self.team.get_members()}
+        self.windows.add = Window_Choice_Players("Add Members", tuples, parent=self)
+        self.windows.add.window_closed.connect(self.add_members)
+        self.windows.add.show()
 
-    def open_window_remove_members(self):
-        close_window(self.child_window)
-        self.set_child_window(
-            Window_Remove_Table("Remove Members", "player", self.team.get_members().copy(), parent=self)
-        )
-        self.child_window.window_closed.connect(self.remove_members)
+    def open_window_remove_members(self) -> None:
+        self.close_windows()
+        self.windows.remove = Window_Remove_Players("Remove Members", self.team.get_members().copy(), parent=self)
+        self.windows.remove.window_closed.connect(self.remove_members)
+        self.windows.remove.show()
 
-    def open_window_line_up(self):
-        close_window(self.child_window)
-        self.set_child_window(Window_Line_Up(self.team, parent=self))
-        self.child_window.window_closed.connect(self.line_up)
+    def open_window_line_up(self) -> None:
+        self.close_windows()
+        self.windows.lineup = Window_Line_Up(self.team, parent=self)
+        self.windows.lineup.window_closed.connect(self.line_up)
+        self.windows.lineup.show()
 
-    def add_members(self):
-        self.team.add_members(sort_players_by_rating(load_players_list("", self.child_window.get_checked_uuids())))
+    def add_members(self) -> None:
+        assert(self.windows.add is not None)
+        self.team.add_members(sort_players_by_rating(self.windows.add.get_checked_objects()))
 
-    def remove_members(self):
-        removed_members = self.child_window.get_removed_objects()
+    def remove_members(self) -> None:
+        assert(self.windows.remove is not None)
+        removed_members = self.windows.remove.get_removed_objects()
         self.team.remove_members_by_uuid([member.get_uuid() for member in removed_members])
-        if self.team.get_shallow_member_count() is not None:
-            self.team.set_shallow_member_count(self.team.get_shallow_member_count() - len(removed_members))
 
-    def line_up(self):
+    def line_up(self) -> None:
+        assert(self.windows.lineup is not None)
         members = self.team.get_members()
-        self.team.set_members([members[i] for i in self.child_window.get_permutation()])
+        self.team.set_members([members[i] for i in self.windows.lineup.get_permutation()])
 
-    def closeEvent(self, event):
+    def closeEvent(self, event: QCloseEvent) -> None:
         self.window_closed.emit()
         super().closeEvent(event)

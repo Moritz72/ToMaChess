@@ -1,7 +1,14 @@
+from typing import Sequence, Callable, cast
+from copy import deepcopy
 from PySide6.QtWidgets import QWidget, QVBoxLayout, QHeaderView, QComboBox, QTableWidget
-from PySide6.QtCore import Qt, QTimer, Signal
-from .functions_gui import add_content_to_table, add_button_to_table, add_combobox_to_table, clear_table,\
+from PySide6.QtCore import Qt, Signal, QTimer
+from .pairing import Pairing
+from .result import Result
+from .tournament import Participant
+from .gui_table import add_content_to_table, add_button_to_table, add_combobox_to_table, clear_table,\
     set_up_table, size_table, add_blank_to_table
+
+U = (str | None) | Sequence[str | None]
 
 
 class Widget_Tournament_Round(QWidget):
@@ -9,168 +16,171 @@ class Widget_Tournament_Round(QWidget):
     confirmed_results = Signal()
 
     def __init__(
-            self, results, uuid_to_participant_dict, drop_outs, possible_scores, is_valid_pairings, headers=("", "")
-    ):
+            self, data: list[Pairing] | list[Result], uuid_to_participant_dict: dict[str, Participant],
+            drop_outs: list[str] | None = None, possible_scores: list[tuple[str, str]] | None = None,
+            is_valid_pairings: Callable[[Sequence[Pairing]], bool] | None = None, headers: tuple[str, str] = ("", "")
+    ) -> None:
         super().__init__()
-        self.results = results
-        self.uuid_to_participant_dict = uuid_to_participant_dict | {None: None}
-        self.drop_outs = drop_outs
-        self.possible_scores = possible_scores
-        self.is_valid_pairings = is_valid_pairings
-        self.headers = headers
+        self.data: list[Pairing] | list[Result] = data
+        self.uuid_to_participant_dict: dict[str, Participant] = uuid_to_participant_dict
+        self.headers: tuple[str, str] = headers
+        self.drop_outs: list[str] | None = drop_outs
+        self.possible_scores: list[tuple[str, str]] | None = possible_scores
+        self.is_valid_pairings: Callable[[Sequence[Pairing]], bool] | None = is_valid_pairings
+        self.initially_selected_uuids: set[str] = set()
 
-        self.layout = QVBoxLayout(self)
-        self.layout.setAlignment(Qt.AlignCenter | Qt.AlignTop)
+        self.layout_main: QVBoxLayout = QVBoxLayout(self)
+        self.layout_main.setAlignment(Qt.AlignmentFlag.AlignCenter | Qt.AlignmentFlag.AlignTop)
 
         self.table = QTableWidget()
         self.fill_in_table()
-        self.layout.addWidget(self.table)
-        self.setMaximumHeight(
-            self.table.maximumHeight() + self.layout.contentsMargins().top() + self.layout.contentsMargins().bottom()
-        )
+        self.layout_main.addWidget(self.table)
+        margins = self.layout_main.contentsMargins().top() + self.layout_main.contentsMargins().bottom()
+        self.setMaximumHeight(self.table.maximumHeight() + margins)
 
-    def is_current(self):
-        return any(score_1 is None or score_2 is None for (_, score_1), (_, score_2) in self.results)
+        if self.is_valid_pairings is not None:
+            self.confirm_pairings(initial=True)
 
-    def get_pairings(self):
-        return [(uuid_1, uuid_2) for (uuid_1, _), (uuid_2, _) in self.results]
+    def get_pairings(self) -> list[Pairing]:
+        return cast(list[Pairing], self.data)
 
-    def get_results(self):
-        return self.results
+    def get_results(self) -> list[Result]:
+        return cast(list[Result], self.data)
 
-    def add_pairing_row_participant(self, row, column, participant):
-        if len(participant) == 1:
+    def get_rows(self) -> int:
+        return len(self.data) + int(self.drop_outs is not None)
+
+    def get_name(self, uuid: str | None) -> str:
+        if uuid is None:
+            return "bye"
+        return self.uuid_to_participant_dict[uuid].get_name()
+
+    def get_first_not_selected_index(self, uuids: Sequence[str | None]) -> int:
+        return next((index for index, uuid in enumerate(uuids) if uuid not in self.initially_selected_uuids), 0)
+
+    def add_selected_uuid(self, uuid: str | None) -> None:
+        if uuid is not None:
+            self.initially_selected_uuids.add(uuid)
+
+    def add_row_name(self, row: int, column: int, uuid_s: U) -> None:
+        if isinstance(uuid_s, str) or uuid_s is None:
             add_content_to_table(
-                self.table, participant[0], row, column, edit=False, align=Qt.AlignVCenter | Qt.AlignLeft
+                self.table, self.get_name(uuid_s), row, column,
+                edit=False, align=Qt.AlignmentFlag.AlignVCenter | Qt.AlignmentFlag.AlignLeft
+            )
+            self.add_selected_uuid(uuid_s)
+        else:
+            current_index = self.get_first_not_selected_index(uuid_s)
+            add_combobox_to_table(
+                self.table, ["bye" if uuid is None else self.uuid_to_participant_dict[uuid] for uuid in uuid_s],
+                row, column, "medium", None, current_index=current_index, translate=True
+            )
+            self.add_selected_uuid(uuid_s[current_index])
+
+    def add_row_result(self, row: int, column: int, scores: tuple[str, str] | list[tuple[str, str]]) -> None:
+        if isinstance(scores, list):
+            add_combobox_to_table(
+                self.table, [" : "] + [" : ".join(score) for score in scores], row, column, "medium", None,
+                down_arrow=False, bold=True, align=Qt.AlignmentFlag.AlignCenter
             )
         else:
-            add_combobox_to_table(
-                self.table, ["Choose..."] + list(participant), row, column, "medium", None, translate=True
-            )
-
-    def add_pairing_row_result(self, row, column, score_1, score_2, choose_pairing):
-        if score_1 is not None and score_2 is not None:
             add_content_to_table(
-                self.table, f"{score_1} : {score_2}", row, column, edit=False, align=Qt.AlignCenter, bold=True
-            )
-        elif choose_pairing:
-            add_content_to_table(self.table, f":", row, column, edit=False, align=Qt.AlignCenter, bold=True)
-        else:
-            add_combobox_to_table(
-                self.table, [" : "] + [" : ".join(score) for score in self.possible_scores],
-                row, column, "medium", None, down_arrow=False, bold=True, align=Qt.AlignCenter
+                self.table, f"{scores[0]} : {scores[1]}", row, column,
+                edit=False, align=Qt.AlignmentFlag.AlignCenter, bold=True
             )
 
-    def add_pairing_row(self, row, participant_1, participant_2, score_1=None, score_2=None):
-        add_content_to_table(self.table, row + 1, row, 0, edit=False, bold=True, align=Qt.AlignCenter)
-        self.add_pairing_row_participant(row, 1, participant_1)
-        self.add_pairing_row_result(row, 2, score_1, score_2, len(participant_1 + participant_2) > 2)
-        self.add_pairing_row_participant(row, 3, participant_2)
+    def add_row(self, row: int, uuid_s_1: U, uuid_s_2: U, scores: tuple[str, str] | list[tuple[str, str]]) -> None:
+        add_content_to_table(self.table, row + 1, row, 0, edit=False, bold=True, align=Qt.AlignmentFlag.AlignCenter)
+        self.add_row_name(row, 1, uuid_s_1)
+        self.add_row_result(row, 2, scores)
+        self.add_row_name(row, 3, uuid_s_2)
 
-    def add_last_row(self, choose_players):
+    def add_last_row(self, pairings_fixed: bool) -> None:
         row = self.table.rowCount() - 1
         for i in range(3):
             add_blank_to_table(self.table, row, i)
-        if choose_players:
-            add_button_to_table(
-                self.table, row, 3, "medium", None, "Confirm Pairings",
-                connect_function=self.confirm_pairings, bold=True, translate=True
-            )
-        else:
+        if pairings_fixed:
             add_button_to_table(
                 self.table, row, 3, "medium", None, "Confirm Results",
-                connect_function=self.confirm_results, bold=True, translate=True
+                connect=self.confirm_results, bold=True, translate=True
+            )
+        else:
+            add_button_to_table(
+                self.table, row, 3, "medium", None, "Confirm Pairings",
+                connect=self.confirm_pairings, bold=True, translate=True
             )
 
-    def fill_in_table(self):
+    def fill_in_table(self) -> None:
         set_up_table(self.table, 0, 4, header_horizontal=["", self.headers[0], "", self.headers[1]])
-        size_table(self.table, len(self.results) + self.is_current(), 3.5, max_width=55, widths=[3.5, None, 5, None])
+        size_table(self.table, self.get_rows(), 3.5, max_width=55, widths=[3.5, None, 5, None])
 
         header_horizontal, header_vertical = self.table.horizontalHeader(), self.table.verticalHeader()
-        header_horizontal.setSectionResizeMode(1, QHeaderView.Stretch)
-        header_horizontal.setSectionResizeMode(3, QHeaderView.Stretch)
+        header_horizontal.setSectionResizeMode(1, QHeaderView.ResizeMode.Stretch)
+        header_horizontal.setSectionResizeMode(3, QHeaderView.ResizeMode.Stretch)
         header_vertical.setVisible(False)
 
-        choose_pairing, choose_result = self.fill_in_pairings()
-        if self.is_current():
-            if choose_result and not choose_pairing:
-                QTimer.singleShot(0, self.confirmed_pairings)
-            if choose_result or choose_pairing:
-                self.add_last_row(choose_pairing)
+        if self.drop_outs is None or self.possible_scores is None or self.is_valid_pairings is None:
+            for i, ((uuid_1, score_1), (uuid_2, score_2)) in enumerate(self.get_results()):
+                self.add_row(i, uuid_1, uuid_2, (score_1, score_2))
+            return
+
+        pairings = self.get_pairings()
+        for i, (uuid_1, uuid_2) in enumerate(pairings):
+            scores: tuple[str, str] | list[tuple[str, str]]
+            if uuid_1 is None and uuid_2 is None:
+                scores = ('-', '-')
+            elif uuid_1 is None:
+                scores = ('-', '+')
+            elif uuid_2 is None:
+                scores = ('+', '-')
             else:
-                self.confirm_results()
+                scores = self.possible_scores
+            self.add_row(i, uuid_1, uuid_2, scores)
+        self.add_last_row(all(pairing.is_fixed() for pairing in pairings))
 
-    def fill_in_pairings(self):
-        choose_pairing, choose_result = False, False
-
-        for i, ((uuid_1, score_1), (uuid_2, score_2)) in enumerate(self.results):
-            if isinstance(uuid_1, (str, type(None))):
-                uuid_1 = [uuid_1]
-            if isinstance(uuid_2, (str, type(None))):
-                uuid_2 = [uuid_2]
-
-            scores_to_enter = score_1 is None or score_2 is None
-            forfeit_1 = len(uuid_1) == 1 and (uuid_1[0] is None or uuid_1[0] in self.drop_outs)
-            forfeit_2 = len(uuid_2) == 1 and (uuid_2[0] is None or uuid_2[0] in self.drop_outs)
-            participant_1 = [self.uuid_to_participant_dict[uuid] for uuid in uuid_1]
-            participant_2 = [self.uuid_to_participant_dict[uuid] for uuid in uuid_2]
-
-            if len(participant_1 + participant_2) > 2:
-                choose_pairing = True
-            match (scores_to_enter, forfeit_1, forfeit_2):
-                case (True, True, True):
-                    score_1, score_2 = '-', '-'
-                case (True, True, False):
-                    score_1, score_2 = '-', '+'
-                case (True, False, True):
-                    score_1, score_2 = '+', '-'
-                case (True, False, False):
-                    choose_result = True
-
-            self.add_pairing_row(i, participant_1, participant_2, score_1, score_2)
-
-        return choose_pairing, choose_result
-
-    def enter_data_in_results(self, index_1, index_2, index_3, data):
-        temp = [list(entry) for entry in self.results[index_1]]
-        temp[index_2][index_3] = data
-        self.results[index_1] = temp
-
-    def enter_participant_in_results(self, row, column):
+    def fix_pairing_entry(self, pairings: Sequence[Pairing], row: int, column: int) -> None:
         widget = self.table.cellWidget(row, column)
         if not isinstance(widget, QComboBox):
-            return True
-        if widget.currentData() == "Choose..." or column not in (1, 3):
-            return False
-
-        participant = widget.currentData()
-        self.enter_data_in_results(row, column == 3, 0, None if participant is None else participant.get_uuid())
-        return True
-
-    def enter_score_in_results(self, row):
-        if self.table.cellWidget(row, 2) is None:
-            score_1, score_2 = self.table.item(row, 2).text().split(' : ')
+            return
+        if widget.currentData() == "bye":
+            pairings[row].fix(column == 3, None)
         else:
-            score_1, score_2 = self.table.cellWidget(row, 2).currentText().split(' : ')
-        if not score_1 or not score_2:
-            return False
-        self.enter_data_in_results(row, 0, 1, score_1)
-        self.enter_data_in_results(row, 1, 1, score_2)
-        return True
+            pairings[row].fix(column == 3, cast(Participant, widget.currentData()).get_uuid())
 
-    def confirm_pairings(self):
-        all_pairings_confirmed = all(
-            self.enter_participant_in_results(row, column)
-            for row in range(self.table.rowCount() - 1) for column in (1, 3)
-        )
-        if all_pairings_confirmed and self.is_valid_pairings(self.results):
+    def get_fixed_pairings(self, pairings: list[Pairing]) -> list[Pairing]:
+        fixed_pairings = deepcopy(pairings)
+        for row in range(len(fixed_pairings)):
+            self.fix_pairing_entry(fixed_pairings, row, 1)
+            self.fix_pairing_entry(fixed_pairings, row, 3)
+        return fixed_pairings
+
+    def get_result_entry(self, row: int, column: int) -> tuple[str, str]:
+        item = self.table.item(row, column)
+        widget = self.table.cellWidget(row, column)
+        if isinstance(widget, QComboBox):
+            return cast(tuple[str, str], tuple(widget.currentText().split(" : ")))
+        return cast(tuple[str, str], tuple(item.text().split(" : ")))
+
+    def confirm_pairings(self, initial: bool = False) -> None:
+        assert(self.is_valid_pairings is not None)
+        pairings = self.get_pairings() if initial else self.get_fixed_pairings(self.get_pairings())
+        if all(pairing.is_fixed() for pairing in pairings) and self.is_valid_pairings(pairings):
+            self.data = pairings
             self.update_table()
+            QTimer.singleShot(0, self.confirmed_pairings.emit)
 
-    def confirm_results(self):
-        if all(self.enter_score_in_results(row) for row in range(self.table.rowCount()-1)):
-            self.confirmed_results.emit()
-            self.update_table()
+    def confirm_results(self) -> None:
+        results = [self.get_result_entry(row, 2) for row in range(len(self.data))]
+        if any(result == ('', '') for result in results):
+            return
+        self.data = [
+            Result((cast(str | None, uuid_1), score_1), (cast(str | None, uuid_2), score_2))
+            for (uuid_1, uuid_2), (score_1, score_2) in zip(self.get_pairings(), results)
+        ]
+        self.drop_outs = self.possible_scores = self.is_valid_pairings = None
+        self.update_table()
+        QTimer.singleShot(0, self.confirmed_results.emit)
 
-    def update_table(self):
+    def update_table(self) -> None:
         clear_table(self.table)
         self.fill_in_table()

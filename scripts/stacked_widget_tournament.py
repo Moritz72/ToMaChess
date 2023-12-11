@@ -1,126 +1,123 @@
-from PySide6.QtWidgets import QStackedWidget
-from PySide6.QtCore import Signal
+from __future__ import annotations
+from typing import TYPE_CHECKING, Any, cast
+from functools import partial
+from .stacked_widget import Stacked_Widget
+from .widget_tournament_info import Widget_Tournament_Info
 from .widget_tournament_standings import Widget_Tournament_Standings
 from .widget_tournament_cross_table import Widget_Tournament_Cross_Table
 from .widget_tournament_standings_categories import Widget_Tournament_Standings_Categories
 from .widget_tournament_round import Widget_Tournament_Round
 from .widget_tournament_round_team import Widget_Tournament_Round_Team
 from .window_tournament_actions import Window_Tournament_Actions
-from .functions_gui import close_window
-from .functions_tournament import update_tournament
-from .functions_export import tournament_standings_to_pdf, tournament_participants_to_pdf, tournament_pairings_to_pdf,\
+from .gui_functions import close_window
+from .db_tournament import DB_TOURNAMENT
+from .tournament import Tournament
+from .functions_pdf import tournament_standings_to_pdf, tournament_participants_to_pdf, tournament_pairings_to_pdf,\
     tournament_results_to_pdf
-from .functions_server import upload_latest_results, upload_latest_pairings, upload_participants, \
+from .functions_ftp import upload_latest_results, upload_latest_pairings, upload_participants, \
     upload_latest_standings
+if TYPE_CHECKING:
+    from .window_main import Window_Main
 
 
-def get_round_widget(tournament, roun, current):
-    if current:
-        results = [((uuid_1, None), (uuid_2, None)) for uuid_1, uuid_2 in tournament.get_pairings()]
-    else:
-        results = tournament.get_results()[roun - 1]
+def get_round_widget(tournament: Tournament, roun: int | None) -> Widget_Tournament_Round:
+    participant_dict = tournament.get_uuid_to_participant_dict()
+    if roun is not None:
+        return Widget_Tournament_Round(tournament.get_results()[roun - 1], participant_dict)
+    pairings = tournament.get_pairings()
+    assert(pairings is not None)
     return Widget_Tournament_Round(
-        results, tournament.get_uuid_to_participant_dict(), tournament.get_variable("drop_outs"),
+        pairings, participant_dict, tournament.get_drop_outs(),
         tournament.get_possible_scores(), tournament.is_valid_pairings
     )
 
 
-def get_team_members_from_uuid(uuid, uuid_to_participant_dict):
-    return None if uuid is None else list(uuid_to_participant_dict[uuid].get_uuid_to_member_dict()) + [None]
-
-
-def get_round_widget_team(tournament, roun, current):
-    uuid_to_participant_dict = tournament.get_uuid_to_participant_dict()
-    boards = tournament.get_parameter("boards")
-    if current:
-        results = [((uuid_1, None), (uuid_2, None)) for uuid_1, uuid_2 in tournament.get_pairings()]
-        results_individual = [[
-            (
-                (get_team_members_from_uuid(uuid_1, uuid_to_participant_dict), None),
-                (get_team_members_from_uuid(uuid_2, uuid_to_participant_dict), None)
-            ) for _ in range(boards)
-        ] for uuid_1, uuid_2 in tournament.get_pairings()]
-    else:
-        results = tournament.get_results()[roun - 1]
-        results_individual = tournament.get_results_individual()[roun - 1]
+def get_round_widget_team(tournament: Tournament, roun: int | None) -> Widget_Tournament_Round_Team:
+    participant_dict = tournament.get_uuid_to_participant_dict()
+    individual_dicts = tournament.get_uuid_to_individual_dicts()
+    if roun is not None:
+        roun -= 1
+        return Widget_Tournament_Round_Team(
+            tournament.get_results()[roun], participant_dict, individual_dicts, tournament.get_results_team()[roun]
+        )
+    pairings = tournament.get_pairings()
+    assert(pairings is not None)
     return Widget_Tournament_Round_Team(
-        results, uuid_to_participant_dict, tournament.get_variable("drop_outs"), tournament.get_possible_scores(),
-        tournament.is_valid_pairings_match, boards, results_individual, tournament.get_uuid_to_individual_dict()
+        pairings, participant_dict, individual_dicts, None, tournament.get_drop_outs(),
+        tournament.get_possible_scores(), tournament.is_valid_pairings_match, tournament.get_boards()
     )
 
 
-class Stacked_Widget_Tournament(QStackedWidget):
-    make_side_menu = Signal()
+class Stacked_Widget_Tournament(Stacked_Widget):
+    def __init__(self, window_main: Window_Main, tournament: Tournament, sub_folder: str = "") -> None:
+        super().__init__(window_main)
+        self.tournament: Tournament = tournament
+        self.sub_folder: str = sub_folder
+        self.window_tournament_actions: Window_Tournament_Actions | None = None
 
-    def __init__(self, window_main, tournament, sub_folder=""):
-        super().__init__()
-        self.window_main = window_main
-        self.tournament = tournament
-        self.sub_folder = sub_folder
-        self.get_round_widget = get_round_widget_team if self.tournament.is_team_tournament() else get_round_widget
-        self.window_tournament_actions = None
+        self.widgets_info: list[Widget_Tournament_Info] = []
+        self.widgets_info.append(Widget_Tournament_Standings(self.tournament))
+        self.widgets_info.append(Widget_Tournament_Cross_Table(self.tournament))
+        if self.tournament.get_category_ranges():
+            self.widgets_info.append(Widget_Tournament_Standings_Categories(self.tournament))
+        for widget_info in self.widgets_info:
+            self.addWidget(widget_info)
 
-        self.table_widgets = [
-            Widget_Tournament_Standings(self.tournament), Widget_Tournament_Cross_Table(self.tournament)
-        ]
-        if "category_ranges" in self.tournament.get_parameters() and self.tournament.get_parameter("category_ranges"):
-            self.table_widgets.append(Widget_Tournament_Standings_Categories(self.tournament))
-        for table_widget in self.table_widgets:
-            self.addWidget(table_widget)
+        self.widgets_round: list[Widget_Tournament_Round | Widget_Tournament_Round_Team] = []
+        for roun in range(1, self.tournament.get_round()):
+            self.add_round_widget(roun)
+        self.tournament.load_pairings()
+        if self.tournament.get_pairings() is not None:
+            self.add_round_widget()
 
-        self.add_round_widgets()
+        if self.tournament.get_pairings() is not None and self.tournament.is_team_tournament():
+            tournament_pairings_to_pdf(self.tournament, self.sub_folder)
+            upload_latest_pairings(self.tournament, self.sub_folder)
+
         self.set_index()
         tournament_participants_to_pdf(self.tournament, self.sub_folder)
         upload_participants(self.tournament, self.sub_folder)
 
-    def add_round_widget(self, roun, current):
-        widget = self.get_round_widget(self.tournament, roun, current)
-        self.addWidget(widget)
-        if current:
-            widget.confirmed_pairings.connect(self.pairings_confirmed)
-            widget.confirmed_results.connect(self.load_next_round)
-            if self.tournament.is_team_tournament():
-                tournament_pairings_to_pdf(self.tournament, self.sub_folder)
-                upload_latest_pairings(self.tournament, self.sub_folder)
+    def add_round_widget(self, roun: int | None = None) -> None:
+        if self.tournament.is_team_tournament():
+            self.widgets_round.append(get_round_widget_team(self.tournament, roun))
+        else:
+            self.widgets_round.append(get_round_widget(self.tournament, roun))
+        self.addWidget(self.widgets_round[-1])
+        if roun is None:
+            self.widgets_round[-1].confirmed_pairings.connect(self.pairings_confirmed)
+            self.widgets_round[-1].confirmed_results.connect(self.load_next_round)
 
-    def add_round_widgets(self):
-        rounds = self.tournament.get_round()
-        self.tournament.load_pairings()
-        for i in range(1, rounds):
-            self.add_round_widget(i, False)
-        if self.tournament.get_pairings() is not None:
-            self.add_round_widget(rounds, True)
-
-    def set_index(self):
+    def set_index(self) -> None:
         if self.tournament.is_done():
             self.setCurrentIndex(0)
         else:
             self.setCurrentIndex(self.count() - 1)
 
-    def get_buttons_args(self):
-        texts = ["Standings", "Crosstable"]
-        if len(self.table_widgets) == 3:
+    def get_buttons_args(self) -> list[dict[str, Any]]:
+        texts: list[str | tuple[str, ...]] = ["Standings", "Crosstable"]
+        if len(self.widgets_info) == 3:
             texts.append("Categories")
-        texts.extend([self.tournament.get_round_name(i + 1) for i in range(self.count() - len(self.table_widgets))])
+        texts.extend([self.tournament.get_round_name(i + 1) for i in range(len(self.widgets_round))])
 
-        buttons_args = [
-            {"text": text, "connect_function": lambda _, index=i: self.setCurrentIndex(index), "checkable": True}
+        buttons_args: list[dict[str, Any]] = [
+            {"text": text, "connect": partial(self.setCurrentIndex, i), "checkable": True}
             for i, text in enumerate(texts)
         ]
         buttons_args.append({"enabled": False})
-        buttons_args.append({"text": "Actions", "connect_function": self.open_actions, "bold": True})
-        buttons_args.append({"text": "Back", "connect_function": self.open_default, "bold": True})
+        buttons_args.append({"text": "Actions", "connect": self.open_actions, "bold": True})
+        buttons_args.append({"text": "Back", "connect": self.open_default, "bold": True})
         return buttons_args
 
-    def get_active_button_index(self):
+    def get_active_button_index(self) -> int:
         return self.currentIndex()
 
-    def open_default(self):
+    def open_default(self) -> None:
         if self.sub_folder == "":
-            update_tournament("", self.tournament)
+            DB_TOURNAMENT.update_list("", [self.tournament])
         self.window_main.set_stacked_widget("Default")
 
-    def open_actions(self):
+    def open_actions(self) -> None:
         close_window(self.window_tournament_actions)
         self.window_tournament_actions = Window_Tournament_Actions(self.tournament, parent=self)
         self.window_tournament_actions.reload_local_signal.connect(self.reload_local)
@@ -128,14 +125,16 @@ class Stacked_Widget_Tournament(QStackedWidget):
         self.window_tournament_actions.reload_global_signal.connect(self.reload_global)
         self.window_tournament_actions.show()
 
-    def pairings_confirmed(self):
+    def pairings_confirmed(self) -> None:
         if not self.tournament.is_team_tournament():
-            self.tournament.set_pairings(self.sender().get_pairings())
+            sender = cast(Widget_Tournament_Round, self.sender())
+            self.tournament.set_pairings(sender.get_pairings())
             tournament_pairings_to_pdf(self.tournament, self.sub_folder)
             upload_latest_pairings(self.tournament, self.sub_folder)
 
-    def load_next_round(self):
-        self.tournament.add_results(self.sender().get_results())
+    def load_next_round(self) -> None:
+        sender = cast(Widget_Tournament_Round | Widget_Tournament_Round_Team, self.sender())
+        self.tournament.add_results(sender.get_results())
         tournament_results_to_pdf(self.tournament, self.sub_folder)
         tournament_standings_to_pdf(self.tournament, self.sub_folder)
         upload_latest_standings(self.tournament, self.sub_folder)
@@ -143,48 +142,48 @@ class Stacked_Widget_Tournament(QStackedWidget):
         self.add_new_round()
         self.update_rounds()
 
-    def undo_last_round(self):
+    def undo_last_round(self) -> None:
         if self.tournament.get_round() == 1:
             return
-        self.removeWidget(self.widget(self.count() - 1))
+        self.removeWidget(self.widgets_round.pop())
         if not self.tournament.is_done():
-            self.removeWidget(self.widget(self.count() - 1))
+            self.removeWidget(self.widgets_round.pop())
         self.tournament.remove_results()
         self.add_new_round()
         self.update_rounds()
 
-    def reload_local(self):
+    def reload_local(self) -> None:
         if self.tournament.get_pairings() is None:
             return
-        self.removeWidget(self.widget(self.count() - 1))
+        self.removeWidget(self.widgets_round.pop())
         self.tournament.clear_pairings()
         self.tournament.load_pairings()
         self.add_new_round()
         self.make_side_menu.emit()
 
-    def reload_global(self):
+    def reload_global(self) -> None:
         if self.tournament.get_pairings() is None:
             self.add_new_round()
         else:
             self.reload_local()
         self.update_rounds()
 
-    def update_rounds(self):
+    def update_rounds(self) -> None:
         if not self.sub_folder:
-            update_tournament("", self.tournament)
-        for table_widget in self.table_widgets:
-            table_widget.update()
+            DB_TOURNAMENT.update_list("", [self.tournament])
+        for widget_info in self.widgets_info:
+            widget_info.refresh()
         self.make_side_menu.emit()
         self.update_window_tournament_actions()
 
-    def add_new_round(self):
+    def add_new_round(self) -> None:
         self.tournament.load_pairings()
         if self.tournament.get_pairings() is not None:
-            self.add_round_widget(self.tournament.get_round(), True)
+            self.add_round_widget()
         self.set_index()
         self.update_window_tournament_actions()
 
-    def update_window_tournament_actions(self):
+    def update_window_tournament_actions(self) -> None:
         try:
             if self.window_tournament_actions is None:
                 return

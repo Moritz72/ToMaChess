@@ -1,45 +1,45 @@
-from PySide6.QtWidgets import QWidget, QVBoxLayout, QHeaderView, QTableWidget
+from PySide6.QtWidgets import QVBoxLayout, QHeaderView, QTableWidget
 from PySide6.QtCore import Qt
-from .functions_categories import get_category_range_title
-from .functions_gui import add_content_to_table, set_up_table, size_table, clear_table
+from .tournament import Tournament
+from .category_range import Category_Range
+from .widget_tournament_info import Widget_Tournament_Info
+from .gui_table import add_content_to_table, set_up_table, size_table, clear_table
 
 
-class Widget_Tournament_Standings(QWidget):
-    def __init__(self, tournament, category_range=None):
-        super().__init__()
-        self.tournament = tournament
+class Widget_Tournament_Standings(Widget_Tournament_Info):
+    def __init__(self, tournament: Tournament, category_range: Category_Range | None = None) -> None:
+        super().__init__(tournament)
         self.category_range = category_range
 
-        self.layout = QVBoxLayout(self)
-        self.layout.setAlignment(Qt.AlignCenter | Qt.AlignTop)
+        self.layout_main: QVBoxLayout = QVBoxLayout(self)
+        self.layout_main.setAlignment(Qt.AlignmentFlag.AlignCenter | Qt.AlignmentFlag.AlignTop)
 
         self.table = QTableWidget()
         self.fill_in_table()
-        self.layout.addWidget(self.table)
+        self.layout_main.addWidget(self.table)
 
-    def fill_in_table(self):
-        header_horizontal, header_vertical, table = self.tournament.get_standings(self.category_range)
+    def fill_in_table(self) -> None:
+        table = self.tournament.get_standings(self.category_range)
+        h_vertical = table.get_header_vertical()
         if self.category_range is not None:
-            header_horizontal[0] = get_category_range_title(*self.category_range)
+            table.headers[0] = self.category_range.get_title()
         set_up_table(
-            self.table, len(header_vertical), len(header_horizontal),
-            header_horizontal=header_horizontal, header_vertical=header_vertical, translate=True
+            self.table, len(h_vertical), len(table.headers),
+            header_horizontal=table.headers, header_vertical=h_vertical, translate=True
         )
-        size_table(self.table, len(header_vertical), 3.5, max_width=55, widths=len(header_horizontal) * [5])
-        self.setMaximumHeight(
-            self.table.maximumHeight() + self.layout.contentsMargins().top() + self.layout.contentsMargins().bottom()
-        )
+        size_table(self.table, len(h_vertical), 3.5, max_width=55, widths=len(table.headers) * [5.])
+        margins = self.layout_main.contentsMargins().top() + self.layout_main.contentsMargins().bottom()
+        self.setMaximumHeight(self.table.maximumHeight() + margins)
 
         header_horizontal, header_vertical = self.table.horizontalHeader(), self.table.verticalHeader()
-        header_horizontal.setSectionResizeMode(0, QHeaderView.Stretch)
-        header_vertical.setDefaultAlignment(Qt.AlignCenter)
+        header_horizontal.setSectionResizeMode(0, QHeaderView.ResizeMode.Stretch)
+        header_vertical.setDefaultAlignment(Qt.AlignmentFlag.AlignCenter)
 
         for i, row in enumerate(table):
+            add_content_to_table(self.table, table.participants[i], i, 0, edit=False, bold=True)
             for j, field in enumerate(row):
-                add_content_to_table(
-                    self.table, field, i, j, edit=False, align=Qt.AlignCenter if j else None, bold=(j == 1)
-                )
+                add_content_to_table(self.table, field, i, j + 1, edit=False, align=Qt.AlignmentFlag.AlignCenter)
 
-    def update(self):
+    def refresh(self) -> None:
         clear_table(self.table)
         self.fill_in_table()

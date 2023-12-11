@@ -212,9 +212,6 @@ msgstr "Kopieren"
 msgid "Add\nParticipant"
 msgstr "Teilnehmer\nhinzufügen"
 
-msgid "Choose..."
-msgstr "Auswählen..."
-
 msgid "Confirm Pairings"
 msgstr "Paarungen bestätigen"
 
@@ -245,7 +242,7 @@ msgstr "Schwarzsiege"
 msgid "Average Rating"
 msgstr "Gegnerschnitt"
 
-msgid "Cumulative Score"
+msgid "Progressive Scores"
 msgstr "Kumulative Punkte"
 
 msgid "Direct Encounter"
@@ -409,3 +406,9 @@ msgstr "Server Benutzername"
 
 msgid "Server Password"
 msgstr "Server Passwort"
+
+msgid "Previous Stage"
+msgstr "Vorherige Stufe"
+
+msgid "Next Stage"
+msgstr "Nächste Stufe"

@@ -77,8 +77,8 @@ msgstr "BlaW"
 msgid "Average Rating"
 msgstr "AvRa"
 
-msgid "Cumulative Score"
-msgstr "Cumu"
+msgid "Progressive Scores"
+msgstr "Prog"
 
 msgid "Direct Encounter"
 msgstr "DiEn"
