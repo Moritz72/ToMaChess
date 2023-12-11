@@ -29,13 +29,13 @@ def get_data_from_results(
     ]
     bbp_results: list[list[BBP_Result]] = [[(None, None, None) for _ in results] for _ in participants]
 
-    for roun in results:
-        for (uuid_1, score_1), (uuid_2, score_2) in roun:
+    for roun, round_results in enumerate(results):
+        for (uuid_1, score_1), (uuid_2, score_2) in round_results:
             ind_1, ind_2 = uuid_dict[uuid_1], uuid_dict[uuid_2]
             if uuid_1 is not None and ind_1 is not None:
-                bbp_results[ind_1].append((ind_2, True, score_1))
+                bbp_results[ind_1][roun] = (ind_2, True, score_1)
             if uuid_2 is not None and ind_2 is not None:
-                bbp_results[ind_2].append((ind_1, False, score_2))
+                bbp_results[ind_2][roun] = (ind_1, False, score_2)
     for uuid in drop_outs:
         bbp_results[cast(int, uuid_dict[uuid])].append((None, None, None))
     return ratings, bbp_results
@@ -50,9 +50,11 @@ def convert_points(points: str) -> str:
 
 
 def convert_result(result: BBP_Result) -> str:
-    if result[0] is None:
+    if result[2] is None:
         return "  0000 - Z"
-    return f"{result[0] + 1} {convert_side(cast(bool, result[1]))} {convert_points(cast(str, result[2]))}".rjust(10)
+    if result[0] is None:
+        return "  0000 - U"
+    return f"{result[0] + 1} {convert_side(cast(bool, result[1]))} {convert_points(result[2])}".rjust(10)
 
 
 def write_input_file(
