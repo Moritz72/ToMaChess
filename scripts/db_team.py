@@ -12,6 +12,26 @@ TEAM_COLUMNS = ("name", "members", "uuid", "uuid_associate")
 TEAM_PLAYER_COLUMNS = ("uuid_player", "uuid_associate_player", "uuid_team", "uuid_associate_team", "member_order")
 
 
+def get_filled_in_teams(table_root: str, entries: list[Team_Data]) -> list[Team]:
+    table_players = f"{table_root}players"
+    table_junction = f"{table_root}players_to_teams"
+    query = (
+        f"SELECT {table_players}.*, "
+        f"{table_junction}.uuid_team, {table_junction}.uuid_associate_team, {table_junction}.member_order "
+        f"FROM {table_players} JOIN {table_junction} ON {table_junction}.uuid_player = {table_players}.uuid "
+        f"AND {table_junction}.uuid_associate_player = {table_players}.uuid_associate "
+        f"WHERE {table_junction}.uuid_team IN ({', '.join('?' * len(entries))}) "
+        f"AND {table_junction}.uuid_associate_team IN ({', '.join('?' * len(entries))})"
+    )
+    MANAGER_DATABASE.cursor.execute(query, [entry[-2] for entry in entries] + [entry[-1] for entry in entries])
+    entries_players: list[Player_Data_Keys] = MANAGER_DATABASE.cursor.fetchall()
+    players_and_keys = [(Player(*entry[:-3]), entry[-3:-1]) for entry in sorted(entries_players, key=lambda x: x[-1])]
+    team_dict = {entry[-2:]: Team([], *entry) for entry in entries}
+    for player, key in players_and_keys:
+        team_dict[key].add_members([player])
+    return list(team_dict.values())
+
+
 class DB_Team(DB_Object[Team]):
     def __init__(self) -> None:
         super().__init__(obj_type="Team", table_name="teams")
@@ -49,41 +69,21 @@ class DB_Team(DB_Object[Team]):
     ) -> list[Team]:
         if shallow:
             return NotImplemented
-        entries_team: list[Team_Data] = MANAGER_DATABASE.get_entries_list(
+        entries: list[Team_Data] = MANAGER_DATABASE.get_entries_list(
             self.table(table_root), UUID_TUPLE, (uuid_list, uuid_associate_list)
         )
-        table_players = f"{table_root}players"
-        table_junction = f"{table_root}players_to_teams"
-        query = (
-            f"SELECT {table_players}.*, "
-            f"{table_junction}.uuid_team, {table_junction}.uuid_associate_team, {table_junction}.member_order "
-            f"FROM {table_players} JOIN {table_junction} ON {table_junction}.uuid_player = {table_players}.uuid "
-            f"AND {table_junction}.uuid_associate_player = {table_players}.uuid_associate "
-            f"WHERE {table_junction}.uuid_team IN ({', '.join('?' * len(entries_team))}) "
-            f"AND {table_junction}.uuid_associate_team IN ({', '.join('?' * len(entries_team))})"
-        )
-        MANAGER_DATABASE.cursor.execute(
-            query, [entry[-2] for entry in entries_team] + [entry[-1] for entry in entries_team]
-        )
-        entries_players: list[Player_Data_Keys] = MANAGER_DATABASE.cursor.fetchall()
-        players_and_keys = [
-            (Player(*entry[:-3]), entry[-3:-1]) for entry in sorted(entries_players, key=lambda x: x[-1])
-        ]
-        team_dict = {entry[-2:]: Team([], *entry) for entry in entries_team}
-        for player, key in players_and_keys:
-            team_dict[key].add_members([player])
-        return list(team_dict.values())
+        return get_filled_in_teams(table_root, entries)
 
     def load_like(
             self, table_root: str, uuid_associate: str, name: str, limit: int | None, shallow: bool = False
     ) -> list[Team]:
-        if not shallow:
-            return NotImplemented
         entries: list[Team_Data] = MANAGER_DATABASE.get_entries_like(
             self.table(table_root), ("uuid_associate",), (uuid_associate,),
             ("name",), (name,), ("name",), (True,), limit
         )
-        return [Team([], *entry) for entry in entries]
+        if shallow:
+            return [Team([], *entry) for entry in entries]
+        return get_filled_in_teams(table_root, entries)
 
     def add_list(self, table_root: str, teams: Sequence[Team], shallow: bool = False) -> None:
         if shallow:

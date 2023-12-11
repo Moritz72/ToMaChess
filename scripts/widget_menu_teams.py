@@ -11,7 +11,7 @@ from .window_team_edit import Window_Team_Edit
 
 class Widget_Menu_Teams(Widget_Search_Generic[Team]):
     def __init__(self) -> None:
-        super().__init__(DB_TEAM, shallow_load=True)
+        super().__init__(DB_TEAM)
         self.window_team_edit: Window_Team_Edit | None = None
 
     @staticmethod
@@ -49,7 +49,6 @@ class Widget_Menu_Teams(Widget_Search_Generic[Team]):
         row = self.table.currentRow()
         team = self.table.objects[row]
         assert(team is not None)
-        self.table.objects[row] = self.db.load_list("", [team.get_uuid()], [team.get_uuid_associate()])[0]
 
         close_window(self.window_team_edit)
         team = self.table.objects[row]
