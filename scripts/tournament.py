@@ -58,7 +58,7 @@ class Tournament(Object):
         self.mode: str = ""
         self.parameters_display: dict[str, tuple[str, ...] | str | None] = dict()
         self.load_parameters_and_variables()
-        self.set_participants(participants)
+        self.set_participants(participants, order=True)
         self.shallow_participant_count: int = shallow_participant_count or len(self.participants)
 
     def copy(self) -> Tournament:
@@ -143,8 +143,8 @@ class Tournament(Object):
         for variable, value in variables.items():
             if isinstance(value, Variable):
                 variables[variable] = {"class": value.__class__.__name__, "dict": value.get_dict()}
-        return self.get_mode(), self.get_name(), self.get_participant_count(), dumps(parameters), \
-            dumps(variables), dumps([participant.get_uuid() for participant in self.get_participants()]), \
+        return self.get_mode(), self.get_name(), self.get_participant_count(), dumps(parameters), dumps(variables),\
+            dumps([participant.get_uuid() for participant in self.get_participants()] or self.order), \
             self.get_uuid(), self.get_uuid_associate()
 
     def get_score_dict(self) -> dict[str, float]:
@@ -209,12 +209,11 @@ class Tournament(Object):
                     info[display] = str(value)
         return info
 
-    def set_participants(self, participants: Sequence[Participant]) -> None:
+    def set_participants(self, participants: Sequence[Participant], order: bool = False) -> None:
         self.participants = list(participants)
-        if self.order is not None and participants:
+        if order and bool(self.participants) and self.order is not None:
             uuid_to_participant_dict = self.get_uuid_to_participant_dict()
             self.participants = [uuid_to_participant_dict[uuid] for uuid in self.order]
-            self.order = None
 
     def set_shallow_participant_count(self, shallow_participant_count: int) -> None:
         self.shallow_participant_count = shallow_participant_count
@@ -233,8 +232,8 @@ class Tournament(Object):
             pairings = Variable_Pairings(pairings)
         self.set_variable("pairings", pairings)
 
-    def set_drop_outs(self, participants: list[str]) -> None:
-        self.set_variable("drop_outs", participants)
+    def set_drop_outs(self, uuids: list[str]) -> None:
+        self.set_variable("drop_outs", uuids)
 
     def set_category_ranges(self, category_ranges: Sequence[tuple[str, Any, Any]]) -> None:
         self.set_variable("category_ranges", Variable_Category_Ranges(category_ranges))

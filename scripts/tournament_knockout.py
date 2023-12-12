@@ -109,7 +109,7 @@ class Tournament_Knockout(Tournament):
             get_scores(score_1, score_2, self.get_score_dict()) for (_, score_1), (_, score_2) in self.get_results()[-1]
         ]
 
-    def set_participants(self, participants: Sequence[Participant]) -> None:
+    def set_participants(self, participants: Sequence[Participant], order: bool = False) -> None:
         if "standings_dict" not in self.get_variables():
             self.get_variables()["standings_dict"] = Variable_Knockout_Standings(dict())
         super().set_participants(sort_players_by_rating(cast(Sequence[Player], participants)))
