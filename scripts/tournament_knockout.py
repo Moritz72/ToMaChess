@@ -109,22 +109,23 @@ class Tournament_Knockout(Tournament):
             get_scores(score_1, score_2, self.get_score_dict()) for (_, score_1), (_, score_2) in self.get_results()[-1]
         ]
 
-    def set_participants(self, participants: Sequence[Participant], order: bool = False) -> None:
+    def set_participants(self, participants: Sequence[Participant], from_order: bool = False) -> None:
         if "standings_dict" not in self.get_variables():
             self.get_variables()["standings_dict"] = Variable_Knockout_Standings(dict())
-        super().set_participants(sort_players_by_rating(cast(Sequence[Player], participants)))
+        super().set_participants(participants, from_order=from_order)
         uuids = self.get_participant_uuids()
         standings_dict = self.get_standings_dict()
+        current_level = standings_dict.get_current_level()
         for uuid in uuids:
             if uuid not in standings_dict:
-                standings_dict.add(uuid, 0, self.get_initial_score())
+                standings_dict.add(uuid, current_level, self.get_initial_score())
 
     def is_valid_parameters(self) -> bool:
         return self.get_games() > 0 and self.get_games_per_tiebreak() > 0
 
     def is_valid_pairings(self, pairings: Sequence[Pairing]) -> bool:
         assert(all(pairing.is_fixed() for pairing in pairings))
-        return not has_duplicates([uuid for uuid, _ in pairings] + [uuid for _, uuid in pairings])
+        return not has_duplicates([item for item, _ in pairings] + [item for _, item in pairings])
 
     def add_results(self, results: Sequence[Result] | Sequence[Result_Team]) -> None:
         super().add_results(results)
@@ -135,13 +136,12 @@ class Tournament_Knockout(Tournament):
         level = standings_dict[cast(str, self.get_results()[-1][0][0][0])].level
         uuids = set()
 
-        for ((uuid_1, _), (uuid_2, _)), (score_1, score_2) in zip(self.get_results()[-1], self.get_latest_scores()):
-            uuid_1, uuid_2 = cast(str, uuid_1), cast(str, uuid_2)
+        for ((item_1, _), (item_2, _)), (score_1, score_2) in zip(self.get_results()[-1], self.get_latest_scores()):
             update_participant_standings(
-                uuid_1, uuid_2, score_1, score_2, standings_dict,
+                item_1, item_2, score_1, score_2, standings_dict,
                 games, games_per_tiebreak, armageddon, *self.get_totals()
             )
-            uuids |= {uuid_1, uuid_2}
+            uuids |= {item_1, item_2}
         alives = set(uuid for uuid in standings_dict if standings_dict[uuid].beaten_by_seat is None)
         for uuid in alives.difference(uuids):
             standings_dict[uuid].level = level + 1
@@ -153,19 +153,70 @@ class Tournament_Knockout(Tournament):
         standings_dict = self.get_standings_dict()
         uuids = set()
 
-        for ((uuid_1, _), (uuid_2, _)), (score_1, score_2) in zip(self.get_results()[-1], self.get_latest_scores()):
-            uuid_1, uuid_2 = cast(str, uuid_1), cast(str, uuid_2)
+        for ((item_1, _), (item_2, _)), (score_1, score_2) in zip(self.get_results()[-1], self.get_latest_scores()):
             reverse_participant_standings(
-                uuid_1, uuid_2, score_1, score_2, standings_dict,
+                item_1, item_2, score_1, score_2, standings_dict,
                 games, games_per_tiebreak, armageddon, *self.get_totals()
             )
-            uuids |= {uuid_1, uuid_2}
+            uuids |= {item_1, item_2}
         level = standings_dict[cast(str, self.get_results()[-1][0][0][0])].level
         alives = set(uuid for uuid in standings_dict if standings_dict[uuid].beaten_by_seat is None)
         if all(standings_dict[uuid].score == self.get_initial_score() for uuid in uuids):
             for uuid in alives:
                 standings_dict[uuid].level = level
         super().remove_results()
+
+    def seat_participants(self) -> None:
+        self.set_participants(sort_players_by_rating(cast(list[Player], self.get_participants())))
+        standings_dict = self.get_standings_dict()
+        uuids = self.get_participant_uuids()
+        uuids = sorted(standings_dict.get_uuids(), key=lambda x: uuids.index(x))
+        seatings = sorted(standings_dict[uuid].seating for uuid in uuids)
+        for uuid, seating in zip(uuids, seatings):
+            standings_dict[uuid].seating = seating
+
+    def is_done(self) -> bool:
+        return tuple(standing.beaten_by_seat for standing in self.get_standings_dict().values()).count(None) == 1
+
+    def load_pairings(self) -> None:
+        if bool(self.get_pairings()) or self.is_done():
+            return
+        games = self.get_games()
+        games_per_tiebreak = self.get_games_per_tiebreak()
+        armageddon = self.get_armageddon()
+        standings_dict = self.get_standings_dict()
+
+        uuids = standings_dict.get_uuids()
+        score_sum = 2 * sum(standings_dict[uuid].score[0] for uuid in uuids) / len(uuids)
+        pairing_method = self.get_pairing_method()
+
+        if score_sum == 0 and (len(uuids) & (len(uuids) - 1)):
+            through = 2 * (1 << (len(uuids).bit_length() - 1)) - len(uuids)
+            uuids = uuids[through:]
+
+        if score_sum == 0 and pairing_method == "Custom":
+            pairings = [Pairing(uuids, uuids) for _ in range(int(len(uuids) / 2))]
+        elif score_sum == 0:
+            pairing_indices = PAIRING_FUNCTIONS[pairing_method](len(uuids), True)
+            pairings = [Pairing(uuids[i_1], uuids[i_2]) for i_1, i_2 in pairing_indices]
+        else:
+            pairings = [
+                Pairing(item_2, item_1) for (item_1, _), (item_2, _) in self.get_results()[-1] if item_1 in uuids
+            ]
+            drop_outs = self.get_drop_outs()
+            for pairing in pairings:
+                item_1, item_2 = pairing
+                if item_1 in drop_outs and item_2 in drop_outs:
+                    standings_dict[cast(str, item_1)].beaten_by_seat = 0
+                    standings_dict[cast(str, item_2)].beaten_by_seat = 0
+                    pairings.remove(pairing)
+
+        if armageddon.is_armageddon(games, games_per_tiebreak, int(score_sum + 1)):
+            self.set_pairings([
+                armageddon.determine_color(cast(str, item_1), cast(str, item_2)) for item_1, item_2 in pairings
+            ])
+        else:
+            self.set_pairings(pairings)
 
     def drop_out_participants(self, uuids: Sequence[str] | None = None) -> bool:
         uuids = uuids or []
@@ -190,63 +241,14 @@ class Tournament_Knockout(Tournament):
 
         if score_sum > 0:
             return False
-        participants_filtered = []
         for participant in participants:
             uuid = participant.get_uuid()
-            if uuid in standings_dict:
-                if standings_dict[uuid].was_beaten():
-                    continue
+            if uuid in standings_dict and not standings_dict[uuid].was_beaten():
                 standings_dict[uuid].level = current_level
                 standings_dict[uuid].beaten_by_seat = None
                 standings_dict[uuid].score = self.get_initial_score()
-            else:
-                standings_dict.add(uuid, current_level, self.get_initial_score())
-            participants_filtered.append(participant)
 
-        return super().drop_in_participants(participants_filtered)
-
-    def is_done(self) -> bool:
-        return tuple(standing.beaten_by_seat for standing in self.get_standings_dict().values()).count(None) == 1
-
-    def load_pairings(self) -> None:
-        if self.get_pairings() is not None or self.is_done():
-            return
-        games = self.get_games()
-        games_per_tiebreak = self.get_games_per_tiebreak()
-        armageddon = self.get_armageddon()
-        standings_dict = self.get_standings_dict()
-
-        uuids = standings_dict.get_uuids()
-        score_sum = 2 * sum(standings_dict[uuid].score[0] for uuid in uuids) / len(uuids)
-        pairing_method = self.get_pairing_method()
-
-        if score_sum == 0 and (len(uuids) & (len(uuids) - 1)):
-            through = 2 * (1 << (len(uuids).bit_length() - 1)) - len(uuids)
-            uuids = uuids[through:]
-
-        if score_sum == 0 and pairing_method == "Custom":
-            pairings = [Pairing(uuids, uuids) for _ in range(int(len(uuids) / 2))]
-        elif score_sum == 0:
-            pairing_indices = PAIRING_FUNCTIONS[pairing_method](len(uuids), True)
-            pairings = [Pairing(uuids[i_1], uuids[i_2]) for i_1, i_2 in pairing_indices]
-        else:
-            pairings = [
-                Pairing(uuid_2, uuid_1) for (uuid_1, _), (uuid_2, _) in self.get_results()[-1] if uuid_1 in uuids
-            ]
-            drop_outs = self.get_drop_outs()
-            for pairing in pairings:
-                uuid_1, uuid_2 = pairing
-                if uuid_1 in drop_outs and uuid_2 in drop_outs:
-                    standings_dict[cast(str, uuid_1)].beaten_by_seat = 0
-                    standings_dict[cast(str, uuid_2)].beaten_by_seat = 0
-                    pairings.remove(pairing)
-
-        if armageddon.is_armageddon(games, games_per_tiebreak, int(score_sum + 1)):
-            self.set_pairings([
-                armageddon.determine_color(cast(str, uuid_1), cast(str, uuid_2)) for uuid_1, uuid_2 in pairings
-            ])
-        else:
-            self.set_pairings(pairings)
+        return super().drop_in_participants(participants)
 
 
 def get_scores_mini(score_1: str, score_2: str, score_dict: dict[str, float], factor: int = 1) -> tuple[float, float]:
@@ -315,7 +317,7 @@ class Tournament_Knockout_Team(Tournament_Knockout):
     def get_latest_scores(self) -> list[tuple[list[float], list[float]]]:
         return [
             get_scores_team(score_1, score_2, result_team, self.get_score_dict(), self.get_score_dict_game())
-            for ((uuid_1, score_1), (uuid_2, score_2)), result_team
+            for ((item_1, score_1), (item_2, score_2)), result_team
             in zip(self.get_results()[-1], self.get_results_team()[-1])
         ]
 
@@ -334,3 +336,6 @@ class Tournament_Knockout_Team(Tournament_Knockout):
             shorten_float(standings_dict[participant.get_uuid()].score[1]),
             shorten_float(standings_dict[participant.get_uuid()].score[2])
         ] for participant in participants], headers)
+
+    def seat_participants(self) -> None:
+        return

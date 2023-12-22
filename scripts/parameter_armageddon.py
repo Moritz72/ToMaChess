@@ -4,18 +4,18 @@ from .parameter import Parameter
 from .pairing import Pairing
 
 
-def determine_color_default(participant_1: str, participant_2: str) -> Pairing:
-    return Pairing(participant_1, participant_2)
+def determine_color_default(uuid_1: str, uuid_2: str) -> Pairing:
+    return Pairing(uuid_1, uuid_2)
 
 
-def determine_color_random(participant_1: str, participant_2: str) -> Pairing:
+def determine_color_random(uuid_1: str, uuid_2: str) -> Pairing:
     if random() < .5:
-        return Pairing(participant_1, participant_2)
-    return Pairing(participant_2, participant_1)
+        return Pairing(uuid_1, uuid_2)
+    return Pairing(uuid_2, uuid_1)
 
 
-def determine_color_choice(participant_1: str, participant_2: str) -> Pairing:
-    return Pairing([participant_1, participant_2], [participant_1, participant_2])
+def determine_color_choice(uuid_1: str, uuid_2: str) -> Pairing:
+    return Pairing([uuid_1, uuid_2], [uuid_1, uuid_2])
 
 
 class Parameter_Armageddon(Parameter):
@@ -57,12 +57,12 @@ class Parameter_Armageddon(Parameter):
     def is_armageddon(self, games: int, games_per_tiebreak: int, roun: int) -> bool:
         return self.enabled and roun - games - games_per_tiebreak * self.after_rounds >= 1
 
-    def determine_color(self, participant_1: str, participant_2: str) -> Pairing:
+    def determine_color(self, uuid_1: str, uuid_2: str) -> Pairing:
         match self.color_methods[0]:
             case "In Order":
-                return determine_color_default(participant_1, participant_2)
+                return determine_color_default(uuid_1, uuid_2)
             case "Random":
-                return determine_color_random(participant_1, participant_2)
+                return determine_color_random(uuid_1, uuid_2)
             case "Choice":
-                return determine_color_choice(participant_1, participant_2)
+                return determine_color_choice(uuid_1, uuid_2)
         return NotImplemented

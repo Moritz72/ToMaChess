@@ -219,7 +219,7 @@ msgid "Confirm Results"
 msgstr "Ergebnisse bestätigen"
 
 msgid "None"
-msgstr "Keine"
+msgstr "Nichts"
 
 msgid "Buchholz"
 msgstr "Buchholz"
@@ -412,3 +412,30 @@ msgstr "Vorherige Stufe"
 
 msgid "Next Stage"
 msgstr "Nächste Stufe"
+
+msgid "Keizer"
+msgstr "Keizer"
+
+msgid "Half-Point Bye"
+msgstr "Halbpunkt-Bye"
+
+msgid "Ratio (First to Last)"
+msgstr "Verhältnis (Erster zu Letzter)"
+
+msgid "Score for Byes (%)"
+msgstr "Punkte für Byes (%)"
+
+msgid "No Pairing Repeats"
+msgstr "Keine Paarungswiederholungen"
+
+msgid "Games"
+msgstr "Partien"
+
+msgid "Koya System"
+msgstr "Koya System"
+
+msgid "Threshold (%)"
+msgstr "Schwelle (%)"
+
+msgid "Manage Byes"
+msgstr "Byes verwalten"

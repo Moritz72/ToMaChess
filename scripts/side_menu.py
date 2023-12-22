@@ -15,8 +15,8 @@ class Side_Menu(QDockWidget):
 
     def fill_buttons(self) -> None:
         for args in self.stacked_widget.get_buttons_args():
-            button = get_button("large", (None, 2.5), **args, translate=True)
-            button.setObjectName("side_menu_button")
+            args = {"translate": True} | args
+            button = get_button("large", (None, 3), **args)
             button.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Fixed)
             button.setMinimumWidth(0)
             button.setStyleSheet("QPushButton {text-align: left; padding-left: 10px; padding-right: 10px;}")

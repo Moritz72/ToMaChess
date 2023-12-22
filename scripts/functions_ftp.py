@@ -4,6 +4,7 @@ from re import escape, sub
 from io import BytesIO
 from .manager_translation import MANAGER_TRANSLATION
 from .ftp_connection import FTP_CONNECTION
+from .pairing_item import get_tentative_results
 from .ms_tournament import MS_Tournament
 from .tournament import Tournament
 from .player import Player
@@ -38,17 +39,6 @@ def get_file_name_category(category_range: Category_Range) -> str:
     return get_file_name(title.replace(" - ", '-'))
 
 
-def get_name_dict(tournament: Tournament) -> dict[str | None, str]:
-    return {None: "bye"} | {participant.get_uuid(): str(participant) for participant in tournament.get_participants()}
-
-
-def get_name_dict_individual(tournament: Tournament) -> dict[str | None, str]:
-    participants = cast(list[Team], tournament.get_participants())
-    return {None: "bye"} | {
-        member.get_uuid(): str(member) for participant in participants for member in participant.get_members()
-    }
-
-
 def make_folder(folder_name: str) -> None:
     nlst = FTP_CONNECTION.nlst()
     if nlst is None:
@@ -59,8 +49,8 @@ def make_folder(folder_name: str) -> None:
 
 def make_new_folders(tournament: Tournament, sub_folder: str = "") -> None:
     if sub_folder:
-        folder_path = f"{get_file_name(sub_folder)}/{get_file_name(tournament.get_name())}"
-        make_folder(get_file_name(sub_folder))
+        folder_path = f"{sub_folder}/{get_file_name(tournament.get_name())}"
+        make_folder(sub_folder)
     else:
         folder_path = get_file_name(tournament.get_name())
 
@@ -84,7 +74,7 @@ def make_index_file(folder_path: str, tournament: Tournament) -> None:
     results_links = [f"<a href=results/{f}.html>{d}</a>" for d, f in zip(names_display, names_file)]
 
     pairings = tournament.get_pairings()
-    if pairings is not None and pairings.is_fixed():
+    if bool(pairings) and pairings.is_fixed():
         recent_name = tournament.get_round_name(tournament.get_round())
         recent_name_display = MANAGER_TRANSLATION.tl(recent_name)
         recent_name_file = get_file_name(''.join(recent_name))
@@ -149,15 +139,14 @@ def get_player_entry(player: Player, i: int) -> str:
     """
 
 
-def get_results_entry(
-        uuid_1: str | None, uuid_2: str | None, score_1: str, score_2: str, i: int, name_dict: dict[str | None, str]
-) -> str:
+def get_results_entry(item_1: str, item_2: str, score_1: str, score_2: str, i: int, name_dict: dict[str, str]) -> str:
+    score = "" if score_1 == 'b' else f"{score_1} : {score_2}"
     return f"""
     <tr>
         <td class="board">{i + 1}</td>
-        <td class="player_1">{name_dict[uuid_1]}</td>
-        <td class="result">{score_1} : {score_2}</td>
-        <td class="player_2">{name_dict[uuid_2]}</td>
+        <td class="player_1">{name_dict[item_1]}</td>
+        <td class="result">{score}</td>
+        <td class="player_2">{name_dict[item_2]}</td>
         </tr>
     """
 
@@ -218,17 +207,19 @@ def get_html_latest_standings(tournament: Tournament, category_range: Category_R
 
 def get_html_pairings(tournament: Tournament) -> str:
     pairings = tournament.get_pairings()
-    if pairings is None:
+    if not bool(pairings):
         return ""
+    name_dict = tournament.get_uuid_to_name_dict() | {"bye": "bye", "": ""}
     round_name = MANAGER_TRANSLATION.tl(tournament.get_round_name(tournament.get_round()))
     caption = MANAGER_TRANSLATION.tl('Pairings for {}', insert=round_name)
     html = f"<!DOCTYPE html><html><head><style>{get_style('pairings.css')}</style></head><body>"
     html += f"<h2>{tournament}</h2>"
     html += f"<table><caption>{caption}</caption>"
     html += "<tr><th></th><th></th><th></th><th></th></tr>"
-    for i, (uuid_1, uuid_2) in enumerate(pairings):
-        uuid_1, uuid_2 = cast(str | None, uuid_1), cast(str | None, uuid_2)
-        html += get_results_entry(uuid_1, uuid_2, "", "", i, get_name_dict(tournament))
+    for i, (item_1, item_2) in enumerate(pairings):
+        assert(not isinstance(item_1, list) and not isinstance(item_2, list))
+        score_1, score_2 = get_tentative_results(item_1, item_2) or ("", "")
+        html += get_results_entry(item_1, item_2, score_1, score_2, i, name_dict)
     html += "</table></body></html>"
     return html
 
@@ -237,14 +228,15 @@ def get_html_results_round(tournament: Tournament, roun: int) -> str:
     if roun >= tournament.get_round():
         return ""
     results = tournament.get_results()[roun - 1]
+    name_dict = tournament.get_uuid_to_name_dict() | {"bye": "bye", "": ""}
     round_name = MANAGER_TRANSLATION.tl(tournament.get_round_name(roun))
     caption = MANAGER_TRANSLATION.tl('Results of {}', insert=round_name)
     html = f"<!DOCTYPE html><html><head><style>{get_style('results.css')}</style></head><body>"
     html += f"<h2>{tournament}</h2>"
     html += f"<table><caption>{caption}</caption>"
     html += "<tr><th></th><th></th><th></th><th></th></tr>"
-    for i, ((uuid_1, score_1), (uuid_2, score_2)) in enumerate(results):
-        html += get_results_entry(uuid_1, uuid_2, score_1, score_2, i, get_name_dict(tournament))
+    for i, ((item_1, score_1), (item_2, score_2)) in enumerate(results):
+        html += get_results_entry(item_1, item_2, score_1, score_2, i, name_dict)
     html += "</table></body></html>"
     return html
 
@@ -254,20 +246,21 @@ def get_html_results_round_team(tournament: Tournament, roun: int) -> str:
         return ""
     results = tournament.get_results()[roun - 1]
     results_individual = tournament.get_results_team()[roun - 1]
-    name_dict = get_name_dict(tournament)
+    name_dict = tournament.get_uuid_to_name_dict() | {"bye": "bye", "": ""}
+    name_dict_individual = tournament.get_uuid_to_name_dict_individual() | {"bye": "bye", "": ""}
     round_name = MANAGER_TRANSLATION.tl(tournament.get_round_name(roun))
     caption = MANAGER_TRANSLATION.tl('Results of {}', insert=round_name)
     html = f"<!DOCTYPE html><html><head><style>{get_style('results.css')}</style></head><body>"
     html += f"<h2>{tournament}</h2>"
-    for i, (((team_uuid_1, _), (team_uuid_2, _)), individual) in enumerate(zip(results, results_individual)):
-        team_1, team_2 = name_dict[team_uuid_1], name_dict[team_uuid_2]
+    for i, (((team_item_1, _), (team_item_2, _)), individual) in enumerate(zip(results, results_individual)):
+        team_1, team_2 = name_dict[team_item_1], name_dict[team_item_2]
         if i == 0:
             html += f"<table><caption>{caption}</caption>"
         else:
             html += f"<table>"
         html += f"<tr><th></th><th>{team_1}</th><th></th><th>{team_2}</th></tr>"
-        for j, ((uuid_1, score_1), (uuid_2, score_2)) in enumerate(individual):
-            html += get_results_entry(uuid_1, uuid_2, score_1, score_2, j, get_name_dict_individual(tournament))
+        for j, ((item_1, score_1), (item_2, score_2)) in enumerate(individual):
+            html += get_results_entry(item_1, item_2, score_1, score_2, j, name_dict_individual)
         html += "</table><br>"
     html += "</body></html>"
     return html

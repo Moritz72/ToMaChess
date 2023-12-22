@@ -14,45 +14,42 @@ from .db_tournament import DB_TOURNAMENT
 from .tournament import Tournament
 from .functions_pdf import tournament_standings_to_pdf, tournament_participants_to_pdf, tournament_pairings_to_pdf,\
     tournament_results_to_pdf
-from .functions_ftp import upload_latest_results, upload_latest_pairings, upload_participants, \
+from .functions_ftp import get_file_name, upload_latest_results, upload_latest_pairings, upload_participants, \
     upload_latest_standings
 if TYPE_CHECKING:
     from .window_main import Window_Main
 
 
 def get_round_widget(tournament: Tournament, roun: int | None) -> Widget_Tournament_Round:
-    participant_dict = tournament.get_uuid_to_participant_dict()
+    name_dict = tournament.get_uuid_to_name_dict() | {"bye": "bye", "": ""}
     if roun is not None:
-        return Widget_Tournament_Round(tournament.get_results()[roun - 1], participant_dict)
-    pairings = tournament.get_pairings()
-    assert(pairings is not None)
+        return Widget_Tournament_Round(tournament.get_results()[roun - 1], name_dict)
     return Widget_Tournament_Round(
-        pairings, participant_dict, tournament.get_drop_outs(),
+        tournament.get_pairings(), name_dict, tournament.get_drop_outs(),
         tournament.get_possible_scores(), tournament.is_valid_pairings
     )
 
 
 def get_round_widget_team(tournament: Tournament, roun: int | None) -> Widget_Tournament_Round_Team:
-    participant_dict = tournament.get_uuid_to_participant_dict()
+    name_dict = tournament.get_uuid_to_name_dict() | {"bye": "bye", "": ""}
     individual_dicts = tournament.get_uuid_to_individual_dicts()
     if roun is not None:
-        roun -= 1
         return Widget_Tournament_Round_Team(
-            tournament.get_results()[roun], participant_dict, individual_dicts, tournament.get_results_team()[roun]
+            tournament.get_results()[roun - 1], name_dict, individual_dicts, tournament.get_results_team()[roun - 1]
         )
-    pairings = tournament.get_pairings()
-    assert(pairings is not None)
     return Widget_Tournament_Round_Team(
-        pairings, participant_dict, individual_dicts, None, tournament.get_drop_outs(),
+        tournament.get_pairings(), name_dict, individual_dicts, None, tournament.get_drop_outs(),
         tournament.get_possible_scores(), tournament.is_valid_pairings_match, tournament.get_boards()
     )
 
 
 class Stacked_Widget_Tournament(Stacked_Widget):
-    def __init__(self, window_main: Window_Main, tournament: Tournament, sub_folder: str = "") -> None:
+    def __init__(
+            self, window_main: Window_Main, tournament: Tournament, associate: tuple[str, str] | None = None
+    ) -> None:
         super().__init__(window_main)
         self.tournament: Tournament = tournament
-        self.sub_folder: str = sub_folder
+        self.associate: tuple[str, str] | None = associate
         self.window_tournament_actions: Window_Tournament_Actions | None = None
 
         self.widgets_info: list[Widget_Tournament_Info] = []
@@ -67,16 +64,17 @@ class Stacked_Widget_Tournament(Stacked_Widget):
         for roun in range(1, self.tournament.get_round()):
             self.add_round_widget(roun)
         self.tournament.load_pairings()
-        if self.tournament.get_pairings() is not None:
+        if bool(self.tournament.get_pairings()):
             self.add_round_widget()
 
-        if self.tournament.get_pairings() is not None and self.tournament.is_team_tournament():
-            tournament_pairings_to_pdf(self.tournament, self.sub_folder)
-            upload_latest_pairings(self.tournament, self.sub_folder)
-
         self.set_index()
-        tournament_participants_to_pdf(self.tournament, self.sub_folder)
-        upload_participants(self.tournament, self.sub_folder)
+        tournament_participants_to_pdf(self.tournament, self.get_folder())
+        upload_participants(self.tournament, self.get_folder())
+
+    def get_folder(self) -> str:
+        if self.associate is not None:
+            return get_file_name(self.associate[0])
+        return ""
 
     def add_round_widget(self, roun: int | None = None) -> None:
         if self.tournament.is_team_tournament():
@@ -87,6 +85,9 @@ class Stacked_Widget_Tournament(Stacked_Widget):
         if roun is None:
             self.widgets_round[-1].confirmed_pairings.connect(self.pairings_confirmed)
             self.widgets_round[-1].confirmed_results.connect(self.load_next_round)
+            if self.tournament.is_team_tournament():
+                tournament_pairings_to_pdf(self.tournament, self.get_folder())
+                upload_latest_pairings(self.tournament, self.get_folder())
 
     def set_index(self) -> None:
         if self.tournament.is_done():
@@ -113,13 +114,13 @@ class Stacked_Widget_Tournament(Stacked_Widget):
         return self.currentIndex()
 
     def open_default(self) -> None:
-        if self.sub_folder == "":
+        if self.associate is None:
             DB_TOURNAMENT.update_list("", [self.tournament])
         self.window_main.set_stacked_widget("Default")
 
     def open_actions(self) -> None:
         close_window(self.window_tournament_actions)
-        self.window_tournament_actions = Window_Tournament_Actions(self.tournament, parent=self)
+        self.window_tournament_actions = Window_Tournament_Actions(self.tournament, self.associate, self)
         self.window_tournament_actions.reload_local_signal.connect(self.reload_local)
         self.window_tournament_actions.undo_signal.connect(self.undo_last_round)
         self.window_tournament_actions.reload_global_signal.connect(self.reload_global)
@@ -129,16 +130,16 @@ class Stacked_Widget_Tournament(Stacked_Widget):
         if not self.tournament.is_team_tournament():
             sender = cast(Widget_Tournament_Round, self.sender())
             self.tournament.set_pairings(sender.get_pairings())
-            tournament_pairings_to_pdf(self.tournament, self.sub_folder)
-            upload_latest_pairings(self.tournament, self.sub_folder)
+            tournament_pairings_to_pdf(self.tournament, self.get_folder())
+            upload_latest_pairings(self.tournament, self.get_folder())
 
     def load_next_round(self) -> None:
         sender = cast(Widget_Tournament_Round | Widget_Tournament_Round_Team, self.sender())
         self.tournament.add_results(sender.get_results())
-        tournament_results_to_pdf(self.tournament, self.sub_folder)
-        tournament_standings_to_pdf(self.tournament, self.sub_folder)
-        upload_latest_standings(self.tournament, self.sub_folder)
-        upload_latest_results(self.tournament, self.sub_folder)
+        tournament_results_to_pdf(self.tournament, self.get_folder())
+        tournament_standings_to_pdf(self.tournament, self.get_folder())
+        upload_latest_standings(self.tournament, self.get_folder())
+        upload_latest_results(self.tournament, self.get_folder())
         self.add_new_round()
         self.update_rounds()
 
@@ -153,23 +154,23 @@ class Stacked_Widget_Tournament(Stacked_Widget):
         self.update_rounds()
 
     def reload_local(self) -> None:
-        if self.tournament.get_pairings() is None:
+        if not bool(self.tournament.get_pairings()):
             return
         self.removeWidget(self.widgets_round.pop())
-        self.tournament.clear_pairings()
+        self.tournament.set_pairings([])
         self.tournament.load_pairings()
         self.add_new_round()
         self.make_side_menu.emit()
 
     def reload_global(self) -> None:
-        if self.tournament.get_pairings() is None:
+        if not bool(self.tournament.get_pairings()):
             self.add_new_round()
         else:
             self.reload_local()
         self.update_rounds()
 
     def update_rounds(self) -> None:
-        if not self.sub_folder:
+        if self.associate is None:
             DB_TOURNAMENT.update_list("", [self.tournament])
         for widget_info in self.widgets_info:
             widget_info.refresh()
@@ -178,7 +179,7 @@ class Stacked_Widget_Tournament(Stacked_Widget):
 
     def add_new_round(self) -> None:
         self.tournament.load_pairings()
-        if self.tournament.get_pairings() is not None:
+        if bool(self.tournament.get_pairings()):
             self.add_round_widget()
         self.set_index()
         self.update_window_tournament_actions()

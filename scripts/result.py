@@ -1,11 +1,16 @@
 from typing import Iterator
+from .pairing_item import Pairing_Item, get_item_from_string
 
-Result_Item = tuple[str | None, str]
+Result_Item = tuple[Pairing_Item, str]
+
+
+def get_item(item: tuple[str, str]) -> Result_Item:
+    return get_item_from_string(item[0]), item[1]
 
 
 class Result:
-    def __init__(self, item_1: Result_Item, item_2: Result_Item) -> None:
-        self.items: tuple[Result_Item, Result_Item] = (item_1, item_2)
+    def __init__(self, item_1: tuple[str, str], item_2: tuple[str, str]) -> None:
+        self.items: tuple[Result_Item, Result_Item] = (get_item(item_1), get_item(item_2))
 
     def __getitem__(self, index: int) -> Result_Item:
         return self.items[index]

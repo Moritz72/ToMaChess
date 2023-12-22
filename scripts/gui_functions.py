@@ -66,7 +66,7 @@ def get_screen(window: QMainWindow) -> QScreen:
     window_center = parent.window().geometry().center()
     app = QApplication.instance()
     assert(app is not None)
-    screen = app.screenAt(window_center)
+    screen = cast(QApplication, app).screenAt(window_center)
     if screen is None:
         return get_screen(cast(QMainWindow, parent.window()))
     return screen
@@ -138,40 +138,54 @@ def set_font(widget: QWidget | QTableWidgetItem, size: str | None, bold: bool = 
         widget.setFont(get_font(MANAGER_SIZE.font_sizes[size], bold))
 
 
-def get_label(text: str | Sequence[str], size: str | None, bold: bool = False, translate: bool = False) -> QLabel:
+def set_object_name(widget: QWidget, object_name: str | None) -> None:
+    if object_name is not None:
+        widget.setObjectName(object_name)
+
+
+def get_label(
+        text: str | Sequence[str], size: str | None, widget_size: Widget_Size = None,
+        bold: bool = False, translate: bool = False, object_name: str | None = None
+) -> QLabel:
     if translate:
         text = MANAGER_TRANSLATION.tl(text)
     assert(isinstance(text, str))
     label = QLabel(text)
+    set_object_name(label, object_name)
+    set_fixed_size(label, widget_size)
     set_font(label, size, bold)
     return label
 
 
 def get_lineedit(
-        size: str | None, widget_size: Widget_Size, text: str | Sequence[str] = "",
-        connect: Callable[[], Any] | None = None, bold: bool = False, translate: bool = False
+        size: str | None, widget_size: Widget_Size = None, text: str | Sequence[str] = "",
+        connect: Callable[[], Any] | None = None, bold: bool = False, read_only: bool = False,
+        translate: bool = False, object_name: str | None = None
 ) -> QLineEdit:
     if translate:
         text = MANAGER_TRANSLATION.tl(text)
     assert(isinstance(text, str))
     lineedit = QLineEdit(text)
     lineedit.setSizePolicy(QSizePolicy.Policy.Fixed, QSizePolicy.Policy.Fixed)
+    set_object_name(lineedit, object_name)
     set_fixed_size(lineedit, widget_size)
     set_font(lineedit, size, bold)
     if connect is not None:
         lineedit.editingFinished.connect(connect)
+    lineedit.setReadOnly(read_only)
     return lineedit
 
 
 def get_button(
-        size: str | None, widget_size: Widget_Size, text: str | Sequence[str] = "",
+        size: str | None, widget_size: Widget_Size = None, text: str | Sequence[str] = "",
         connect: Callable[[], Any] | list[Callable[[], Any]] | None = None, bold: bool = False, checkable: bool = False,
-        enabled: bool = True, translate: bool = False
+        enabled: bool = True, translate: bool = False, object_name: str | None = None
 ) -> QPushButton:
     if translate:
         text = MANAGER_TRANSLATION.tl(text)
     assert(isinstance(text, str))
     button = QPushButton(text)
+    set_object_name(button, object_name)
     set_fixed_size(button, widget_size)
     set_font(button, size, bold)
     button.setCheckable(checkable)
@@ -185,16 +199,18 @@ def get_button(
 
 
 def get_button_threaded(
-        parent: QObject, size: str | None, widget_size: Widget_Size, text: str | Sequence[str] = "",
+        parent: QObject, size: str | None, widget_size: Widget_Size = None, text: str | Sequence[str] = "",
         load_text: str | Sequence[str] = "", connect: Callable[[], Any] | None = None, bold: bool = False,
-        checkable: bool = True, enabled: bool = True, translate: bool = False
+        checkable: bool = True, enabled: bool = True, translate: bool = False, object_name: str | None = None
 ) -> QPushButton:
     assert(connect is not None)
     if translate:
         text = MANAGER_TRANSLATION.tl(text)
         load_text = MANAGER_TRANSLATION.tl(load_text)
     assert(isinstance(text, str) and isinstance(load_text, str))
-    button = get_button(size, widget_size, text, None, bold, checkable, enabled)
+    button = get_button(
+        size, widget_size, text=text, bold=bold, checkable=checkable, enabled=enabled, object_name=object_name
+    )
 
     def threaded_function() -> None:
         button.setEnabled(False)
@@ -216,9 +232,10 @@ def get_button_threaded(
     return button
 
 
-def get_check_box(boolean: bool, widget_size: Widget_Size) -> QCheckBox:
+def get_check_box(boolean: bool, widget_size: Widget_Size = None, object_name: str | None = None) -> QCheckBox:
     check_box = QCheckBox()
     check_box.setChecked(boolean)
+    set_object_name(check_box, object_name)
     size_factor = MANAGER_SIZE.widget_size_factor
     size_string = ""
     if widget_size is not None and widget_size[0] is not None:
@@ -230,23 +247,20 @@ def get_check_box(boolean: bool, widget_size: Widget_Size) -> QCheckBox:
 
 
 def get_spin_box(
-        value: int, size: str | None, widget_size: Widget_Size,
-        bold: bool = False, align: Qt.AlignmentFlag | None = None
+        value: int, size: str | None, widget_size: Widget_Size = None,
+        bold: bool = False, align: Qt.AlignmentFlag | None = None, object_name: str | None = None
 ) -> QSpinBox:
     spin_box = QSpinBox()
     if size is not None:
+        size_button = int(1.4 * MANAGER_SIZE.font_sizes[size])
+        size_arrow = int(1.3 * MANAGER_SIZE.font_sizes[size])
         spin_box.setStyleSheet(
-            "QAbstractSpinBox:up-button {width: " + str(int(1.3 * float(MANAGER_SIZE.font_sizes[size]))) + "px;}"
-            "QAbstractSpinBox:down-button {width: " + str(int(1.3 * float(MANAGER_SIZE.font_sizes[size]))) + "px;}"
-            "QAbstractSpinBox::down-arrow {"
-            "width: " + str(MANAGER_SIZE.font_sizes[size]) + "px;"
-            "height: " + str(MANAGER_SIZE.font_sizes[size]) + "px;"
-            "}"
-            "QAbstractSpinBox::up-arrow {"
-            "width: " + str(MANAGER_SIZE.font_sizes[size]) + "px;"
-            "height: " + str(MANAGER_SIZE.font_sizes[size]) + "px;"
-            "}"
+            "QSpinBox:up-button {width: " + str(size_button) + "px;}"
+            "QSpinBox:down-button {width: " + str(size_button) + "px;}"
+            "QSpinBox::down-arrow {width: " + str(size_arrow) + "px; height: " + str(size_arrow) + "px;}"
+            "QSpinBox::up-arrow {width: " + str(size_arrow) + "px; height: " + str(size_arrow) + "px;}"
         )
+    set_object_name(spin_box, object_name)
     set_fixed_size(spin_box, widget_size)
     set_font(spin_box, size, bold)
     spin_box.setValue(value)
@@ -256,9 +270,10 @@ def get_spin_box(
 
 
 def get_combo_box(
-        choices: Sequence[Any], size: str | None, widget_size: Widget_Size, current_index: int | None = None,
-        current: Any = None, bold: bool = False, align: Qt.AlignmentFlag | None = None, down_arrow: bool = True,
-        translate: bool = False
+        items: Sequence[Any], size: str | None, widget_size: Widget_Size = None, data: Sequence[Any] | None = None,
+        current_index: int | None = None, current: Any = None, bold: bool = False,
+        align: Qt.AlignmentFlag | None = None, down_arrow: bool = True, translate: bool = False,
+        object_name: str | None = None
 ) -> QComboBox:
     if align is None:
         combo_box = QComboBox()
@@ -268,32 +283,40 @@ def get_combo_box(
         set_font(combo_box.lineEdit(), size, bold)
     combo_box.setItemDelegate(Align_Delegate(combo_box, align))
     if down_arrow and size is not None:
+        size_button = int(2 * MANAGER_SIZE.font_sizes[size])
+        size_arrow = int(1.6 * MANAGER_SIZE.font_sizes[size])
         combo_box.setStyleSheet(
-            "QComboBox::drop-down {width: " + str(int(1.3 * float(MANAGER_SIZE.font_sizes[size]))) + "px;}"
-            "QComboBox::down-arrow {"
-            "width: " + str(MANAGER_SIZE.font_sizes[size]) + "px;"
-            "height: " + str(MANAGER_SIZE.font_sizes[size]) + "px;"
-            "}"
+            "QComboBox::drop-down {width: " + str(size_button) + "px;}"
+            "QComboBox::down-arrow {width: " + str(size_arrow) + "px; height: " + str(size_arrow) + "px;}"
         )
     else:
         combo_box.setStyleSheet(
             "QComboBox {padding-left: 0px; padding-right: 0px;}"
             "QComboBox::drop-down {width: 0px;} QComboBox::down-arrow {width: 0px;}"
         )
+    set_object_name(combo_box, object_name)
     set_fixed_size(combo_box, widget_size)
     set_font(combo_box, size, bold)
-    for i, choice in enumerate(choices):
-        match choice:
+    combo_box.view().window().setWindowFlags(
+        Qt.WindowType.Popup | Qt.WindowType.FramelessWindowHint | Qt.WindowType.NoDropShadowWindowHint
+    )
+    combo_box.view().window().setAttribute(Qt.WidgetAttribute.WA_TranslucentBackground)
+    for i, item in enumerate(items):
+        match item:
             case str():
-                combo_box.addItem(MANAGER_TRANSLATION.tl(choice) if translate else choice, choice)
+                combo_box.addItem(MANAGER_TRANSLATION.tl(item) if translate else item, item)
             case None:
-                combo_box.addItem("", choice)
+                combo_box.addItem("", item)
             case _:
-                combo_box.addItem(MANAGER_TRANSLATION.tl(str(choice)) if translate else str(choice), choice)
+                combo_box.addItem(MANAGER_TRANSLATION.tl(str(item)) if translate else str(item), item)
+    if data is not None:
+        for i, item in enumerate(data):
+            if item is not None:
+                combo_box.setItemData(i, item)
     if current_index is not None:
         combo_box.setCurrentIndex(current_index)
-    elif current is not None and current in choices:
-        combo_box.setCurrentIndex(choices.index(current))
+    elif current is not None and current in items:
+        combo_box.setCurrentIndex(items.index(current))
     return combo_box
 
 

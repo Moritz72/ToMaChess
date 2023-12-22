@@ -5,6 +5,7 @@ from copy import deepcopy
 from .object import Object
 from .player import Player
 from .team import Team
+from .pairing_item import Pairing_Item
 from .pairing import Pairing
 from .result import Result
 from .result_team import Result_Team
@@ -51,30 +52,32 @@ class Tournament(Object):
         self.parameters: dict[str, Any] = parameters or dict()
         self.variables: dict[str, Any] = variables or dict()
         self.parameters = self.parameters
-        self.variables = {"round": 1, "pairings": None, "results": Variable_Results([]),
-                          "results_team": Variable_Results_Team([]), "drop_outs": [],
+        self.variables = {"round": 1, "pairings": Variable_Pairings([]), "results": Variable_Results([]),
+                          "results_team": Variable_Results_Team([]), "drop_outs": [], "byes": [],
                           "category_ranges": Variable_Category_Ranges([])} | self.variables
         self.order: list[str] | None = order
         self.mode: str = ""
         self.parameters_display: dict[str, tuple[str, ...] | str | None] = dict()
         self.load_parameters_and_variables()
-        self.set_participants(participants, order=True)
+        self.set_participants(participants, from_order=True)
         self.shallow_participant_count: int = shallow_participant_count or len(self.participants)
 
     def copy(self) -> Tournament:
         return deepcopy(self)
 
-    def get_participants(self, drop_outs: bool = True) -> list[Participant]:
-        if drop_outs:
-            return self.participants
-        return [participant for participant in self.participants if participant.get_uuid() not in self.get_drop_outs()]
+    def get_participants(self, drop_outs: bool = True, byes: bool = True) -> list[Participant]:
+        return [
+            participant for participant in self.participants
+            if (drop_outs or participant.get_uuid() not in self.get_drop_outs())
+            and (byes or participant.get_uuid() not in self.get_byes())
+        ]
 
     def get_shallow_participant_count(self) -> int:
         return self.shallow_participant_count
 
-    def get_participant_count(self, drop_outs: bool = True) -> int:
+    def get_participant_count(self, drop_outs: bool = True, byes: bool = True) -> int:
         if bool(self.get_participants()):
-            return len(self.get_participants(drop_outs))
+            return len(self.get_participants(drop_outs, byes))
         return self.get_shallow_participant_count()
 
     def get_parameters(self) -> dict[str, Any]:
@@ -117,14 +120,17 @@ class Tournament(Object):
     def get_round(self) -> int:
         return cast(int, self.get_variable("round"))
 
-    def get_pairings(self) -> Variable_Pairings | None:
-        return cast(Variable_Pairings | None, self.get_variable("pairings"))
+    def get_pairings(self) -> Variable_Pairings:
+        return cast(Variable_Pairings, self.get_variable("pairings"))
 
     def get_results(self) -> Variable_Results:
         return cast(Variable_Results, self.get_variable("results"))
 
     def get_drop_outs(self) -> list[str]:
         return cast(list[str], self.get_variable("drop_outs"))
+
+    def get_byes(self) -> list[str]:
+        return cast(list[str], self.get_variable("byes"))
 
     def get_category_ranges(self) -> Variable_Category_Ranges:
         return cast(Variable_Category_Ranges, self.get_variable("category_ranges"))
@@ -148,7 +154,7 @@ class Tournament(Object):
             self.get_uuid(), self.get_uuid_associate()
 
     def get_score_dict(self) -> dict[str, float]:
-        return {'1': 1, '½': .5, '0': 0, '+': 1, '-': 0}
+        return {'1': 1, '½': .5, '0': 0, '+': 1, '-': 0, 'b': 0}
 
     def get_score_dict_game(self) -> dict[str, float]:
         if not self.is_team_tournament():
@@ -159,16 +165,36 @@ class Tournament(Object):
     def get_possible_scores() -> list[tuple[str, str]]:
         return [('1', '0'), ('½', '½'), ('0', '1'), ('+', '-'), ('-', '+'), ('-', '-')]
 
-    def get_participant_uuids(self, drop_outs: bool = True) -> list[str]:
-        return [participant.get_uuid() for participant in self.get_participants(drop_outs)]
+    def get_participant_uuids(self, drop_outs: bool = True, byes: bool = True) -> list[str]:
+        return [participant.get_uuid() for participant in self.get_participants(drop_outs, byes)]
 
-    def get_uuid_to_participant_dict(self, drop_outs: bool = True) -> dict[str, Participant]:
-        return {participant.get_uuid(): participant for participant in self.get_participants(drop_outs)}
+    def get_uuid_to_participant_dict(self, drop_outs: bool = True, byes: bool = True) -> dict[str, Participant]:
+        return {participant.get_uuid(): participant for participant in self.get_participants(drop_outs, byes)}
 
-    def get_uuid_to_individual_dicts(self, drop_outs: bool = True) -> dict[str, dict[str, Participant]]:
+    def get_uuid_to_name_dict(self, drop_outs: bool = True, byes: bool = True) -> dict[str, str]:
+        return {
+            participant.get_uuid(): participant.get_name() for participant in self.get_participants(drop_outs, byes)
+        }
+
+    def get_individuals(self, drop_outs: bool = True, byes: bool = True) -> list[Participant]:
         if not self.is_team_tournament():
             return NotImplemented
-        participants = cast(list[Team], self.get_participants(drop_outs))
+        participants = cast(list[Team], self.get_participants(drop_outs, byes))
+        return [member for team in participants for member in team.get_members()]
+
+    def get_uuid_to_name_dict_individual(self, drop_outs: bool = True, byes: bool = True) -> dict[str, str]:
+        if not self.is_team_tournament():
+            return NotImplemented
+        return {
+            participant.get_uuid(): participant.get_name() for participant in self.get_individuals(drop_outs, byes)
+        }
+
+    def get_uuid_to_individual_dicts(
+            self, drop_outs: bool = True, byes: bool = True
+    ) -> dict[str, dict[str, Participant]]:
+        if not self.is_team_tournament():
+            return NotImplemented
+        participants = cast(list[Team], self.get_participants(drop_outs, byes))
         return {
             participant.get_uuid(): cast(dict[str, Participant], participant.get_uuid_to_member_dict())
             for participant in participants
@@ -181,11 +207,11 @@ class Tournament(Object):
         score_dict = self.get_score_dict()
         scores = {participant.get_uuid(): 0. for participant in self.get_participants()}
         for roun in self.get_results():
-            for (uuid_1, score_1), (uuid_2, score_2) in roun:
-                if uuid_1 is not None:
-                    scores[uuid_1] += score_dict[score_1]
-                if uuid_2 is not None:
-                    scores[uuid_2] += score_dict[score_2]
+            for (item_1, score_1), (item_2, score_2) in roun:
+                if item_1 in scores:
+                    scores[item_1] += score_dict[score_1]
+                if item_2 in scores:
+                    scores[item_2] += score_dict[score_2]
         return {uuid: shorten_float(score) for uuid, score in scores.items()}
 
     def get_standings(self, category_range: Category_Range | None = None) -> Standings_Table:
@@ -209,9 +235,9 @@ class Tournament(Object):
                     info[display] = str(value)
         return info
 
-    def set_participants(self, participants: Sequence[Participant], order: bool = False) -> None:
+    def set_participants(self, participants: Sequence[Participant], from_order: bool = False) -> None:
         self.participants = list(participants)
-        if order and bool(self.participants) and self.order is not None:
+        if from_order and bool(self.participants) and self.order is not None:
             uuid_to_participant_dict = self.get_uuid_to_participant_dict()
             self.participants = [uuid_to_participant_dict[uuid] for uuid in self.order]
 
@@ -227,16 +253,22 @@ class Tournament(Object):
     def set_round(self, roun: int) -> None:
         self.variables["round"] = roun
 
-    def set_pairings(self, pairings: Variable_Pairings | list[Pairing] | None) -> None:
+    def set_pairings(self, pairings: Variable_Pairings | list[Pairing]) -> None:
         if isinstance(pairings, list):
-            pairings = Variable_Pairings(pairings)
-        self.set_variable("pairings", pairings)
+            self.set_variable("pairings", Variable_Pairings([]))
+            self.get_pairings().extend(pairings)
+        else:
+            self.set_variable("pairings", pairings)
 
     def set_drop_outs(self, uuids: list[str]) -> None:
         self.set_variable("drop_outs", uuids)
 
-    def set_category_ranges(self, category_ranges: Sequence[tuple[str, Any, Any]]) -> None:
-        self.set_variable("category_ranges", Variable_Category_Ranges(category_ranges))
+    def set_byes(self, uuids: list[str]) -> None:
+        self.set_variable("byes", uuids)
+
+    def set_category_ranges(self, category_ranges: Sequence[Category_Range]) -> None:
+        self.get_category_ranges().clear()
+        self.get_category_ranges().extend(category_ranges)
 
     def set_parameters_validate(self, keys: Sequence[str], values: Sequence[Any]) -> bool:
         temps = [self.get_parameter(key) for key in keys]
@@ -256,23 +288,26 @@ class Tournament(Object):
 
     def is_valid_pairings(self, pairings: Sequence[Pairing]) -> bool:
         assert(all(pairing.is_fixed() for pairing in pairings))
-        return all(uuid_1 != uuid_2 for uuid_1, uuid_2 in pairings if (uuid_1, uuid_2) != (None, None))
+        return all(item_1 != item_2 for item_1, item_2 in pairings if (item_1, item_2) != ("", ""))
 
     def is_valid_pairings_match(self, pairing: Pairing, pairings_team: Sequence[Pairing]) -> bool:
         if not self.is_team_tournament():
             return NotImplemented
-        assert(pairing.is_fixed())
         participant_dict = cast(dict[str, Team], self.get_uuid_to_participant_dict())
-        for i, uuid in enumerate(pairing):
-            if uuid is None:
+        for i, item in enumerate(pairing):
+            assert(not isinstance(item, list))
+            if item.is_bye():
                 continue
-            member_uuids = list(participant_dict[cast(str, uuid)].get_uuid_to_member_dict())
+            member_uuids = list(participant_dict[item].get_uuid_to_member_dict())
             if not is_valid_seating(pairings_team, member_uuids, i, self.get_enforce_lineups()):
                 return False
         return True
 
     def is_team_tournament(self) -> bool:
         return self.get_mode().endswith(" (Team)")
+
+    def is_done(self) -> bool:
+        return False
 
     def load_parameters_and_variables(self) -> None:
         for parameter, value in self.get_parameters().items():
@@ -281,9 +316,6 @@ class Tournament(Object):
         for variable, value in self.get_variables().items():
             if isinstance(value, dict) and set(value) == {"class", "dict"}:
                 self.set_variable(variable, globals()[value["class"]](**value["dict"]))
-
-    def clear_pairings(self) -> None:
-        self.set_pairings(None)
 
     def apply_uuid_associate(self, uuid_associate: str) -> None:
         super().apply_uuid_associate(uuid_associate)
@@ -300,18 +332,19 @@ class Tournament(Object):
             results_team = cast(list[Result_Team], results)
             self.get_results_team().append(results_team)
             results_player = [Result(
-                (cast(str | None, pairing[0]), get_team_result(result, self.get_score_dict())[0]),
-                (cast(str | None, pairing[1]), get_team_result(result, self.get_score_dict())[1])
+                (cast(Pairing_Item, pairing[0]), get_team_result(result, self.get_score_dict())[0]),
+                (cast(Pairing_Item, pairing[1]), get_team_result(result, self.get_score_dict())[1])
             ) for pairing, result in zip(pairings, results_team)]
         else:
             results_player = cast(list[Result], results)
         self.get_results().append(results_player)
-        self.set_pairings(None)
+        self.set_byes([])
+        self.set_pairings([])
         self.set_round(self.get_round() + 1)
 
     def remove_results(self) -> None:
         self.set_round(self.get_round() - 1)
-        self.set_pairings(None)
+        self.set_pairings([])
         self.get_results().pop()
         if self.is_team_tournament():
             self.get_results_team().pop()
@@ -324,21 +357,21 @@ class Tournament(Object):
         if self.get_participant_count(drop_outs=False) <= len(uuids) + 1:
             return False
         self.get_drop_outs().extend(list(uuids))
+        self.set_byes(list(set(self.get_byes()).difference(set(uuids))))
         return True
 
     def drop_in_participants(self, participants: Sequence[Participant] | None = None) -> bool:
-        participants = participants or []
         uuids = self.get_participant_uuids()
-        self.get_participants().extend(
-            [participant for participant in participants if participant.get_uuid() not in uuids]
-        )
-        self.possess_participants()
-        self.seat_participants()
+        participants = participants or []
+        drop_ins = [participant for participant in participants if participant.get_uuid() not in uuids]
         drop_outs = list(set(self.get_drop_outs()).difference({participant.get_uuid() for participant in participants}))
+        for participant in drop_ins:
+            participant.apply_uuid_associate(self.get_uuid())
+        self.set_participants(self.get_participants() + drop_ins)
         self.set_drop_outs(drop_outs)
         return True
 
-    def is_done(self) -> bool:
+    def add_byes(self, uuids: Sequence[str] | None = None) -> bool:
         return False
 
     def load_pairings(self) -> None:

@@ -1,19 +1,15 @@
 from __future__ import annotations
 from typing import TYPE_CHECKING, Sequence, cast
+from .pairing_item import Pairing_Item
 from .result import Result
 from .player import Player
 from .variable_results import Variable_Results
-from .functions_util import shorten_float
 if TYPE_CHECKING:
     from .tournament import Tournament
 
-Result_List = list[tuple[str | None, str, int]]
+Result_List = list[tuple[Pairing_Item, str, int]]
 UUID_To_Result_List_Dict = dict[str, Result_List]
 Score_Dict = dict[str, float]
-
-
-def shorten_floats(scores: Score_Dict) -> Score_Dict:
-    return {uuid: shorten_float(score) for uuid, score in scores.items()}
 
 
 def cut_list(lis: Sequence[float], cut_up: int, cut_down: int) -> Sequence[float]:
@@ -29,12 +25,12 @@ def cut_list(lis: Sequence[float], cut_up: int, cut_down: int) -> Sequence[float
 
 def add_result_list_to_uuid_dict(result: Result, uuid_dict: UUID_To_Result_List_Dict, roun: int) -> None:
     for i in range(2):
-        uuid = result[i][0]
-        if uuid is None:
+        item = result[i][0]
+        if item.is_bye():
             continue
-        elif uuid not in uuid_dict:
-            uuid_dict[uuid] = []
-        uuid_dict[uuid].append((result[1 - i][0], result[i][1], roun))
+        elif item not in uuid_dict:
+            uuid_dict[item] = []
+        uuid_dict[item].append((result[1 - i][0], result[i][1], roun))
 
 
 def get_uuid_to_result_list_dict(results: Variable_Results) -> UUID_To_Result_List_Dict:
@@ -56,10 +52,11 @@ def get_scores_from_uuid_dict(
 
 
 def get_opp_score(
-        opp: str | None, roun: int, score_dict: Score_Dict, res_list: Result_List, tournament: Tournament, virtual: bool
+        opp: Pairing_Item, roun: int, score_dict: Score_Dict, res_list: Result_List, tournament: Tournament,
+        virtual: bool
 ) -> float:
     score_dict_tournament = tournament.get_score_dict()
-    if opp is not None:
+    if not opp.is_bye():
         return score_dict[opp]
     score = score_from_result_list(res_list[:roun], score_dict_tournament)
     if virtual:
@@ -80,7 +77,7 @@ def get_buchholz(
         ] if uuid in uuid_dict else [] for uuid in uuids
     }
 
-    return shorten_floats({uuid: sum(cut_list(sorted(scores), cut_up, cut_down)) for uuid, scores in tb_dict.items()})
+    return {uuid: sum(cut_list(sorted(scores), cut_up, cut_down)) for uuid, scores in tb_dict.items()}
 
 
 def get_buchholz_sum(
@@ -89,10 +86,10 @@ def get_buchholz_sum(
     buchholz_dict = get_buchholz(list(tournament.get_uuid_to_participant_dict()), tournament, cut_up, cut_down, virtual)
     uuid_dict = get_uuid_to_result_list_dict(tournament.get_results())
 
-    return shorten_floats({
-        uuid: sum(0 if opp is None else buchholz_dict[opp] for opp, _, _ in uuid_dict[uuid]) if uuid in uuid_dict
+    return {
+        uuid: sum(0 if opp.is_bye() else buchholz_dict[opp] for opp, _, _ in uuid_dict[uuid]) if uuid in uuid_dict
         else 0 for uuid in uuids
-    })
+    }
 
 
 def get_sonneborn_berger(
@@ -109,32 +106,34 @@ def get_sonneborn_berger(
         ] if uuid in uuid_dict else [] for uuid in uuids
     }
 
-    return shorten_floats({uuid: sum(cut_list(sorted(scores), cut_up, cut_down)) for uuid, scores in tb_dict.items()})
+    return {uuid: sum(cut_list(sorted(scores), cut_up, cut_down)) for uuid, scores in tb_dict.items()}
+
+
+def get_games(uuids: Sequence[str], tournament: Tournament) -> Score_Dict:
+    white_dict, black_dict = tournament.get_results().get_white_black_stats()
+    white_dict = {uuid: white_dict[uuid] if uuid in white_dict else 0 for uuid in uuids}
+    black_dict = {uuid: black_dict[uuid] if uuid in black_dict else 0 for uuid in uuids}
+
+    return {uuid: float(white_dict[uuid] + black_dict[uuid]) for uuid in uuids}
 
 
 def get_blacks(uuids: Sequence[str], tournament: Tournament) -> Score_Dict:
-    blacks = {uuid: 0. for uuid in uuids}
+    _, black_dict = tournament.get_results().get_white_black_stats()
 
-    for round_results in tournament.get_results():
-        for (uuid_1, _), (uuid_2, _) in round_results:
-            if uuid_1 is None or uuid_2 is None or uuid_2 not in blacks:
-                continue
-            blacks[uuid_2] += 1
-
-    return shorten_floats(blacks)
+    return {uuid: float(black_dict[uuid]) if uuid in black_dict else 0. for uuid in uuids}
 
 
 def get_number_of_wins(uuids: Sequence[str], tournament: Tournament, include_forfeits: bool = False) -> Score_Dict:
     wins = {uuid: 0. for uuid in uuids}
 
     for round_results in tournament.get_results():
-        for (uuid_1, score_1), (uuid_2, score_2) in round_results:
-            if uuid_1 in wins and (score_1 == '1' or (include_forfeits and score_1 == '+')):
-                wins[uuid_1] += 1
-            if uuid_2 in wins and (score_2 == '1' or (include_forfeits and score_2 == '+')):
-                wins[uuid_2] += 1
+        for (item_1, score_1), (item_2, score_2) in round_results:
+            if item_1 in wins and (score_1 == '1' or (include_forfeits and score_1 == '+')):
+                wins[item_1] += 1
+            if item_2 in wins and (score_2 == '1' or (include_forfeits and score_2 == '+')):
+                wins[item_2] += 1
 
-    return shorten_floats(wins)
+    return wins
 
 
 def get_number_of_black_wins(
@@ -143,13 +142,13 @@ def get_number_of_black_wins(
     black_wins = {uuid: 0. for uuid in uuids}
 
     for round_results in tournament.get_results():
-        for (uuid_1, score_1), (uuid_2, score_2) in round_results:
-            if uuid_1 is None or uuid_2 is None or uuid_2 not in black_wins:
+        for (item_1, score_1), (item_2, score_2) in round_results:
+            if item_1.is_bye() or item_2.is_bye() or item_2 not in black_wins:
                 continue
             if score_2 == '1' or (score_2 == '+' and include_forfeits):
-                black_wins[uuid_2] += 1
+                black_wins[item_2] += 1
 
-    return shorten_floats(black_wins)
+    return black_wins
 
 
 def get_opponent_average_rating(
@@ -162,14 +161,14 @@ def get_opponent_average_rating(
     tb_dict = cast(dict[str, list[float]], {
         uuid: [
             rating_dict[opp] for opp, res, _ in uuid_dict[uuid]
-            if opp is not None and (res in ('1', '½', '0') or include_forfeits)
+            if not opp.is_bye() and (res in ('1', '½', '0') or include_forfeits)
         ] if uuid in uuid_dict else [] for uuid in uuids
     })
 
-    return shorten_floats({
+    return {
         uuid: sum(cut_list(sorted(scores), cut_up, cut_down)) // max(1, len(cut_list(sorted(scores), cut_up, cut_down)))
         for uuid, scores in tb_dict.items()
-    })
+    }
 
 
 def get_progressive_score(
@@ -191,7 +190,7 @@ def get_progressive_score(
                 i += 1
             r += 1
 
-    return shorten_floats({uuid: sum(cut_list(sorted(scores), cut_up, cut_down)) for uuid, scores in tb_dict.items()})
+    return {uuid: sum(cut_list(sorted(scores), cut_up, cut_down)) for uuid, scores in tb_dict.items()}
 
 
 def get_direct_encounter(uuids: Sequence[str], tournament: Tournament) -> Score_Dict:
@@ -199,12 +198,29 @@ def get_direct_encounter(uuids: Sequence[str], tournament: Tournament) -> Score_
     score_dict = tournament.get_score_dict()
 
     for round_results in tournament.get_results():
-        for (uuid_1, score_1), (uuid_2, score_2) in round_results:
-            if uuid_1 in scores and uuid_2 in scores:
-                scores[uuid_1] += score_dict[score_1] - score_dict[score_2]
-                scores[uuid_2] += score_dict[score_2] - score_dict[score_1]
+        for (item_1, score_1), (item_2, score_2) in round_results:
+            if item_1 in scores and item_2 in scores:
+                scores[item_1] += score_dict[score_1] - score_dict[score_2]
+                scores[item_2] += score_dict[score_2] - score_dict[score_1]
 
-    return shorten_floats(scores)
+    return scores
+
+
+def get_koya_system(uuids: Sequence[str], tournament: Tournament, threshold: int = 50) -> Score_Dict:
+    score_dict_tournament = tournament.get_score_dict()
+    uuid_dict = get_uuid_to_result_list_dict(tournament.get_results())
+    score_dict = get_scores_from_uuid_dict(uuid_dict, tournament.get_score_dict())
+    required_score = (tournament.get_round() - 1) * score_dict_tournament['1'] * threshold / 100
+
+    uuid_dict = {uuid: [
+        (opp, res, roun) for opp, res, roun in uuid_dict[uuid]
+        if not opp.is_bye() and score_dict[opp] >= required_score
+    ] for uuid in uuid_dict}
+
+    return {
+        uuid: sum(score_dict_tournament[res] for _, res, _ in uuid_dict[uuid])
+        if uuid in uuid_dict else 0. for uuid in uuids
+    }
 
 
 def get_board_points(uuids: Sequence[str], tournament: Tournament) -> Score_Dict:
@@ -212,13 +228,13 @@ def get_board_points(uuids: Sequence[str], tournament: Tournament) -> Score_Dict
     score_dict_game = tournament.get_score_dict_game()
 
     for round_results, round_results_team in zip(tournament.get_results(), tournament.get_results_team()):
-        for ((uuid_1, _), (uuid_2, _)), result_team in zip(round_results, round_results_team):
-            if uuid_1 in scores:
-                scores[uuid_1] += sum(score_dict_game[score_1] for (_, score_1), (_, _) in result_team)
-            if uuid_2 in scores:
-                scores[uuid_2] += sum(score_dict_game[score_2] for (_, _), (_, score_2) in result_team)
+        for ((item_1, _), (item_2, _)), result_team in zip(round_results, round_results_team):
+            if item_1 in scores:
+                scores[item_1] += sum(score_dict_game[score_1] for (_, score_1), (_, _) in result_team)
+            if item_2 in scores:
+                scores[item_2] += sum(score_dict_game[score_2] for (_, _), (_, score_2) in result_team)
 
-    return shorten_floats(scores)
+    return scores
 
 
 def get_berliner_wertung(uuids: Sequence[str], tournament: Tournament) -> dict[str, float]:
@@ -227,14 +243,14 @@ def get_berliner_wertung(uuids: Sequence[str], tournament: Tournament) -> dict[s
     boards = tournament.get_boards()
 
     for round_results, round_results_team in zip(tournament.get_results(), tournament.get_results_team()):
-        for ((uuid_1, _), (uuid_2, _)), result_team in zip(round_results, round_results_team):
-            if uuid_1 in scores:
-                scores[uuid_1] += sum(
+        for ((item_1, _), (item_2, _)), result_team in zip(round_results, round_results_team):
+            if item_1 in scores:
+                scores[item_1] += sum(
                     score_dict_game[score_1] * (boards - i) for i, ((_, score_1), (_, _)) in enumerate(result_team)
                 )
-            if uuid_2 in scores:
-                scores[uuid_2] += sum(
+            if item_2 in scores:
+                scores[item_2] += sum(
                     score_dict_game[score_2] * (boards - i) for i, ((_, _), (_, score_2)) in enumerate(result_team)
                 )
 
-    return shorten_floats(scores)
+    return scores

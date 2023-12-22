@@ -3,7 +3,7 @@ from math import inf
 from PySide6.QtWidgets import QMainWindow, QHBoxLayout, QWidget, QTableWidget, QHeaderView, QVBoxLayout
 from PySide6.QtCore import Qt, QSize
 from PySide6.QtGui import QCloseEvent
-from .category_range import INTEGER_CATEGORIES
+from .category_range import INTEGER_CATEGORIES, Category_Range
 from .gui_functions import get_button, set_window_title, set_window_size
 from .gui_table import add_button_to_table, add_combobox_to_table, set_up_table, size_table, \
     add_content_to_table, get_table_value
@@ -38,7 +38,7 @@ class Window_Add_Categories(QMainWindow):
         self.size_window()
 
     def size_window(self) -> None:
-        set_window_size(self, QSize(self.table.maximumWidth() + self.add_row_button.width(), 0), factor_y=.3)
+        set_window_size(self, QSize(self.table.maximumWidth() + self.add_row_button.width(), 0), factor_y=.4)
 
     def resize_table(self) -> None:
         size_table(self.table, self.table.rowCount(), 3.5, max_width=29.5, widths=[12, 7, 7, 3.5])
@@ -77,7 +77,7 @@ class Window_Add_Categories(QMainWindow):
                 self.table.removeRow(row)
         self.resize_table()
 
-    def get_entries(self) -> list[tuple[str, Any, Any]]:
+    def get_category_ranges(self) -> list[Category_Range]:
         self.remove_invalid_rows()
         entries = []
         for row in range(self.table.rowCount()):
@@ -86,7 +86,7 @@ class Window_Add_Categories(QMainWindow):
                 bottom = -inf if bottom == "" else int(bottom)
                 top = inf if top == "" else int(top)
             entries.append((category, bottom, top))
-        return entries
+        return [Category_Range(*entry) for entry in entries]
 
     def closeEvent(self, event: QCloseEvent) -> None:
         self.remove_invalid_rows()

@@ -54,6 +54,9 @@ class Window_Main(QMainWindow):
         if index is not None:
             self.stacked_widget.setCurrentIndex(index)
             self.side_menu.make_side_menu()
+        self.resizeDocks(
+            [self.side_menu], [int(self.side_menu.layout().sizeHint().width() * 1.2)], Qt.Orientation.Horizontal
+        )
 
     def reload(self) -> None:
         MANAGER_SIZE.refresh()

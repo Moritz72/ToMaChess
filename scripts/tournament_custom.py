@@ -17,9 +17,10 @@ class Tournament_Custom(Tournament):
         )
         self.mode = "Custom"
         self.parameters = {
-            "games_per_round": 5,
-            "rounds": 4,
+            "games_per_round": 4,
+            "rounds": 7,
             "point_system": ["1 - ½ - 0", "2 - 1 - 0", "3 - 1 - 0"],
+            "half_bye": False,
             "tiebreak_1": Parameter_Tiebreak(get_tiebreak_list("Buchholz")),
             "tiebreak_2": Parameter_Tiebreak(get_tiebreak_list("Buchholz Sum")),
             "tiebreak_3": Parameter_Tiebreak(get_tiebreak_list("None")),
@@ -29,6 +30,7 @@ class Tournament_Custom(Tournament):
             "games_per_round": "Games per Round",
             "rounds": "Rounds",
             "point_system": "Point System",
+            "half_bye": "Half-Point Bye",
             "tiebreak_1": ("Tiebreak", " (1)"),
             "tiebreak_2": ("Tiebreak", " (2)"),
             "tiebreak_3": ("Tiebreak", " (3)"),
@@ -36,7 +38,7 @@ class Tournament_Custom(Tournament):
         }
 
     def get_score_dict(self) -> dict[str, float]:
-        return get_score_dict_by_point_system(self.get_point_system())
+        return get_score_dict_by_point_system(self.get_point_system(), half_bye=self.get_half_bye())
 
     def get_games_per_round(self) -> int:
         return cast(int, self.get_parameter("games_per_round"))
@@ -46,6 +48,9 @@ class Tournament_Custom(Tournament):
 
     def get_point_system(self) -> str:
         return cast(str, self.get_parameter("point_system")[0])
+
+    def get_half_bye(self) -> bool:
+        return cast(bool, self.get_parameter("half_bye"))
 
     def get_tiebreaks(self) -> tuple[Parameter_Tiebreak, ...]:
         return (
@@ -62,9 +67,11 @@ class Tournament_Custom(Tournament):
         return self.get_round() > self.get_rounds()
 
     def load_pairings(self) -> None:
-        if self.get_pairings() is not None or self.is_done():
+        if bool(self.get_pairings()) or self.is_done():
             return
-        participant_uuids = cast(list[str | None], self.get_participant_uuids(drop_outs=False))
-        participant_uuids.append(None)
+        uuids = self.get_participant_uuids(drop_outs=False, byes=False) + [""]
         games_per_round = self.get_games_per_round()
-        self.set_pairings([Pairing(participant_uuids, participant_uuids) for _ in range(games_per_round)])
+        pairings = [Pairing(uuids, uuids) for _ in range(games_per_round)]
+        for uuid in self.get_byes():
+            pairings.append(Pairing(uuid, "bye"))
+        self.set_pairings(pairings)

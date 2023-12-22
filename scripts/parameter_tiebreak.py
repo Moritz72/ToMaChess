@@ -1,19 +1,20 @@
 from __future__ import annotations
 from typing import TYPE_CHECKING, Sequence, Any, Callable
+from functools import partial
 from .parameter import Parameter
-from .functions_tiebreak import get_buchholz, get_buchholz_sum, get_sonneborn_berger, get_blacks,\
-    get_number_of_wins, get_opponent_average_rating, get_progressive_score, get_number_of_black_wins,\
-    get_direct_encounter, get_board_points, get_berliner_wertung
+from .functions_tiebreak import get_buchholz, get_buchholz_sum, get_sonneborn_berger, get_games, get_blacks, \
+    get_number_of_wins, get_opponent_average_rating, get_progressive_score, get_number_of_black_wins, \
+    get_direct_encounter, get_koya_system, get_board_points, get_berliner_wertung
 if TYPE_CHECKING:
     from .tournament import Tournament
 
 TIEBREAK_LIST = [
-    "None", "Buchholz", "Buchholz Sum", "Sonneborn-Berger", "Games as Black", "Wins", "Wins as Black",
-    "Average Rating", "Progressive Scores", "Direct Encounter"
+    "None", "Buchholz", "Buchholz Sum", "Sonneborn-Berger", "Games", "Games as Black", "Wins",
+    "Wins as Black", "Average Rating", "Progressive Scores", "Koya System", "Direct Encounter"
 ]
 TIEBREAK_LIST_TEAM = [
-    "None", "Board Points", "Berliner Wertung", "Buchholz", "Buchholz Sum", "Sonneborn-Berger", "Wins",
-    "Progressive Scores", "Direct Encounter"
+    "None", "Board Points", "Berliner Wertung", "Buchholz", "Buchholz Sum", "Sonneborn-Berger", "Games", "Wins",
+    "Progressive Scores", "Koya System", "Direct Encounter"
 ]
 
 TIEBREAKS: dict[str, Callable[..., dict[str, float]] | None] = {
@@ -21,11 +22,13 @@ TIEBREAKS: dict[str, Callable[..., dict[str, float]] | None] = {
     "Buchholz": get_buchholz,
     "Buchholz Sum": get_buchholz_sum,
     "Sonneborn-Berger": get_sonneborn_berger,
+    "Games": get_games,
     "Games as Black": get_blacks,
     "Wins": get_number_of_wins,
     "Wins as Black": get_number_of_black_wins,
     "Average Rating": get_opponent_average_rating,
     "Progressive Scores": get_progressive_score,
+    "Koya System": get_koya_system,
     "Direct Encounter": get_direct_encounter,
     "Board Points": get_board_points,
     "Berliner Wertung": get_berliner_wertung
@@ -35,12 +38,14 @@ FUNC_ARGS: dict[str, dict[str, Any]] = {
     "Buchholz": {"cut_down": 0, "cut_up": 0, "virtual": False},
     "Buchholz Sum": {"cut_down": 0, "cut_up": 0, "virtual": False},
     "Sonneborn-Berger": {"cut_down": 0, "cut_up": 0, "virtual": False},
+    "Games": {},
     "Games as Black": {},
     "Wins": {"include_forfeits": False},
     "Wins as Black": {"include_forfeits": False},
     "Average Rating": {"cut_down": 0, "cut_up": 0, "include_forfeits": False},
     "Progressive Scores": {"cut_down": 0, "cut_up": 0},
     "Direct Encounter": {},
+    "Koya System": {"threshold": 50},
     "Board Points": {},
     "Berliner Wertung": {}
 }
@@ -49,12 +54,14 @@ FUNC_ARGS_DISPLAY: dict[str, dict[str, str]] = {
     "Buchholz": {"cut_down": "Cut (bottom)", "cut_up": "Cut (top)", "virtual": "Virtual Opponents"},
     "Buchholz Sum": {"cut_down": "Cut (bottom)", "cut_up": "Cut (top)", "virtual": "Virtual Opponents"},
     "Sonneborn-Berger": {"cut_down": "Cut (bottom)", "cut_up": "Cut (top)", "virtual": "Virtual Opponents"},
+    "Games": {},
     "Games as Black": {},
     "Wins": {"include_forfeits": "Include Forfeits"},
     "Wins as Black": {},
     "Average Rating": {"cut_down": "Cut (bottom)", "cut_up": "Cut (top)"},
     "Progressive Scores": {"cut_down": "Cut (bottom)", "cut_up": "Cut (top)"},
     "Direct Encounter": {},
+    "Koya System": {"threshold": "Threshold (%)"},
     "Board Points": {},
     "Berliner Wertung": {}
 }
@@ -99,11 +106,7 @@ class Parameter_Tiebreak(Parameter):
         function = TIEBREAKS[self.criteria[0]]
         if function is None:
             return NotImplemented
-
-        def evaluate(uuids: list[str]) -> dict[str, float]:
-            return function(uuids, tournament, **self.specifications)
-
-        return evaluate
+        return partial(function, tournament=tournament, **self.specifications)
 
     def display_status(self) -> str:
         return self.criteria[0]

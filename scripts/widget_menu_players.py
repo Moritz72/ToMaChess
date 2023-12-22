@@ -29,7 +29,7 @@ class Widget_Menu_Players(Widget_Search_Generic[Player]):
         ]
 
     def get_object_from_values(self, values: tuple[str, str, str, str, str, str, str]) -> Player:
-        return Player(*values[:6], uuid_associate=self.get_collection_uuid())
+        return Player(*values[:6], uuid_associate=self.get_associate_uuid())
 
     def edit_object_by_values(self, values: tuple[str, str, str, str, str, str, str], player: Player) -> None:
         player.set_name(values[0])
@@ -38,7 +38,7 @@ class Widget_Menu_Players(Widget_Search_Generic[Player]):
         player.set_country(values[3])
         player.set_title(values[4])
         player.set_rating(values[5])
-        player.set_uuid_associate(self.get_collection_uuid())
+        player.set_uuid_associate(self.get_associate_uuid())
 
     def fill_in_row(self, row: int, player: Player | None = None) -> None:
         add_player_to_table(self.table, row, player, edit=True)

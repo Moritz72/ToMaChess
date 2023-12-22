@@ -2,6 +2,7 @@ from typing import Sequence, Callable, cast
 from functools import partial
 from PySide6.QtWidgets import QWidget, QVBoxLayout
 from PySide6.QtCore import Signal
+from .pairing_item import Pairing_Item
 from .pairing import Pairing
 from .result import Result
 from .result_team import Result_Team
@@ -10,18 +11,14 @@ from .widget_tournament_round import Widget_Tournament_Round
 from .gui_functions import get_scroll_area_widgets_and_layouts
 
 
-def header(uuid: str | None, uuid_to_participant_dict: dict[str, Participant]) -> str:
-    return "" if uuid is None else uuid_to_participant_dict[uuid].get_name()
+def get_dict(item: Pairing_Item, individual_dicts: dict[str, dict[str, Participant]]) -> dict[str, Participant]:
+    return dict() if item.is_bye() else individual_dicts[item]
 
 
-def get_dict(uuid: str | None, uuid_to_individual_dicts: dict[str, dict[str, Participant]]) -> dict[str, Participant]:
-    return dict() if uuid is None else uuid_to_individual_dicts[uuid]
-
-
-def get_pairing_individual(pairing: Pairing, uuid_to_individual_dicts: dict[str, dict[str, Participant]]) -> Pairing:
-    members_1: list[str | None] = list(get_dict(cast(str | None, pairing[0]), uuid_to_individual_dicts))
-    members_2: list[str | None] = list(get_dict(cast(str | None, pairing[1]), uuid_to_individual_dicts))
-    return Pairing(members_1 + [None], members_2 + [None])
+def get_pairing_individual(pairing: Pairing, individual_dicts: dict[str, dict[str, Participant]]) -> Pairing:
+    members_1 = list(get_dict(cast(Pairing_Item, pairing[0]), individual_dicts))
+    members_2 = list(get_dict(cast(Pairing_Item, pairing[1]), individual_dicts))
+    return Pairing(members_1 + [""], members_2 + [""])
 
 
 class Widget_Tournament_Round_Team(QWidget):
@@ -29,8 +26,8 @@ class Widget_Tournament_Round_Team(QWidget):
     confirmed_pairings = Signal()
 
     def __init__(
-            self, data: list[Pairing] | list[Result], uuid_to_participant_dict: dict[str, Participant],
-            uuid_to_individual_dicts: dict[str, dict[str, Participant]], team_results: list[Result_Team] | None = None,
+            self, data: list[Pairing] | list[Result], name_dict: dict[str, str],
+            individual_dicts: dict[str, dict[str, Participant]], team_results: list[Result_Team] | None = None,
             drop_outs: list[str] | None = None, possible_scores: list[tuple[str, str]] | None = None,
             is_valid_pairings: Callable[[Pairing, Sequence[Pairing]], bool] | None = None, boards: int | None = None
     ):
@@ -38,28 +35,29 @@ class Widget_Tournament_Round_Team(QWidget):
         self.confirmed_results_counter: int = 0
         self.confirmed_pairings_counter: int = 0
         self.round_widgets: list[Widget_Tournament_Round] = []
+        name_dict_individual = {
+            uuid: str(participant) for individual_dict in individual_dicts.values()
+            for uuid, participant in individual_dict.items()
+        } | {"bye": "bye", "": ""}
 
         if team_results is not None:
             results = cast(list[Result], data)
 
-            for ((uuid_1, _), (uuid_2, _)), team_result in zip(results, team_results):
-                individual_dict = get_dict(uuid_1, uuid_to_individual_dicts)
-                individual_dict |= get_dict(uuid_2, uuid_to_individual_dicts)
-                headers = (header(uuid_1, uuid_to_participant_dict), header(uuid_2, uuid_to_participant_dict))
-                self.round_widgets.append(Widget_Tournament_Round(team_result, individual_dict, headers=headers))
+            for ((item_1, _), (item_2, _)), team_result in zip(results, team_results):
+                headers = (name_dict[item_1], name_dict[item_2])
+                self.round_widgets.append(Widget_Tournament_Round(team_result, name_dict_individual, headers=headers))
         else:
             pairings = cast(list[Pairing], data)
             assert(drop_outs is not None and possible_scores is not None)
             assert(is_valid_pairings is not None and boards is not None)
 
             for pairing in pairings:
-                p_1, p_2 = cast(str | None, pairing[0]), cast(str | None, pairing[1])
-                individual_pairings = [get_pairing_individual(pairing, uuid_to_individual_dicts) for _ in range(boards)]
-                individual_dict = get_dict(p_1, uuid_to_individual_dicts) | get_dict(p_2, uuid_to_individual_dicts)
+                p_1, p_2 = cast(Pairing_Item, pairing[0]), cast(Pairing_Item, pairing[1])
+                individual_pairings = [get_pairing_individual(pairing, individual_dicts) for _ in range(boards)]
                 is_valid = partial(is_valid_pairings, pairing)
-                headers = (header(p_1, uuid_to_participant_dict), header(p_2, uuid_to_participant_dict))
+                headers = (name_dict[p_1], name_dict[p_2])
                 round_widget = Widget_Tournament_Round(
-                    individual_pairings, individual_dict, [], possible_scores, is_valid, headers=headers
+                    individual_pairings, name_dict_individual, [], possible_scores, is_valid, headers=headers
                 )
                 round_widget.confirmed_results.connect(self.confirm_result)
                 round_widget.confirmed_pairings.connect(self.confirm_pairing)

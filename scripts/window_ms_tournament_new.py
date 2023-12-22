@@ -69,7 +69,7 @@ class Window_MS_Tournament_New_Generic(QMainWindow, Generic[T]):
         widget.validate_advance_lists.connect(self.validate_advance_lists)
 
     def remove_stage(self) -> None:
-        if bool(self.stage_widgets):
+        if len(self.stage_widgets) > 1:
             self.layout_inner.takeAt(self.layout_inner.count() - 1).widget().deleteLater()
             self.stage_widgets.pop()
 

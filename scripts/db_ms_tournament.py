@@ -66,7 +66,7 @@ class DB_MS_Tournament(DB_Object[MS_Tournament]):
                 participants = cast(list[Participant], DB_PLAYER.load_all(self.table(table_root) + '_', uuid))
             for tournament in tournaments:
                 if tournament.get_order() is not None:
-                    tournament.set_participants(participants)
+                    tournament.set_participants(participants, from_order=True)
             ms_tournaments.append(MS_Tournament(tournaments, *json_loads_entry(entry)))
         return ms_tournaments
 

@@ -82,18 +82,22 @@ def add_content_to_table(
 def add_button_to_table(
         table: QTableWidget, row: int, column: int, size: str | None, widget_size: Widget_Size,
         text: str | Sequence[str] = "", connect: Callable[[], None] | list[Callable[[], None]] | None = None,
-        bold: bool = False, checkable: bool = False, enabled: bool = True, translate: bool = False
+        bold: bool = False, checkable: bool = False, enabled: bool = True,
+        translate: bool = False, object_name: str | None = None
 ) -> None:
-    button = get_button(size, widget_size, text, connect, bold, checkable, enabled, translate)
+    button = get_button(size, widget_size, text, connect, bold, checkable, enabled, translate, object_name)
     table.setCellWidget(row, column, button)
 
 
 def add_combobox_to_table(
-        table: QTableWidget, choices: Sequence[Any], row: int, column: int, size: str | None, widget_size: Widget_Size,
-        current_index: int | None = None, current: Any = None, bold: bool = False,
-        align: Qt.AlignmentFlag | None = None, down_arrow: bool = True, translate: bool = False
+        table: QTableWidget, items: Sequence[Any], row: int, column: int, size: str | None, widget_size: Widget_Size,
+        data: Sequence[Any] | None = None, current_index: int | None = None, current: Any = None, bold: bool = False,
+        align: Qt.AlignmentFlag | None = None, down_arrow: bool = True,
+        translate: bool = False, object_name: str | None = None
 ) -> None:
-    combobox = get_combo_box(choices, size, widget_size, current_index, current, bold, align, down_arrow, translate)
+    combobox = get_combo_box(
+        items, size, widget_size, data, current_index, current, bold, align, down_arrow, translate, object_name
+    )
     table.setCellWidget(row, column, combobox)
 
 

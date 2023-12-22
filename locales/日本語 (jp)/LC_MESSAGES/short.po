@@ -88,3 +88,9 @@ msgstr "ボポ"
 
 msgid "Berliner Wertung"
 msgstr "ベ格"
+
+msgid "Games"
+msgstr "試数"
+
+msgid "Koya System"
+msgstr "コヤ"

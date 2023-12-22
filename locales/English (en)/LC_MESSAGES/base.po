@@ -412,3 +412,30 @@ msgstr "Previous Stage"
 
 msgid "Next Stage"
 msgstr "Next Stage"
+
+msgid "Keizer"
+msgstr "Keizer"
+
+msgid "Half-Point Bye"
+msgstr "Half-Point Bye"
+
+msgid "Ratio (First to Last)"
+msgstr "Ratio (First to Last)"
+
+msgid "Score for Byes (%)"
+msgstr "Score for Byes (%)"
+
+msgid "No Pairing Repeats"
+msgstr "No Pairing Repeats"
+
+msgid "Games"
+msgstr "Games"
+
+msgid "Koya System"
+msgstr "Koya System"
+
+msgid "Threshold (%)"
+msgstr "Threshold (%)"
+
+msgid "Manage Byes"
+msgstr "Manage Byes"

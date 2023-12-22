@@ -22,10 +22,11 @@ class Stacked_Widget_MS_Tournament(Stacked_Widget):
         self.add_tournament_widgets()
 
     def add_tournament_widgets(self) -> None:
+        associate = (self.ms_tournament.get_name(), self.ms_tournament.get_uuid())
         for tournament in self.ms_tournament.get_stage_tournaments(self.stage):
             if not tournament.is_valid():
                 continue
-            tournament_widget = Stacked_Widget_Tournament(self.window_main, tournament, self.ms_tournament.get_name())
+            tournament_widget = Stacked_Widget_Tournament(self.window_main, tournament, associate)
             tournament_widget.make_side_menu.connect(self.check_for_changes)
             self.addWidget(tournament_widget)
             self.tournament_widgets.append(tournament_widget)
@@ -43,7 +44,9 @@ class Stacked_Widget_MS_Tournament(Stacked_Widget):
                 args["connect"] = [args["connect"], partial(self.setCurrentIndex, i)]
 
         for tournament_widget, tournament_buttons_args in zip(self.tournament_widgets, tournaments_buttons_args):
-            buttons_args.append({"text": tournament_widget.tournament.get_name(), "bold": True, "enabled": False})
+            buttons_args.append(
+                {"text": tournament_widget.tournament.get_name(), "bold": True, "enabled": False, "translate": False}
+            )
             buttons_args.extend(tournament_buttons_args)
             buttons_args.append({"enabled": False})
 
@@ -65,6 +68,7 @@ class Stacked_Widget_MS_Tournament(Stacked_Widget):
         self.window_main.set_stacked_widget("Default")
 
     def check_for_changes(self) -> None:
+        self.ms_tournament.possess_participants_and_tournaments()
         DB_MS_TOURNAMENT.update_list("", [self.ms_tournament])
         if self.ms_tournament.current_stage_is_done() and self.stage + 1 < self.ms_tournament.get_stages():
             self.ms_tournament.advance_stage()

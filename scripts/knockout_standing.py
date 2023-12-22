@@ -18,7 +18,7 @@ class Knockout_Standing:
         return f"Standing({self.level}, {self.score}, {self.beaten_by_seat}, {self.seating})"
 
     def was_beaten(self) -> bool:
-        return self.beaten_by_seat is not None
+        return bool(self.beaten_by_seat)
 
     def add_score(self, score: Sequence[float], reverse: bool = False) -> None:
         r = -1 if reverse else 1

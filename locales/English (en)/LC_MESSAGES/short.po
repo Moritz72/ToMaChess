@@ -88,3 +88,9 @@ msgstr "BoPo"
 
 msgid "Berliner Wertung"
 msgstr "BeWe"
+
+msgid "Games"
+msgstr "Game"
+
+msgid "Koya System"
+msgstr "Koya"

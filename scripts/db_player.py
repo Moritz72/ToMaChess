@@ -63,4 +63,18 @@ class DB_Player(DB_Object[Player]):
         )
 
 
+class DB_Player_List(DB_Player):
+    def __init__(self, players: Sequence[Player]) -> None:
+        super().__init__()
+        self.players = players
+
+    def load_like(
+            self, table_root: str, uuid_associate: str, name: str, limit: int | None, shallow: bool = False
+    ) -> list[Player]:
+        players = sort_players_by_rating([player for player in self.players if name in player.get_name()])
+        if limit is not None:
+            players = players[:limit]
+        return players
+
+
 DB_PLAYER = DB_Player()

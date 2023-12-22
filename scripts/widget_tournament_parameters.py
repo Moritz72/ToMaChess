@@ -23,7 +23,7 @@ class Widget_Tournament_Parameters(QWidget):
 
         self.layout_main: QVBoxLayout = QVBoxLayout(self)
         get_scroll_area_widgets_and_layouts(
-            self.layout_main, parameter_widgets[:-1], margins=(20, 20, 40, 20), spacing=10
+            self.layout_main, parameter_widgets[:-1], margins=(20, 20, 60, 20), spacing=10
         )
 
     def apply_parameters(self) -> bool:

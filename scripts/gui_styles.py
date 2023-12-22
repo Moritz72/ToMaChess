@@ -1,4 +1,5 @@
 import os.path
+from typing import cast
 from PySide6.QtWidgets import QApplication
 from PySide6.QtCore import QFile, QTextStream
 from .functions_util import get_root_directory
@@ -14,4 +15,4 @@ def set_stylesheet(stylesheet: str) -> None:
     stream = QTextStream(sheet)
     app = QApplication.instance()
     assert(app is not None)
-    app.setStyleSheet(stream.readAll())
+    cast(QApplication, app).setStyleSheet(stream.readAll())

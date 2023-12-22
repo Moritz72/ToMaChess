@@ -1,6 +1,6 @@
 import os
 import os.path
-from typing import Sequence, Any, cast
+from typing import Sequence, cast
 from reportlab.lib import colors
 from reportlab.lib.pagesizes import A4
 from reportlab.lib.units import inch
@@ -8,10 +8,12 @@ from reportlab.pdfgen import canvas
 from reportlab.pdfbase.pdfmetrics import stringWidth
 from .manager_settings import MANAGER_SETTINGS
 from .manager_translation import MANAGER_TRANSLATION
+from .pairing_item import get_tentative_results
+from .player import Player
 from .team import Team
 from .tournament import Tournament
 
-
+Table_Data = tuple[list[list[str]], list[str], list[str], list[float], list[str], list[str]]
 FONT = "Helvetica"
 FONT_BOLD = "Helvetica-Bold"
 FONT_SIZE = 12
@@ -21,7 +23,6 @@ USABLE_WIDTH = PAGE_WIDTH - LEFT_MARGIN - RIGHT_MARGIN
 USABLE_HEIGHT = PAGE_HEIGHT - TOP_MARGIN - BOTTOM_MARGIN
 ROW_HEIGHT = 1.7 * FONT_SIZE
 LINE_WIDTHS = (.5, 1.5, 2)
-TABLE_DATA = tuple[list[list[Any]], list[str], list[str], list[float], list[str], list[str]]
 
 
 def get_path(*parts: str) -> str:
@@ -65,8 +66,7 @@ def draw_text_on_top(pdf: canvas.Canvas, top_row: float, text_on_top: Sequence[s
         pdf.drawString(LEFT_MARGIN + FONT_SIZE / 2, top_row - i * ROW_HEIGHT, text)
 
 
-def draw_text(pdf: canvas.Canvas, value: Any, x: float, y: float, column_width: float, align: str) -> None:
-    string = "" if value is None else str(value)
+def draw_text(pdf: canvas.Canvas, string: str, x: float, y: float, column_width: float, align: str) -> None:
     while stringWidth(string, FONT, FONT_SIZE) > column_width - FONT_SIZE / 2:
         string = string[:-1]
     match align:
@@ -162,19 +162,19 @@ def draw_vertical_header(
 
 
 def draw_row(
-        pdf: canvas.Canvas, top_row: float, row: int, values: Sequence[Any], column_widths: Sequence[float],
+        pdf: canvas.Canvas, top_row: float, row: int, strings: Sequence[str], column_widths: Sequence[float],
         aligns: Sequence[str], shift_x: float, shift_y: float
 ) -> None:
     pdf.setFont(FONT, FONT_SIZE)
     x = LEFT_MARGIN + shift_x
     y = top_row - row * ROW_HEIGHT - shift_y
-    for value, column_width, align in zip(values, column_widths, aligns):
-        draw_text(pdf, value, x, y, column_width, align)
+    for string, column_width, align in zip(strings, column_widths, aligns):
+        draw_text(pdf, string, x, y, column_width, align)
         x += column_width
 
 
 def add_table_to_pdf(
-        pdf: canvas.Canvas, top_row: float, table: Sequence[list[Any]], horizontal_header: Sequence[str] | None = None,
+        pdf: canvas.Canvas, top_row: float, table: list[list[str]], horizontal_header: Sequence[str] | None = None,
         vertical_header: Sequence[str] | None = None, column_widths: Sequence[float] | None = None,
         aligns: Sequence[str] | None = None, text_on_top: Sequence[str] | None = None, translate: bool = True
 ) -> float:
@@ -230,7 +230,7 @@ def add_table_to_pdf(
     return top_row
 
 
-def make_pdf_from_tables(filename: str, tables_data: Sequence[TABLE_DATA], translate: bool = True) -> None:
+def make_pdf_from_tables(filename: str, tables_data: Sequence[Table_Data], translate: bool = True) -> None:
     pdf = canvas.Canvas(filename, pagesize=A4)
     top_row = get_top_row_initial()
     for table, horizontal_header, vertical_header, column_widths, aligns, text_on_top in tables_data:
@@ -241,30 +241,43 @@ def make_pdf_from_tables(filename: str, tables_data: Sequence[TABLE_DATA], trans
     pdf.save()
 
 
+def get_player_row(player: Player) -> list[str]:
+    return [
+        player.get_name(), player.get_sex() or "", str(player.get_birthday() or ""),
+        player.get_country() or "", player.get_title() or "", str(player.get_rating() or "")
+    ]
+
+
+def get_result_row(item_1: str, item_2: str, score_1: str, score_2: str, name_dict: dict[str, str]) -> list[str]:
+    score = "" if score_1 == 'b' else f"{score_1} : {score_2}"
+    return [name_dict[item_1], score, name_dict[item_2]]
+
+
 def tournament_participants_to_pdf(tournament: Tournament, sub_folder: str = "") -> None:
     if not make_new_folder(tournament, sub_folder):
         return
+
     filename = get_path(sub_folder, tournament.get_name(), f"{MANAGER_TRANSLATION.tl('Participants')}.pdf")
     header_horizontal = ["Name", "Sex", "Birth", "Federation", "Title", "Rating"]
     column_widths = [.6, .07, .08, .08, .08, .09]
     aligns = ["LEFT"] + 5 * ["CENTER"]
 
     if tournament.is_team_tournament():
-        participants = cast(list[Team], tournament.get_participants())
+        teams = cast(list[Team], tournament.get_participants())
         tables_data = [
             (
-                [list(player.get_data()[:6]) for player in team.get_members()], header_horizontal,
+                [get_player_row(player) for player in team.get_members()], header_horizontal,
                 [str(i + 1) for i in range(len(team.get_members()))], column_widths, aligns,
                 [MANAGER_TRANSLATION.tl("Participants"), "", team.get_name()] if i == 0 else [team.get_name()]
             )
-            for i, team in enumerate(participants)
+            for i, team in enumerate(teams)
         ]
     else:
-        header_vertical = [str(i + 1) for i in range(len(tournament.get_participants()))]
-        table = [list(participant.get_data()[:6]) for participant in tournament.get_participants()]
-        tables_data = [(
-            table, header_horizontal, header_vertical, column_widths, aligns, [MANAGER_TRANSLATION.tl("Participants")]
-        )]
+        players = cast(list[Player], tournament.get_participants())
+        header_vertical = [str(i + 1) for i in range(len(players))]
+        top_lines = [MANAGER_TRANSLATION.tl("Participants")]
+        table = [get_player_row(player) for player in players]
+        tables_data = [(table, header_horizontal, header_vertical, column_widths, aligns, top_lines)]
 
     make_pdf_from_tables(filename, tables_data)
 
@@ -303,20 +316,22 @@ def tournament_pairings_to_pdf(tournament: Tournament, sub_folder: str = "") -> 
     if not make_new_folder(tournament, sub_folder):
         return
     pairings = tournament.get_pairings()
-    if pairings is None:
+    if not bool(pairings):
         return
+
     round_name = MANAGER_TRANSLATION.tl(tournament.get_round_name(tournament.get_round()))
     top_line = MANAGER_TRANSLATION.tl("Pairings for {}", insert=round_name)
     filename = get_path(sub_folder, tournament.get_name(), MANAGER_TRANSLATION.tl("Pairings"), f"{round_name}.pdf")
-    uuid_to_participant_dict = tournament.get_uuid_to_participant_dict() | {None: "bye"}
+    name_dict = tournament.get_uuid_to_name_dict() | {"bye": "bye", "": ""}
     header_horizontal = ["", "", ""]
     header_vertical = [str(i + 1) for i in range(len(pairings))]
-    table = [[
-        uuid_to_participant_dict[cast(str | None, uuid_1)], ":", uuid_to_participant_dict[cast(str | None, uuid_2)]
-    ] for uuid_1, uuid_2 in pairings]
-    table_data: TABLE_DATA = (
-        table, header_horizontal, header_vertical, [.45, .1, .45], ["LEFT", "CENTER", "RIGHT"], [top_line]
-    )
+
+    table = []
+    for item_1, item_2 in pairings:
+        assert(not isinstance(item_1, list) and not isinstance(item_2, list))
+        score_1, score_2 = get_tentative_results(item_1, item_2) or ("", "")
+        table.append(get_result_row(item_1, item_2, score_1, score_2, name_dict))
+    table_data = (table, header_horizontal, header_vertical, [.45, .1, .45], ["LEFT", "CENTER", "RIGHT"], [top_line])
 
     make_pdf_from_tables(filename, [table_data])
 
@@ -329,43 +344,33 @@ def tournament_results_to_pdf(tournament: Tournament, sub_folder: str = "") -> N
     round_name = MANAGER_TRANSLATION.tl(tournament.get_round_name(tournament.get_round() - 1))
     top_line = MANAGER_TRANSLATION.tl("Results of {}", insert=round_name)
     filename = get_path(sub_folder, tournament.get_name(), MANAGER_TRANSLATION.tl("Results"), f"{round_name}.pdf")
-    uuid_to_participant_dict = tournament.get_uuid_to_participant_dict() | {None: "bye"}
+    name_dict = tournament.get_uuid_to_name_dict() | {"bye": "bye", "": ""}
     results = tournament.get_results()[-1]
     column_widths = [.45, .1, .45]
     aligns = ["LEFT", "CENTER", "RIGHT"]
 
     if tournament.is_team_tournament():
-        tables_data: list[TABLE_DATA] = []
-        uuid_to_individual_dict: dict[str | None, str] = {
-            uuid: str(participant) for uuid_dict in tournament.get_uuid_to_individual_dicts().values()
-            for uuid, participant in uuid_dict.items()
-        } | {None: "bye"}
+        tables_data: list[Table_Data] = []
+        name_dict_individual = tournament.get_uuid_to_name_dict_individual() | {"bye": "bye", "": ""}
         results_individual = tournament.get_results_team()[-1]
         score_dict_game = tournament.get_score_dict_game()
-        for ((uuid_1, _), (uuid_2, _)), individual in zip(results, results_individual):
-            team_score_1, team_score_2 = (
-                sum(score_dict_game[score_1] for (_, score_1), _ in individual),
-                sum(score_dict_game[score_2] for _, (_, score_2) in individual)
-            )
-            header_horizontal = [
-                str(uuid_to_participant_dict[uuid_1]), f"{team_score_1} : {team_score_2}",
-                str(uuid_to_participant_dict[uuid_2])
-            ]
+        for ((item_1, _), (item_2, _)), individual in zip(results, results_individual):
+            team_score_1 = sum(score_dict_game[score_1] for (_, score_1), _ in individual)
+            team_score_2 = sum(score_dict_game[score_2] for _, (_, score_2) in individual)
+            header_horizontal = get_result_row(item_1, item_2, str(team_score_1), str(team_score_2), name_dict)
             header_vertical = [str(i + 1) for i in range(len(individual))]
+            top_lines = [top_line] if len(tables_data) == 0 else []
             table = [
-                [uuid_to_individual_dict[uuid_1], f"{score_1} : {score_2}", uuid_to_individual_dict[uuid_2]]
-                for (uuid_1, score_1), (uuid_2, score_2) in individual
+                get_result_row(item_1, item_2, score_1, score_2, name_dict_individual)
+                for (item_1, score_1), (item_2, score_2) in individual
             ]
-            tables_data.append((
-                table, header_horizontal, header_vertical, column_widths, aligns,
-                [top_line] if len(tables_data) == 0 else []
-            ))
+            tables_data.append((table, header_horizontal, header_vertical, column_widths, aligns, top_lines))
     else:
         header_horizontal = ["", "", ""]
         header_vertical = [str(i + 1) for i in range(len(results))]
         table = [
-            [str(uuid_to_participant_dict[uuid_1]), f"{score_1} : {score_2}", str(uuid_to_participant_dict[uuid_2])]
-            for (uuid_1, score_1), (uuid_2, score_2) in results
+            get_result_row(item_1, item_2, score_1, score_2, name_dict)
+            for (item_1, score_1), (item_2, score_2) in results
         ]
         tables_data = [(table, header_horizontal, header_vertical, column_widths, aligns, [top_line])]
 

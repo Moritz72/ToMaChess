@@ -80,6 +80,8 @@ class Window_Tournament_New_Generic(QMainWindow, Generic[T]):
 
         widget = QWidget()
         layout = QVBoxLayout(widget)
+        layout.setContentsMargins(20, 20, 60, 20)
+        layout.setSpacing(10)
         add_widgets_to_layout(layout, [name_label, self.name_line])
         add_widgets_to_layout(layout, [QLabel(), add_participants_button])
         add_widgets_to_layout(layout, [QLabel(), mode_label, self.mode_combo_box])
@@ -99,7 +101,7 @@ class Window_Tournament_New_Generic(QMainWindow, Generic[T]):
         assert(self.new_tournament is not None and self.name_line is not None)
         self.new_tournament.set_name(self.name_line.text())
         self.new_tournament.set_participants(self.add_participants_window.get_checked_objects())
-        self.new_tournament.set_category_ranges(self.add_categories_window.get_entries())
+        self.new_tournament.set_category_ranges(self.add_categories_window.get_category_ranges())
         assert(self.widget_tournament_parameters is not None)
         valid_parameters = self.widget_tournament_parameters.apply_parameters()
 

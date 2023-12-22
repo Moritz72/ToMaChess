@@ -4,10 +4,10 @@
   
 The most recent release can be downloaded at [Releases](https://github.com/Moritz72/ToMaChess/releases).  
   
-![demo_menu](./images/demo_menu.png)
-  
 ## Tournaments  
-There are currently four tournament modes available: *Swiss*, *Round Robin*, *Knockout* and *Custom*.  
+There are currently four tournament modes available: *Swiss*, *Round Robin*, *Knockout*, *Keizer* and *Custom*.  
+  
+![demo_tournament_0](./images/demo_tournament_0.png)  
   
 *Swiss* uses the Dutch System implementation from [bbpPairings](https://github.com/BieremaBoyzProgramming/bbpPairings) to pair the rounds.  
 Parameters: *Rounds*, *Pairings (First Round)*, *Top Seed (First Round)*, *Point System* and *Tiebreak (1) - (4)*.  
@@ -16,23 +16,31 @@ Parameters: *Rounds*, *Pairings (First Round)*, *Top Seed (First Round)*, *Point
 Parameters: *Cycles*, *Pairing Method*, *Choose Seating*, *Point System* and *Tiebreak (1) - (4)*.  
   
 *Knockout* (Single-elimination) pairs rounds by the specified pairing method but, in successive rounds, only pairs the winners of the previous round. Furthermore, if there is a tie after the number of games specified, the specified number of tiebreak games will be played until either the tie is resolved or the number of tiebreaks specified in the Armageddon parameter is reached.  
-Parameters *Games per Match*, *Games per Tiebreak*, *Pairing Method* and *Armageddon*.  
+Parameters: *Games per Match*, *Games per Tiebreak*, *Pairing Method* and *Armageddon*.  
+  
+*Keizer* pairs rounds according to the [Keizer system](https://jbfsoftware.com/wordpress/sevilla-keizer) or at least according to the information I was able to find on how it is supposed to work.  
+Parameters: *Rounds*, *Ratio (First to Last)*, *Score for Byes (%)*, *No Pairing Repeats*, *Points System*, *Tiebreak (1) - (2)*.  
   
 *Custom* does not pair by itself at all, instead the user can manually pair all games of all rounds.  
 Parameters: *Games per Round*, *Rounds*, *Point System* and *Tiebreak (1) - (4)*.  
   
-![demo_tournaments](./images/demo_tournaments.png)  
+![demo_tournament_1](./images/demo_tournament_1.png)
+![demo_tournament_2](./images/demo_tournament_2.png)
+![demo_tournament_3](./images/demo_tournament_3.png)
+![demo_tournament_4](./images/demo_tournament_4.png)
   
 ### Tiebreak Criteria  
 The available tiebreak criteria are  
 - *Buchholz* (with additional parameters *Cut (bottom)*, *Cut (top)* and *Virtual Opponents*)  
 - *Buchholz Sum* (with additional parameters *Cut (bottom)*, *Cut (top)* and *Virtual Opponents*)  
 - *Sonneborn-Berger* (with additional parameters *Cut (bottom)*, *Cut (top)* and *Virtual Opponents*)  
+- *Games*  
 - *Games as black*  
 - *Wins* (with additional parameter *Include Forfeits*)  
 - *Wins as black*  (with additional parameter *Include Forfeits*)  
 - *Average Rating* (with additional parameters *Cut (bottom)*, *Cut (top)* and *Include Forfeits*)  
 - *Progressive Scores* (with additional parameters *Cut (bottom)* and *Cut (top)*)  
+- *Koya System* (with additional parameter *Threshold (%)*)  
 - *Direct Encounter*  
   
 ### Armageddon  
@@ -41,12 +49,12 @@ For the *Armageddon* parameter the user can specify additional parameters *With 
 ## Players  
 Players can be manually added. Additionally, one can use the FIDE Standard rating list, the German national rating list and the USCF rating list after creating them by clicking the corresponding buttons in the settings.  
   
-![demo_players](./images/demo_players.png)  
+![demo_player](./images/demo_player.png)  
   
 ## Teams  
 Teams are ordered sets of players. One can add players to a team, remove players from a team and change the lineup.  
   
-![demo_teams](./images/demo_teams.png)  
+![demo_team](./images/demo_team.png)  
   
 ### Team Tournaments  
 Team tournaments work much like regular tournaments, except for some restrictions and changes e.g. for tiebreaks or Armageddon.  
@@ -58,7 +66,7 @@ It is also possible to combine multiple tournaments to a multi-stage tournament.
   
 A multi-stage tournament consists of a first stage with a number of tournaments where the participants are predetermined. On top of that, it has an arbitrary number of further stages where the participants of the stage tournaments are the participants that got a certain placement in  a certain tournament of the previous stage.  
   
-![demo_ms_tournaments](./images/demo_ms_tournaments.png)  
+![demo_ms_tournament](./images/demo_ms_tournament.png)  
   
 For example one could have *Round Robin* tournaments *Group A* up to *Group H* with four players each in the first stage and then in the second stage a *Knockout* tournament *Finals* with all participants who placed first or second in their respective group.  
   
@@ -71,7 +79,7 @@ Similarly, one can configure *Server Address*, *Server Username* and *Server Pas
   
 ## Settings  
 - *Language* (English, German or Japanese)  
-- *Style* (Light or Dark)  
+- *Style* (Light, Dark, Old (Light) or Old (Dark))  
 - *Font*  
 - *Font Size*  
 - *bbpPairings Path*  

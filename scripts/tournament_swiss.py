@@ -27,6 +27,7 @@ class Tournament_Swiss(Tournament):
             "pairing_method_first_round": ["Slide", "Fold", "Adjacent", "Random", "Custom"],
             "top_seed_color_first_round": ["Random", "White", "Black"],
             "point_system": ["1 - ½ - 0", "2 - 1 - 0", "3 - 1 - 0"],
+            "half_bye": False,
             "tiebreak_1": Parameter_Tiebreak(get_tiebreak_list("Buchholz")),
             "tiebreak_2": Parameter_Tiebreak(get_tiebreak_list("Buchholz Sum")),
             "tiebreak_3": Parameter_Tiebreak(get_tiebreak_list("None")),
@@ -37,6 +38,7 @@ class Tournament_Swiss(Tournament):
             "pairing_method_first_round": "Pairings (First Round)",
             "top_seed_color_first_round": "Top Seed (First Round)",
             "point_system": "Point System",
+            "half_bye": "Half-Point Bye",
             "tiebreak_1": ("Tiebreak", " (1)"),
             "tiebreak_2": ("Tiebreak", " (2)"),
             "tiebreak_3": ("Tiebreak", " (3)"),
@@ -44,13 +46,16 @@ class Tournament_Swiss(Tournament):
         }
 
     def get_score_dict(self) -> dict[str, float]:
-        return get_score_dict_by_point_system(self.get_point_system())
+        return get_score_dict_by_point_system(self.get_point_system(), half_bye=self.get_half_bye())
 
     def get_rounds(self) -> int:
         return cast(int, self.get_parameter("rounds"))
 
     def get_point_system(self) -> str:
         return cast(str, self.get_parameter("point_system")[0])
+
+    def get_half_bye(self) -> bool:
+        return cast(bool, self.get_parameter("half_bye"))
 
     def get_pairing_method_first_round(self) -> str:
         return cast(str, self.get_parameter("pairing_method_first_round")[0])
@@ -71,18 +76,18 @@ class Tournament_Swiss(Tournament):
 
     def is_valid_pairings(self, pairings: Sequence[Pairing]) -> bool:
         assert (all(pairing.is_fixed() for pairing in pairings))
-        return not has_duplicates([uuid for uuid, _ in pairings] + [uuid for _, uuid in pairings])
-
-    def seat_participants(self) -> None:
-        self.set_participants(sort_players_by_rating(cast(list[Player], self.get_participants())))
+        return not has_duplicates([item for item, _ in pairings] + [item for _, item in pairings])
 
     def is_done(self) -> bool:
         return self.get_round() > self.get_rounds()
 
+    def seat_participants(self) -> None:
+        self.set_participants(sort_players_by_rating(cast(list[Player], self.get_participants())))
+
     def load_pairings(self) -> None:
-        if self.get_pairings() is not None or self.is_done():
+        if bool(self.get_pairings()) or self.is_done():
             return
-        uuids = cast(list[str | None], self.get_participant_uuids(drop_outs=False))
+        uuids = self.get_participant_uuids(drop_outs=False, byes=False)
         participant_number = len(uuids)
         first_round = self.get_round() == 1
         first_round_method = self.get_pairing_method_first_round()
@@ -90,7 +95,7 @@ class Tournament_Swiss(Tournament):
         if first_round and first_round_method == "Custom":
             pairings = [Pairing(uuids, uuids) for _ in range(participant_number // 2)]
             if participant_number % 2:
-                pairings.append(Pairing(uuids, None))
+                pairings.append(Pairing(uuids, ""))
         elif first_round:
             match self.get_top_seed_color_first_round():
                 case "White":
@@ -100,15 +105,24 @@ class Tournament_Swiss(Tournament):
                 case _:
                     first_seed_white = random() > .5
             if participant_number % 2:
-                uuids.append(None)
+                uuids.append("")
             pairing_indices = PAIRING_FUNCTIONS[first_round_method](participant_number, first_seed_white)
             pairings = [Pairing(uuids[i_1], uuids[i_2]) for i_1, i_2 in pairing_indices]
         else:
-            pairings = get_pairings_bbp(
-                self.get_participants(), self.get_results(), self.get_rounds(), self.get_score_dict(),
-                self.get_drop_outs()
-            )
+            pairings = get_pairings_bbp(self)
+        for uuid in self.get_byes():
+            pairings.append(Pairing(uuid, "bye"))
         self.set_pairings(pairings)
+
+    def drop_in_participants(self, participants: Sequence[Participant] | None = None) -> bool:
+        super().drop_in_participants(participants)
+        self.seat_participants()
+        return True
+
+    def add_byes(self, uuids: Sequence[str] | None = None) -> bool:
+        if uuids is not None:
+            self.set_byes(list(uuids))
+        return True
 
 
 class Tournament_Swiss_Team(Tournament_Swiss):
@@ -130,6 +144,7 @@ class Tournament_Swiss_Team(Tournament_Swiss):
             "top_seed_color_first_round": ["Random", "White", "Black"],
             "point_system": ["2 - 1 - 0", "1 - ½ - 0", "3 - 1 - 0"],
             "point_system_game": ["1 - ½ - 0", "2 - 1 - 0", "3 - 1 - 0"],
+            "half_bye": False,
             "tiebreak_1": Parameter_Tiebreak(get_tiebreak_list("Board Points", team=True)),
             "tiebreak_2": Parameter_Tiebreak(get_tiebreak_list("Buchholz", team=True)),
             "tiebreak_3": Parameter_Tiebreak(get_tiebreak_list("Buchholz Sum", team=True)),
@@ -143,6 +158,7 @@ class Tournament_Swiss_Team(Tournament_Swiss):
             "top_seed_color_first_round": None,
             "point_system": "Point System (Match)",
             "point_system_game": "Point System (Game)",
+            "half_bye": None,
             "tiebreak_1": ("Tiebreak", " (1)"),
             "tiebreak_2": ("Tiebreak", " (2)"),
             "tiebreak_3": ("Tiebreak", " (3)"),

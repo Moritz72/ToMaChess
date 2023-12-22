@@ -16,14 +16,14 @@ def get_line_breaked_entry(entry: str) -> str:
 
 
 def get_results_matrix(
-        results: Sequence[Sequence[Result]], participant_number: int, id_to_index: dict[str, int]
+        results: Sequence[Sequence[Result]], participant_number: int, index_dict: dict[str, int]
 ) -> list[list[str]]:
     results_matrix = [["" for _ in range(participant_number)] for _ in range(participant_number)]
     for roun in results:
-        for (uuid_1, score_1), (uuid_2, score_2) in roun:
-            if uuid_1 is not None and uuid_2 is not None:
-                results_matrix[id_to_index[uuid_1]][id_to_index[uuid_2]] += score_1
-                results_matrix[id_to_index[uuid_2]][id_to_index[uuid_1]] += score_2
+        for (item_1, score_1), (item_2, score_2) in roun:
+            if not item_1.is_bye() and not item_2.is_bye():
+                results_matrix[index_dict[item_1]][index_dict[item_2]] += score_1
+                results_matrix[index_dict[item_2]][index_dict[item_1]] += score_2
     return [[get_line_breaked_entry(entry) for entry in row] for row in results_matrix]
 
 
@@ -45,9 +45,9 @@ class Widget_Tournament_Cross_Table(Widget_Tournament_Info):
     def fill_in_table(self) -> None:
         participants = self.tournament.get_standings().participants
         results = self.tournament.get_results()
-        id_to_index = {participant.get_uuid(): i for i, participant in enumerate(participants)}
+        index_dict = {participant.get_uuid(): i for i, participant in enumerate(participants)}
         participant_number = len(participants)
-        results_matrix = get_results_matrix(results, participant_number, id_to_index)
+        results_matrix = get_results_matrix(results, participant_number, index_dict)
         width = get_appropriate_width_for_matrix(results_matrix)
         header_horizontal = ["Name"] + [str(i) for i in range(1, participant_number + 1)]
 

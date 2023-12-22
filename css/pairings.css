@@ -17,13 +17,13 @@ th {
 }
 caption {
     text-align: left;
-	font-weight: bold;
-	margin-left: 5px;
-	margin-bottom: 5px;
+    font-weight: bold;
+    margin-left: 5px;
+    margin-bottom: 5px;
 }
 .board {
     text-align: center;
-	font-weight: bold;
+    font-weight: bold;
     background-color: #eeeeee;
 }
 .player_1 {

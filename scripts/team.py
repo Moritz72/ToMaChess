@@ -28,12 +28,13 @@ class Team(Object):
         return self.shallow_member_count
 
     def get_member_count(self) -> int:
-        if bool(self.get_members()):
-            return len(self.get_members())
-        return self.get_shallow_member_count()
+        return len(self.get_members()) or self.get_shallow_member_count()
 
     def get_uuid_to_member_dict(self) -> dict[str, Player]:
         return {member.get_uuid(): member for member in self.get_members()}
+
+    def get_uuid_to_name_dict(self) -> dict[str, str]:
+        return {member.get_uuid(): member.get_name() for member in self.get_members()}
 
     def get_uuid_to_number_dict(self) -> dict[str, int]:
         return {member.get_uuid(): i + 1 for i, member in enumerate(self.get_members())}

@@ -412,3 +412,30 @@ msgstr "前のステージ"
 
 msgid "Next Stage"
 msgstr "次のステージ "
+
+msgid "Keizer"
+msgstr "カイザー"
+
+msgid "Half-Point Bye"
+msgstr "バイで半ポイント"
+
+msgid "Ratio (First to Last)"
+msgstr "比率 （最初と最後）"
+
+msgid "Score for Byes (%)"
+msgstr "バイポイント （割合）"
+
+msgid "No Pairing Repeats"
+msgstr "組み合わせを繰り返さない"
+
+msgid "Games"
+msgstr "試合数"
+
+msgid "Koya System"
+msgstr "コヤ・システム"
+
+msgid "Threshold (%)"
+msgstr "しきい値 (割合)"
+
+msgid "Manage Byes"
+msgstr "バイの管理"

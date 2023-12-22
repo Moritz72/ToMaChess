@@ -119,4 +119,18 @@ class DB_Team(DB_Object[Team]):
         MANAGER_DATABASE.delete_entries(self.table(table_root), UUID_TUPLE, [team.get_uuid_tuple() for team in teams])
 
 
+class DB_Team_List(DB_Team):
+    def __init__(self, teams: Sequence[Team]) -> None:
+        super().__init__()
+        self.teams = teams
+
+    def load_like(
+            self, table_root: str, uuid_associate: str, name: str, limit: int | None, shallow: bool = False
+    ) -> list[Team]:
+        teams = sorted([team for team in self.teams if name in team.get_name()], key=lambda x: x.get_name())
+        if limit is not None:
+            teams = teams[:limit]
+        return teams
+
+
 DB_TEAM = DB_Team()

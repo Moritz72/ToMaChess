@@ -89,8 +89,8 @@ class Tournament_Round_Robin(Tournament):
         return cycles * (participant_number - 1) >= max(1, roun - 1) or (cycles > 0 and participant_number == 0)
 
     def is_valid_pairings(self, pairings: Sequence[Pairing]) -> bool:
-        assert (all(pairing.is_fixed() for pairing in pairings))
-        return not has_duplicates([uuid for uuid, _ in pairings] + [uuid for _, uuid in pairings])
+        assert(all(pairing.is_fixed() for pairing in pairings))
+        return not has_duplicates([item for item, _ in pairings] + [item for _, item in pairings])
 
     def add_results(self, results: Sequence[Result] | Sequence[Result_Team]) -> None:
         super().add_results(results)
@@ -100,8 +100,8 @@ class Tournament_Round_Robin(Tournament):
         results = self.get_results()[-1]
         uuid_to_seat = dict()
         pairing_indices = PAIRING_FUNCTIONS_ROUND_ROBIN[self.get_pairing_method()](len(self.get_participants()), 1)
-        for ((uuid_1, _), (uuid_2, _)), (i_1, i_2) in zip(results, pairing_indices):
-            uuid_to_seat[uuid_1], uuid_to_seat[uuid_2] = i_1, i_2
+        for ((item_1, _), (item_2, _)), (i_1, i_2) in zip(results, pairing_indices):
+            uuid_to_seat[cast(str, item_1)], uuid_to_seat[cast(str, item_2)] = i_1, i_2
         self.set_participants(sorted(
             self.get_participants(), key=lambda x: uuid_to_seat[x.get_uuid()] if x.get_uuid() in uuid_to_seat else 0
         ))
@@ -116,7 +116,7 @@ class Tournament_Round_Robin(Tournament):
         return self.get_round() > self.get_cycles() * (participant_number - 1)
 
     def load_pairings(self) -> None:
-        if self.get_pairings() is not None or self.is_done():
+        if bool(self.get_pairings()) or self.is_done():
             return
         roun = self.get_round()
         participant_number = len(self.get_participants())

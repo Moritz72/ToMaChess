@@ -1,11 +1,13 @@
 from __future__ import annotations
-from typing import Callable, cast
+from typing import Callable, Any, cast
 from dataclasses import dataclass, fields
 from PySide6.QtWidgets import QMainWindow, QWidget, QVBoxLayout, QPushButton
 from PySide6.QtCore import Qt, Signal, QTimer
 from .player import Player
 from .team import Team
 from .tournament import Tournament
+from .db_player import DB_Player_List
+from .db_team import DB_Team_List
 from .window_confirm import Window_Confirm
 from .window_tournament_edit_parameters import Window_Tournament_Edit_Parameters
 from .window_choice_objects import Window_Choice_Players, Window_Choice_Teams
@@ -19,6 +21,7 @@ class Windows:
     parameters: Window_Tournament_Edit_Parameters | None
     drop_out: Window_Remove_Players | Window_Remove_Teams | None
     drop_in: Window_Choice_Players | Window_Choice_Teams | None
+    add_byes: Window_Choice_Players | Window_Choice_Teams | None
 
 
 class Window_Tournament_Actions(QMainWindow):
@@ -26,13 +29,16 @@ class Window_Tournament_Actions(QMainWindow):
     undo_signal = Signal()
     reload_global_signal = Signal()
 
-    def __init__(self, tournament: Tournament, parent: QWidget | None = None) -> None:
+    def __init__(
+            self, tournament: Tournament, associate: tuple[str, str] | None = None, parent: QWidget | None = None
+    ) -> None:
         super().__init__(parent=parent)
         self.setAttribute(Qt.WidgetAttribute.WA_DeleteOnClose)
         set_window_title(self, "Actions")
 
         self.tournament: Tournament = tournament
-        self.windows: Windows = Windows(None, None, None, None)
+        self.associate: tuple[str, str] | None = associate
+        self.windows: Windows = Windows(None, None, None, None, None)
 
         self.widget = QWidget()
         self.layout_main: QVBoxLayout = QVBoxLayout(self.widget)
@@ -48,20 +54,22 @@ class Window_Tournament_Actions(QMainWindow):
     def add_buttons(self) -> None:
         for i in reversed(range(self.layout_main.count())):
             self.layout_main.itemAt(i).widget().deleteLater()
-        args = {"bold": True, "translate": True}
+        args: dict[str, Any] = {"bold": True, "translate": True}
         buttons = (
             get_button("large", (25, 5), "Reload Pairings", connect=self.reload_action, **args),
             get_button("large", (25, 5), "Undo Last Round", connect=self.undo_action, **args),
             get_button("large", (25, 5), "Edit Parameters", connect=self.parameters_action, **args),
             get_button("large", (25, 5), "Drop Out Participants", connect=self.drop_out_action, **args),
-            get_button("large", (25, 5), "Drop In Participants", connect=self.drop_in_action, **args)
+            get_button("large", (25, 5), "Drop In Participants", connect=self.drop_in_action, **args),
+            get_button("large", (25, 5), "Manage Byes", connect=self.add_byes_action, ** args)
         )
         conditions = (
             not self.tournament.is_done(),
             self.tournament.get_round() > 1,
             bool(self.tournament.get_changeable_parameters()),
-            self.tournament.drop_out_participants() and not self.tournament.is_done(),
-            self.tournament.drop_in_participants() and not self.tournament.is_done()
+            self.tournament.drop_out_participants(),
+            self.tournament.drop_in_participants(),
+            self.tournament.add_byes() and not self.tournament.is_done()
         )
 
         for button, condition in zip(buttons, conditions):
@@ -74,7 +82,7 @@ class Window_Tournament_Actions(QMainWindow):
     def close_windows(self) -> None:
         for field in fields(self.windows):
             close_window(getattr(self.windows, field.name))
-        self.windows = Windows(None, None, None, None)
+        self.windows = Windows(None, None, None, None, None)
 
     def confirm_action(self, action: Callable[[Window_Tournament_Actions], None], title: str) -> None:
         self.close_windows()
@@ -110,13 +118,41 @@ class Window_Tournament_Actions(QMainWindow):
         tuples = set(participant.get_uuid_tuple() for participant in self.tournament.get_participants(drop_outs=False))
         window: Window_Choice_Players | Window_Choice_Teams
         if self.tournament.is_team_tournament():
-            window = Window_Choice_Teams("Drop In Participants", tuples, parent=self)
+            window = Window_Choice_Teams("Drop In Participants", tuples, uuids_only=True, parent=self)
         else:
-            window = Window_Choice_Players("Drop In Participants", tuples, parent=self)
+            window = Window_Choice_Players("Drop In Participants", tuples, uuids_only=True, parent=self)
         self.close_windows()
         self.windows.drop_in = window
         self.windows.drop_in.window_closed.connect(self.drop_in_closed)
         self.windows.drop_in.show()
+
+    def add_byes_action(self) -> None:
+        if self.associate is None:
+            table_root = "tournaments_"
+            uuid = self.tournament.get_uuid()
+        else:
+            table_root = "ms_tournaments_"
+            uuid = self.associate[1]
+        associates = [(self.tournament.get_name(), uuid)]
+        excluded = {(uuid, associates[0][1]) for uuid in self.tournament.get_drop_outs()}
+        checked = {(uuid, associates[0][1]) for uuid in self.tournament.get_byes()}
+        window: Window_Choice_Players | Window_Choice_Teams
+        if self.tournament.is_team_tournament():
+            teams_db = DB_Team_List(cast(list[Team], self.tournament.get_participants()))
+            window = Window_Choice_Teams(
+                "Manage Byes", excluded, checked,
+                table_root=table_root, associates=associates, db=teams_db, parent=self
+            )
+        else:
+            players_db = DB_Player_List(cast(list[Player], self.tournament.get_participants()))
+            window = Window_Choice_Players(
+                "Manage Byes", excluded, checked,
+                table_root=table_root, associates=associates, db=players_db, parent=self
+            )
+        self.close_windows()
+        self.windows.add_byes = window
+        self.windows.add_byes.window_closed.connect(self.add_byes_closed)
+        self.windows.add_byes.show()
 
     def drop_out_closed(self) -> None:
         assert(self.windows.drop_out is not None)
@@ -128,3 +164,8 @@ class Window_Tournament_Actions(QMainWindow):
         assert(self.windows.drop_in is not None)
         self.tournament.drop_in_participants(self.windows.drop_in.get_checked_objects())
         self.reload_global_signal.emit()
+
+    def add_byes_closed(self) -> None:
+        assert(self.windows.add_byes is not None)
+        self.tournament.add_byes([uuid for uuid, _ in self.windows.add_byes.get_checked_tuples()])
+        self.reload_local_signal.emit()

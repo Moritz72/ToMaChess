@@ -1,8 +1,18 @@
 from __future__ import annotations
 from typing import TYPE_CHECKING
 from random import shuffle
+from .functions_util import shorten_float
 if TYPE_CHECKING:
     from .tournament import Participant
+
+
+def score_to_string(score: float) -> str:
+    string = str(shorten_float(score))
+    if '.' in string and len(string) > 6:
+        string = string[:6]
+    if string[-1] == '.':
+        string = string[-1:]
+    return string
 
 
 class Standings_Table(list[list[float]]):
@@ -64,6 +74,6 @@ class Standings_Table(list[list[float]]):
 
     def get_strings(self) -> list[list[str]]:
         return [
-            [str(participant)] + [str(score) for score in scores]
+            [str(participant)] + [score_to_string(score) for score in scores]
             for participant, scores in zip(self.participants, self)
         ]

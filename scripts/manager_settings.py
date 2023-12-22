@@ -41,7 +41,7 @@ def get_font_list() -> list[str]:
 def get_defaults() -> dict[str, Any]:
     return {
         "language": ["English (en)", "Deutsch (de)", "日本語 (jp)"],
-        "style": ["Light", "Dark"],
+        "style": ["Light", "Dark", "Old (Light)", "Old (Dark)"],
         "font": get_font_list(),
         "font_size": 12,
         "bbp_path": os.path.join(get_root_directory(), "bbp"),
@@ -55,6 +55,10 @@ def get_defaults() -> dict[str, Any]:
 class Manager_Settings(dict[str, Any]):
     def __init__(self) -> None:
         super().__init__()
+
+    def __setitem__(self, key: str, value: Any) -> None:
+        if SETTINGS_VALID[key](value):
+            super().__setitem__(key, value)
 
     def save(self) -> None:
         write_file(os.path.join(get_app_data_directory(), "settings.json"), dumps(self))

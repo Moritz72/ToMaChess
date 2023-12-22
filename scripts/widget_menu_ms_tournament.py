@@ -39,10 +39,10 @@ class Widget_Menu_MS_Tournament(Widget_Search_Generic[MS_Tournament]):
 
     def edit_object_by_values(self, values: tuple[str, str, str, str], ms_tournament: MS_Tournament) -> None:
         ms_tournament.set_name(values[0])
-        ms_tournament.set_uuid_associate(self.get_collection_uuid())
+        ms_tournament.set_uuid_associate(self.get_associate_uuid())
 
     def fill_in_row(self, row: int, ms_tournament: MS_Tournament | None = None) -> None:
-        add_ms_tournament_to_table(self.table, row, ms_tournament)
+        add_ms_tournament_to_table(self.table, row, ms_tournament, edit=True)
         add_button_to_table(
             self.table, row, 2, "medium", None, "Open", connect=self.open_tournament, bold=True, translate=True
         )
@@ -67,7 +67,7 @@ class Widget_Menu_MS_Tournament(Widget_Search_Generic[MS_Tournament]):
         if self.new_tournament_window is None or self.new_tournament_window.new_tournament is None:
             return
         tournament = self.new_tournament_window.new_tournament
-        tournament.set_uuid_associate(self.get_collection_uuid())
+        tournament.set_uuid_associate(self.get_associate_uuid())
         self.db.add_list("", [tournament])
         self.fill_in_table()
 

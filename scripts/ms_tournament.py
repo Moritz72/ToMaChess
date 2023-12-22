@@ -26,6 +26,7 @@ class MS_Tournament(Object):
         self.shallow_participant_count: int = shallow_participant_count or len(self.get_participants())
         self.stages_advance_lists: list[list[list[tuple[int, int]]]] = stages_advance_lists or []
         self.draw_lots: bool = draw_lots
+        self.order: list[list[str]] = order or []
         self.stage: int = stage
 
     def get_shallow_participant_count(self) -> int:
@@ -59,9 +60,7 @@ class MS_Tournament(Object):
         return self.get_stage_advance_lists(self.stage + 1)
 
     def get_tournaments(self) -> list[Tournament]:
-        return [
-            tournament for stage_tournaments in self.get_stages_tournaments() for tournament in stage_tournaments
-        ]
+        return [tournament for stage_tournaments in self.get_stages_tournaments() for tournament in stage_tournaments]
 
     def get_participants(self) -> list[Participant]:
         return remove_duplicates([
@@ -77,15 +76,18 @@ class MS_Tournament(Object):
             [tournament.get_uuid() for tournament in stage_tournaments]
             for stage_tournaments in self.get_stages_tournaments()
         ]
-        return self.get_name(), self.get_participant_count(), dumps(self.get_stages_advance_lists()),\
-            self.get_draw_lots(), self.get_stage(), dumps(tournament_uuids), self.get_uuid(), self.get_uuid_associate()
+        return self.get_name(), self.get_participant_count(), dumps(self.get_stages_advance_lists()), \
+            self.get_draw_lots(), self.get_stage(), dumps(tournament_uuids or self.order), \
+            self.get_uuid(), self.get_uuid_associate()
 
     def is_team_tournament(self) -> bool:
         return self.get_stage_tournaments(0)[0].is_team_tournament()
 
     def is_valid(self) -> bool:
+        if not bool(self.stages_tournaments):
+            return self.get_name() != ""
         return (
-                self.get_name() != "" and self.get_stages() > 0 and
+                self.get_name() != "" and
                 all(len(self.get_stage_tournaments(i)) > 0 for i in range(self.get_stages())) and
                 all(tournament.is_valid() for tournament in self.get_current_tournaments()) and
                 all(

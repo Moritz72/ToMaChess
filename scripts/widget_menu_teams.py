@@ -29,11 +29,11 @@ class Widget_Menu_Teams(Widget_Search_Generic[Team]):
         ]
 
     def get_object_from_values(self, values: tuple[str, str, str, str]) -> Team:
-        return Team([], values[0], uuid_associate=self.get_collection_uuid())
+        return Team([], values[0], uuid_associate=self.get_associate_uuid())
 
     def edit_object_by_values(self, values: tuple[str, str, str, str], team: Team) -> None:
         team.set_name(values[0])
-        team.set_uuid_associate(self.get_collection_uuid())
+        team.set_uuid_associate(self.get_associate_uuid())
 
     def fill_in_row(self, row: int, team: Team | None = None) -> None:
         add_team_to_table(self.table, row, team, edit=True)

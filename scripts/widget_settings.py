@@ -1,5 +1,6 @@
 from __future__ import annotations
 from typing import TYPE_CHECKING, cast
+from functools import partial
 from PySide6.QtWidgets import QWidget, QGridLayout, QVBoxLayout, QHBoxLayout, QLineEdit
 from PySide6.QtCore import Qt, QObject
 from .manager_settings import SETTINGS_DISPLAY, MANAGER_SETTINGS
@@ -13,21 +14,14 @@ if TYPE_CHECKING:
 
 
 def get_update_lists_widget(parent: QObject) -> QWidget:
-    button_fide = get_button_threaded(
-        parent, "large", (9, 3), "FIDE", "Updating...", connect=lambda: update_list_by_name("FIDE"), translate=True
-    )
-    button_dsb = get_button_threaded(
-        parent, "large", (9, 3), "DSB", "Updating...", connect=lambda: update_list_by_name("DSB"), translate=True
-    )
-    button_uscf = get_button_threaded(
-        parent, "large", (9, 3), "USCF", "Updating...", connect=lambda: update_list_by_name("USCF"), translate=True
-    )
+    buttons = [get_button_threaded(
+        parent, "large", (9, 3), string, "Updating...", connect=partial(update_list_by_name, string), translate=True
+    ) for string in ("FIDE", "DSB", "USCF")]
     widget = QWidget()
     layout = QHBoxLayout(widget)
     layout.setContentsMargins(0, 0, 0, 0)
-    layout.addWidget(button_fide)
-    layout.addWidget(button_dsb)
-    layout.addWidget(button_uscf)
+    for button in buttons:
+        layout.addWidget(button)
     return widget
 
 

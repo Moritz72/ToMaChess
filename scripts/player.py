@@ -3,7 +3,7 @@ from .object import Object
 
 Player_Data = tuple[str, str | None, int | None, str | None, str | None, int | None, str, str]
 SEX_DICT = {'M': 'M', 'F': 'F', 'W': 'F', 'D': 'D'}
-TITLES = ("GM", "WGM", "IM", "WIM", "FM", "WFM", "CM", "WCM")
+TITLES = ("GM", "IM", "WGM", "FM", "WIM", "CM", "WFM", "WCM")
 
 
 class Player(Object):

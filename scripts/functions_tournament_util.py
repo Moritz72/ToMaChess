@@ -1,6 +1,8 @@
 from __future__ import annotations
 from typing import TYPE_CHECKING, Sequence, Callable
+from .pairing_item import Bye_PA
 from .pairing import Pairing
+from .result import Result
 from .result_team import Result_Team
 from .category_range import Category_Range
 from .standings_table import Standings_Table
@@ -9,12 +11,12 @@ if TYPE_CHECKING:
     from .tournament import Tournament
 
 
-def get_score_dict_by_point_system(point_system: str) -> dict[str, float]:
+def get_score_dict_by_point_system(point_system: str, half_bye: bool = False) -> dict[str, float]:
     win_str, draw_str, loss_str = point_system.split(' - ')
     if draw_str == '½':
         draw_str = '.5'
     win, draw, loss = shorten_float(float(win_str)), shorten_float(float(draw_str)), shorten_float(float(loss_str))
-    return {'1': win, '½': draw, '0': loss, '+': win, '-': loss}
+    return {'1': win, '½': draw, '0': loss, '+': win, '-': loss, 'b': draw if half_bye else loss}
 
 
 def reverse_uuid_dict(uuid_dict: dict[str, float]) -> dict[float, list[str]]:
@@ -88,14 +90,39 @@ def is_valid_seating(pairings: Sequence[Pairing], uuids: Sequence[str], side: in
         return not has_duplicates([pairing[side] for pairing in pairings])
     index: int | None = 0
     for pairing in pairings:
-        uuid = pairing[side]
-        if uuid is None:
+        item = pairing[side]
+        if isinstance(item, list):
+            return False
+        if item.is_bye():
             index = None
             continue
-        if not isinstance(uuid, str):
-            return False
-        number = uuids.index(uuid) + 1
+        number = uuids.index(item) + 1
         if index is None or number <= index:
             return False
         index = number
     return True
+
+
+def get_score_dict_keizer(
+        uuids: Sequence[str], score_dict: dict[str, float], results: list[list[Result]], p_max: int, bye_percentage: int
+) -> dict[str, float]:
+    if len(results) == 0:
+        return {uuid: float(p_max - i) for i, uuid in enumerate(uuids)}
+    scores = get_score_dict_keizer(uuids, score_dict, results[:-1], p_max, bye_percentage)
+    uuid_to_index = {uuid: list(scores).index(uuid) for uuid in scores}
+    scores = {uuid: p_max - i for i, uuid in enumerate(uuids)}
+
+    for result_list in results:
+        for (item_1, score_1), (item_2, score_2) in result_list:
+            if item_1 not in uuids:
+                factor = 1 if isinstance(item_1, Bye_PA) else bye_percentage / 100
+                scores[item_2] += score_dict['+'] * (p_max - uuid_to_index[item_2]) * factor
+            elif item_2 not in uuids:
+                factor = 1 if isinstance(item_2, Bye_PA) else bye_percentage / 100
+                scores[item_1] += score_dict['+'] * (p_max - uuid_to_index[item_1]) * factor
+            else:
+                scores[item_1] += score_dict[score_1] * (p_max - uuid_to_index[item_2])
+                scores[item_2] += score_dict[score_2] * (p_max - uuid_to_index[item_1])
+
+    uuids = sorted(list(scores), key=lambda x: scores[x], reverse=True)
+    return {uuid: scores[uuid] for uuid in uuids}

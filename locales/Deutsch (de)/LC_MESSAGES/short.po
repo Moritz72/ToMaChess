@@ -88,3 +88,9 @@ msgstr "BrPu"
 
 msgid "Berliner Wertung"
 msgstr "BeWe"
+
+msgid "Games"
+msgstr "Part"
+
+msgid "Koya System"
+msgstr "Koya"

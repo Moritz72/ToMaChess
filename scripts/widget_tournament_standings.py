@@ -35,10 +35,10 @@ class Widget_Tournament_Standings(Widget_Tournament_Info):
         header_horizontal.setSectionResizeMode(0, QHeaderView.ResizeMode.Stretch)
         header_vertical.setDefaultAlignment(Qt.AlignmentFlag.AlignCenter)
 
-        for i, row in enumerate(table):
-            add_content_to_table(self.table, table.participants[i], i, 0, edit=False, bold=True)
-            for j, field in enumerate(row):
-                add_content_to_table(self.table, field, i, j + 1, edit=False, align=Qt.AlignmentFlag.AlignCenter)
+        for i, strings in enumerate(table.get_strings()):
+            add_content_to_table(self.table, strings[0], i, 0, edit=False, bold=True)
+            for j, string in enumerate(strings[1:]):
+                add_content_to_table(self.table, string, i, j + 1, edit=False, align=Qt.AlignmentFlag.AlignCenter)
 
     def refresh(self) -> None:
         clear_table(self.table)
