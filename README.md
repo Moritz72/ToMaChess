@@ -1,13 +1,13 @@
 # ToMaChess  
-![Icon](./images/logo.png)  
+![Icon](./images/logo.PNG)  
 *ToMaChess* is a gui application to manage chess tournaments written in Python.  
   
 The most recent release can be downloaded at [Releases](https://github.com/Moritz72/ToMaChess/releases).  
   
 ## Tournaments  
-There are currently four tournament modes available: *Swiss*, *Round Robin*, *Knockout*, *Keizer* and *Custom*.  
+There are currently five tournament modes available: *Swiss*, *Round Robin*, *Knockout*, *Keizer* and *Custom*.  
   
-![demo_tournament_0](./images/demo_tournament_0.png)  
+![demo_tournament_0](./images/demo_tournament_0.PNG)  
   
 *Swiss* uses the Dutch System implementation from [bbpPairings](https://github.com/BieremaBoyzProgramming/bbpPairings) to pair the rounds.  
 Parameters: *Rounds*, *Pairings (First Round)*, *Top Seed (First Round)*, *Point System* and *Tiebreak (1) - (4)*.  
@@ -24,10 +24,10 @@ Parameters: *Rounds*, *Ratio (First to Last)*, *Score for Byes (%)*, *No Pairing
 *Custom* does not pair by itself at all, instead the user can manually pair all games of all rounds.  
 Parameters: *Games per Round*, *Rounds*, *Point System* and *Tiebreak (1) - (4)*.  
   
-![demo_tournament_1](./images/demo_tournament_1.png)
-![demo_tournament_2](./images/demo_tournament_2.png)
-![demo_tournament_3](./images/demo_tournament_3.png)
-![demo_tournament_4](./images/demo_tournament_4.png)
+![demo_tournament_1](./images/demo_tournament_1.PNG)
+![demo_tournament_2](./images/demo_tournament_2.PNG)
+![demo_tournament_3](./images/demo_tournament_3.PNG)
+![demo_tournament_4](./images/demo_tournament_4.PNG)
   
 ### Tiebreak Criteria  
 The available tiebreak criteria are  
@@ -49,12 +49,12 @@ For the *Armageddon* parameter the user can specify additional parameters *With 
 ## Players  
 Players can be manually added. Additionally, one can use the FIDE Standard rating list, the German national rating list and the USCF rating list after creating them by clicking the corresponding buttons in the settings.  
   
-![demo_player](./images/demo_player.png)  
+![demo_player](./images/demo_player.PNG)  
   
 ## Teams  
 Teams are ordered sets of players. One can add players to a team, remove players from a team and change the lineup.  
   
-![demo_team](./images/demo_team.png)  
+![demo_team](./images/demo_team.PNG)  
   
 ### Team Tournaments  
 Team tournaments work much like regular tournaments, except for some restrictions and changes e.g. for tiebreaks or Armageddon.  
@@ -66,7 +66,7 @@ It is also possible to combine multiple tournaments to a multi-stage tournament.
   
 A multi-stage tournament consists of a first stage with a number of tournaments where the participants are predetermined. On top of that, it has an arbitrary number of further stages where the participants of the stage tournaments are the participants that got a certain placement in  a certain tournament of the previous stage.  
   
-![demo_ms_tournament](./images/demo_ms_tournament.png)  
+![demo_ms_tournament](./images/demo_ms_tournament.PNG)  
   
 For example one could have *Round Robin* tournaments *Group A* up to *Group H* with four players each in the first stage and then in the second stage a *Knockout* tournament *Finals* with all participants who placed first or second in their respective group.  
   
