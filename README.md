@@ -10,7 +10,7 @@ There are currently five tournament modes available: *Swiss*, *Round Robin*, *Kn
 ![demo_tournament_0](./images/demo_tournament_0.PNG)  
   
 *Swiss* uses the Dutch System implementation from [bbpPairings](https://github.com/BieremaBoyzProgramming/bbpPairings) to pair the rounds.  
-Parameters: *Rounds*, *Pairings (First Round)*, *Top Seed (First Round)*, *Point System* and *Tiebreak (1) - (4)*.  
+Parameters: *Rounds*, *Pairings (First Round)*, *Top Seed (First Round)*, *Point System*, *Half-Point Bye* and *Tiebreak (1) - (4)*.  
   
 *Round Robin* pairs the rounds by the Circle or Berger method.  
 Parameters: *Cycles*, *Pairing Method*, *Choose Seating*, *Point System* and *Tiebreak (1) - (4)*.  
@@ -22,7 +22,7 @@ Parameters: *Games per Match*, *Games per Tiebreak*, *Pairing Method* and *Armag
 Parameters: *Rounds*, *Ratio (First to Last)*, *Score for Byes (%)*, *No Pairing Repeats*, *Points System*, *Tiebreak (1) - (2)*.  
   
 *Custom* does not pair by itself at all, instead the user can manually pair all games of all rounds.  
-Parameters: *Games per Round*, *Rounds*, *Point System* and *Tiebreak (1) - (4)*.  
+Parameters: *Games per Round*, *Rounds*, *Point System*, *Half-Point Bye* and *Tiebreak (1) - (4)*.  
   
 ![demo_tournament_1](./images/demo_tournament_1.PNG)
 ![demo_tournament_2](./images/demo_tournament_2.PNG)
