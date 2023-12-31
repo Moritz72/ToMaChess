@@ -119,7 +119,7 @@ msgstr "Feinwertung"
 msgid "Cycles"
 msgstr "Durchgänge"
 
-msgid "Choose Seating"
+msgid "Custom Seeding"
 msgstr "Eigene Setzliste"
 
 msgid "Games per Match"
@@ -251,7 +251,7 @@ msgstr "Direkter Vergleich"
 msgid "Board Points"
 msgstr "Brettpunkte"
 
-msgid "Berliner Wertung"
+msgid "Berlin Rating"
 msgstr "Berliner Wertung"
 
 msgid "Criterion"
@@ -439,3 +439,15 @@ msgstr "Schwelle (%)"
 
 msgid "Manage Byes"
 msgstr "Byes verwalten"
+
+msgid "Scheveningen"
+msgstr "Scheveningen"
+
+msgid "Seeding"
+msgstr "Setzreihenfolge"
+
+msgid "Details"
+msgstr "Details"
+
+msgid "Baku Acceleration"
+msgstr "Baku Beschleunigung"

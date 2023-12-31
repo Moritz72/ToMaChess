@@ -9,6 +9,7 @@ from .tournament_round_robin import Tournament_Round_Robin, Tournament_Round_Rob
 from .tournament_knockout import Tournament_Knockout, Tournament_Knockout_Team
 from .tournament_custom import Tournament_Custom
 from .tournament_keizer import Tournament_Keizer
+from .tournament_scheveningen import Tournament_Scheveningen
 from .db_object import DB_Object
 from .db_player import DB_PLAYER
 from .db_team import DB_TEAM
@@ -25,6 +26,7 @@ MODES = {
     "Round Robin": Tournament_Round_Robin,
     "Knockout": Tournament_Knockout,
     "Keizer": Tournament_Keizer,
+    "Scheveningen": Tournament_Scheveningen,
     "Custom": Tournament_Custom
 }
 MODES_TEAM = {

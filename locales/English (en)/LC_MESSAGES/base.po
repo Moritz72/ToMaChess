@@ -119,8 +119,8 @@ msgstr "Tiebreak"
 msgid "Cycles"
 msgstr "Cycles"
 
-msgid "Choose Seating"
-msgstr "Choose Seating"
+msgid "Custom Seeding"
+msgstr "Custom Seeding"
 
 msgid "Games per Match"
 msgstr "Games per Match"
@@ -251,8 +251,8 @@ msgstr "Direct Encounter"
 msgid "Board Points"
 msgstr "Board Points"
 
-msgid "Berliner Wertung"
-msgstr "Berliner Wertung"
+msgid "Berlin Rating"
+msgstr "Berlin Rating"
 
 msgid "Criterion"
 msgstr "Criterion"
@@ -439,3 +439,15 @@ msgstr "Threshold (%)"
 
 msgid "Manage Byes"
 msgstr "Manage Byes"
+
+msgid "Scheveningen"
+msgstr "Scheveningen"
+
+msgid "Seeding"
+msgstr "Seeding"
+
+msgid "Details"
+msgstr "Details"
+
+msgid "Baku Acceleration"
+msgstr "Baku Acceleration"

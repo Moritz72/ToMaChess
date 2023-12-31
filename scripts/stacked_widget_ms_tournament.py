@@ -1,7 +1,8 @@
 from __future__ import annotations
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING
 from functools import partial
-from .stacked_widget import Stacked_Widget
+from PySide6.QtCore import QTimer
+from .stacked_widget import Buttons_Args, Stacked_Widget
 from .stacked_widget_tournament import Stacked_Widget_Tournament
 from .db_ms_tournament import DB_MS_TOURNAMENT
 from .ms_tournament import MS_Tournament
@@ -31,37 +32,25 @@ class Stacked_Widget_MS_Tournament(Stacked_Widget):
             self.addWidget(tournament_widget)
             self.tournament_widgets.append(tournament_widget)
 
-    def get_buttons_args(self) -> list[dict[str, Any]]:
-        buttons_args = []
-        cut_out = 1 + 2 * (not self.is_current)
-        cut_out_change_index = 2 * self.is_current
-        tournaments_buttons_args = [
-            tournament_widget.get_buttons_args()[:-cut_out] for tournament_widget in self.tournament_widgets
-        ]
+    def get_active_button_index(self, i: int) -> int:
+        assert(i in (0, 1))
+        if i == 0:
+            return self.currentIndex()
+        return self.tournament_widgets[self.currentIndex()].get_active_button_index(0)
 
-        for i, tournament_buttons_args in enumerate(tournaments_buttons_args):
-            for args in tournament_buttons_args[:len(tournament_buttons_args) - cut_out_change_index]:
-                args["connect"] = [args["connect"], partial(self.setCurrentIndex, i)]
-
-        for tournament_widget, tournament_buttons_args in zip(self.tournament_widgets, tournaments_buttons_args):
-            buttons_args.append(
-                {"text": tournament_widget.tournament.get_name(), "bold": True, "enabled": False, "translate": False}
-            )
-            buttons_args.extend(tournament_buttons_args)
-            buttons_args.append({"enabled": False})
-
+    def get_buttons_args_list(self) -> list[Buttons_Args]:
+        buttons_args: Buttons_Args = [{
+            "text": tournament_widget.tournament.get_name(), "checkable": True, "translate": False,
+            "connect": [partial(self.setCurrentIndex, i), partial(QTimer.singleShot, 0, self.make_side_menu.emit)]
+        } for i, tournament_widget in enumerate(self.tournament_widgets)]
+        buttons_args.append({"enabled": False})
         if self.stage > 0:
             buttons_args.append({"text": "Previous Stage", "connect": self.move_down_stage, "bold": True})
         if not self.is_current:
             buttons_args.append({"text": "Next Stage", "connect": self.move_up_stage, "bold": True})
         buttons_args.append({"text": "Back", "connect": self.open_default, "bold": True})
-
-        return buttons_args
-
-    def get_active_button_index(self) -> int:
-        offset = sum(tournament_widget.count() for tournament_widget in self.tournament_widgets[:self.currentIndex()])
-        offset += 1 + (2 + 2 * self.is_current) * self.currentIndex()
-        return offset + self.tournament_widgets[self.currentIndex()].get_active_button_index()
+        inner_args = self.tournament_widgets[self.currentIndex()].get_buttons_args_list()[0][:-3 + 2 * self.is_current]
+        return [buttons_args, inner_args]
 
     def open_default(self) -> None:
         DB_MS_TOURNAMENT.update_list("", [self.ms_tournament])

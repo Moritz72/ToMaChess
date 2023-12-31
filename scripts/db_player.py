@@ -8,7 +8,7 @@ PLAYER_ATTRIBUTE_LIST = ["Name", "Sex", "Birth", "Federation", "Title", "Rating"
 PLAYER_COLUMNS = ("name", "sex", "birthday", "country", "title", "rating", "uuid", "uuid_associate")
 
 
-def sort_players_by_rating(players: Sequence[Player]) -> list[Player]:
+def sort_players_swiss(players: Sequence[Player]) -> list[Player]:
     if not players or not isinstance(players[0], Player):
         return list(players)
     return sorted(players, key=lambda x: (
@@ -71,7 +71,7 @@ class DB_Player_List(DB_Player):
     def load_like(
             self, table_root: str, uuid_associate: str, name: str, limit: int | None, shallow: bool = False
     ) -> list[Player]:
-        players = sort_players_by_rating([player for player in self.players if name in player.get_name()])
+        players = sort_players_swiss([player for player in self.players if name in player.get_name()])
         if limit is not None:
             players = players[:limit]
         return players

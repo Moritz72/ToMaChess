@@ -86,7 +86,7 @@ msgstr "直対"
 msgid "Board Points"
 msgstr "ボポ"
 
-msgid "Berliner Wertung"
+msgid "Berlin Rating"
 msgstr "ベ格"
 
 msgid "Games"

@@ -1,7 +1,6 @@
 from __future__ import annotations
 from typing import TYPE_CHECKING
-from PySide6.QtWidgets import QHeaderView, QPushButton
-from PySide6.QtCore import Qt
+from PySide6.QtWidgets import QPushButton
 from .collection import Collection
 from .table_objects import Table_Objects
 from .widget_search_generic import Widget_Search_Generic
@@ -17,16 +16,11 @@ class Widget_Menu_Collections(Widget_Search_Generic[Collection]):
         self.window_main: Window_Main = window_main
         super().__init__(DB_COLLECTION)
 
-    @staticmethod
-    def get_table() -> Table_Objects[Collection]:
-        table = Table_Objects[Collection](
-            3, 3.5, 55, [None, None, 3.5], COLLECTION_ATTRIBUTE_LIST + [""], translate=True
+    def get_table(self) -> Table_Objects[Collection]:
+        return Table_Objects[Collection](
+            3, 3.5, 55, [None, None, 3.5], COLLECTION_ATTRIBUTE_LIST + [""],
+            translate=True, stretches=[0, 1], parent=self
         )
-        header_horizontal, header_vertical = table.horizontalHeader(), table.verticalHeader()
-        header_horizontal.setSectionResizeMode(0, QHeaderView.ResizeMode.Stretch)
-        header_horizontal.setSectionResizeMode(1, QHeaderView.ResizeMode.Stretch)
-        header_vertical.setDefaultAlignment(Qt.AlignmentFlag.AlignCenter)
-        return table
 
     def get_buttons(self) -> list[QPushButton]:
         return [

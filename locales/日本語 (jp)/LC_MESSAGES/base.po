@@ -119,8 +119,8 @@ msgstr "タイブレーク"
 msgid "Cycles"
 msgstr "周"
 
-msgid "Choose Seating"
-msgstr "シードを自分で決める"
+msgid "Custom Seeding"
+msgstr "カスタムシーディング"
 
 msgid "Games per Match"
 msgstr "試合あたりのゲーム数"
@@ -251,7 +251,7 @@ msgstr "直接対決"
 msgid "Board Points"
 msgstr "ボードポイント"
 
-msgid "Berliner Wertung"
+msgid "Berlin Rating"
 msgstr "ベルリン格付け"
 
 msgid "Criterion"
@@ -439,3 +439,15 @@ msgstr "しきい値 (割合)"
 
 msgid "Manage Byes"
 msgstr "バイの管理"
+
+msgid "Scheveningen"
+msgstr "スヘフェニンゲン"
+
+msgid "Seeding"
+msgstr "シード順"
+
+msgid "Details"
+msgstr "詳細"
+
+msgid "Baku Acceleration"
+msgstr "バクー加速"

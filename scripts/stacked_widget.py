@@ -6,6 +6,8 @@ from PySide6.QtCore import Signal
 if TYPE_CHECKING:
     from .window_main import Window_Main
 
+Buttons_Args = list[dict[str, Any]]
+
 
 class Stacked_Widget(QStackedWidget):
     make_side_menu = Signal()
@@ -14,10 +16,10 @@ class Stacked_Widget(QStackedWidget):
         super().__init__()
         self.window_main: Window_Main = window_main
 
-    @abstractmethod
-    def get_buttons_args(self) -> list[dict[str, Any]]:
-        pass
+    def get_active_button_index(self, i: int) -> int:
+        assert (i == 0)
+        return self.currentIndex()
 
     @abstractmethod
-    def get_active_button_index(self) -> int:
+    def get_buttons_args_list(self) -> list[Buttons_Args]:
         pass

@@ -4,8 +4,9 @@ from .tournament import Tournament
 
 
 class Widget_Tournament_Info(QWidget):
-    def __init__(self, tournament: Tournament) -> None:
+    def __init__(self, name: str, tournament: Tournament) -> None:
         super().__init__()
+        self.name = name
         self.tournament: Tournament = tournament
 
     @abstractmethod

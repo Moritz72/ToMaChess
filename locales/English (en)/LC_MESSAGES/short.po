@@ -86,8 +86,8 @@ msgstr "DiEn"
 msgid "Board Points"
 msgstr "BoPo"
 
-msgid "Berliner Wertung"
-msgstr "BeWe"
+msgid "Berlin Rating"
+msgstr "BeRa"
 
 msgid "Games"
 msgstr "Game"

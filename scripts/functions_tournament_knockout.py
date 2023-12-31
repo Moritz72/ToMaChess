@@ -39,11 +39,11 @@ def is_win(
 
 
 def move_on(uuid_1: str, uuid_2: str, standings: Variable_Knockout_Standings) -> None:
-    seating_1, seating_2 = standings[uuid_1].seating, standings[uuid_2].seating
+    seed_1, seed_2 = standings[uuid_1].seed, standings[uuid_2].seed
     standings[uuid_1].level += 1
     standings[uuid_1].score = len(standings[uuid_1].score) * [0.]
-    standings[uuid_2].beaten_by_seat = seating_1
-    standings[uuid_1].seating = min(seating_1, seating_2)
+    standings[uuid_2].beaten_by_seed = seed_1
+    standings[uuid_1].seed = min(seed_1, seed_2)
 
 
 def move_back(
@@ -54,8 +54,8 @@ def move_back(
     n_games = calculate_number_of_games(score_loser, games, games_per_tiebreak, armageddon, total, total_tb)
     standings[uuid_2].level -= 1
     standings[uuid_2].score = [n_games * t / games - score for score, t in zip(score_loser, total)]
-    standings[uuid_2].seating = cast(int, standings[uuid_1].beaten_by_seat)
-    standings[uuid_1].beaten_by_seat = None
+    standings[uuid_2].seed = cast(int, standings[uuid_1].beaten_by_seed)
+    standings[uuid_1].beaten_by_seed = None
 
 
 def update_participant_standings(

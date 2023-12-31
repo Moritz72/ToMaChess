@@ -6,7 +6,7 @@ from .result import Result
 from .player import Player
 from .parameter_tiebreak import Parameter_Tiebreak
 from .functions_tournament_util import get_score_dict_by_point_system, get_score_dict_keizer
-from .db_player import sort_players_by_rating
+from .db_player import sort_players_swiss
 
 TB_1 = ["Games", "None", "Games as Black", "Wins", "Wins as Black", "Average Rating", "Direct Encounter"]
 TB_2 = ["None", "Games", "Games as Black", "Wins", "Wins as Black", "Average Rating", "Direct Encounter"]
@@ -77,8 +77,11 @@ class Tournament_Keizer(Tournament):
     def is_done(self) -> bool:
         return self.get_round() > self.get_rounds()
 
-    def seat_participants(self) -> None:
-        self.set_participants(sort_players_by_rating(cast(list[Player], self.get_participants())))
+    def seed_participants(self, seeds: list[int] | None = None) -> None:
+        if seeds is None:
+            self.set_participants(sort_players_swiss(cast(list[Player], self.get_participants())))
+        else:
+            super().seed_participants(seeds)
 
     def load_pairings(self) -> None:
         if bool(self.get_pairings()) or self.is_done():
@@ -118,18 +121,11 @@ class Tournament_Keizer(Tournament):
             pairings.append(Pairing(uuid, "bye"))
         self.set_pairings(pairings)
 
-    def drop_in_participants(self, participants: Sequence[Participant] | None = None) -> bool:
-        participants = participants or []
+    def drop_in_participants(self, participants: Sequence[Participant]) -> None:
         super().drop_in_participants(participants)
-        self.seat_participants()
+        self.seed_participants()
         uuids = [participant.get_uuid() for participant in participants]
         for round_results in self.get_results():
             uuids_round = [uuid for (uuid, _), (_, _) in round_results] + [uuid for (_, _), (uuid, _) in round_results]
             for uuid in set(uuids) - set(uuids_round):
                 round_results.append(Result((uuid, 'b'), ("bye", '-')))
-        return True
-
-    def add_byes(self, uuids: Sequence[str] | None = None) -> bool:
-        if uuids is not None:
-            self.set_byes(list(uuids))
-        return True

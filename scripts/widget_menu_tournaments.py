@@ -1,6 +1,6 @@
 from typing import cast
-from PySide6.QtWidgets import QHeaderView, QPushButton
-from PySide6.QtCore import Qt, Signal
+from PySide6.QtWidgets import QPushButton
+from PySide6.QtCore import Signal
 from .tournament import Tournament
 from .table_objects import Table_Objects
 from .widget_search_generic import Widget_Search_Generic
@@ -17,16 +17,11 @@ class Widget_Menu_Tournaments(Widget_Search_Generic[Tournament]):
         super().__init__(DB_TOURNAMENT, shallow_load=True, shallow_update=True)
         self.new_tournament_window: Window_Tournament_New_Player | Window_Tournament_New_Team | None = None
 
-    @staticmethod
-    def get_table() -> Table_Objects[Tournament]:
-        table = Table_Objects[Tournament](
-            5, 3.5, 55, [None, None, 5, 7, 3.5], TOURNAMENT_ATTRIBUTE_LIST + ["", ""], translate=True
+    def get_table(self) -> Table_Objects[Tournament]:
+        return Table_Objects[Tournament](
+            5, 3.5, 55, [None, None, 5, 7, 3.5], TOURNAMENT_ATTRIBUTE_LIST + ["", ""],
+            stretches=[0, 1], translate=True, parent=self
         )
-        header_horizontal, header_vertical = table.horizontalHeader(), table.verticalHeader()
-        header_horizontal.setSectionResizeMode(0, QHeaderView.ResizeMode.Stretch)
-        header_horizontal.setSectionResizeMode(1, QHeaderView.ResizeMode.Stretch)
-        header_vertical.setDefaultAlignment(Qt.AlignmentFlag.AlignCenter)
-        return table
 
     def get_buttons(self) -> list[QPushButton]:
         return [

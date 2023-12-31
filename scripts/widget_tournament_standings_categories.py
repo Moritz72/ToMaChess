@@ -7,7 +7,7 @@ from .gui_functions import get_scroll_area_widgets_and_layouts
 
 class Widget_Tournament_Standings_Categories(Widget_Tournament_Info):
     def __init__(self, tournament: Tournament) -> None:
-        super().__init__(tournament)
+        super().__init__("Categories", tournament)
         self.tournament = tournament
         self.standing_widgets = [
             Widget_Tournament_Standings(self.tournament, category_range)

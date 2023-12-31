@@ -4,7 +4,7 @@ from functools import partial
 from .parameter import Parameter
 from .functions_tiebreak import get_buchholz, get_buchholz_sum, get_sonneborn_berger, get_games, get_blacks, \
     get_number_of_wins, get_opponent_average_rating, get_progressive_score, get_number_of_black_wins, \
-    get_direct_encounter, get_koya_system, get_board_points, get_berliner_wertung
+    get_direct_encounter, get_koya_system, get_board_points, get_berlin_rating
 if TYPE_CHECKING:
     from .tournament import Tournament
 
@@ -13,7 +13,7 @@ TIEBREAK_LIST = [
     "Wins as Black", "Average Rating", "Progressive Scores", "Koya System", "Direct Encounter"
 ]
 TIEBREAK_LIST_TEAM = [
-    "None", "Board Points", "Berliner Wertung", "Buchholz", "Buchholz Sum", "Sonneborn-Berger", "Games", "Wins",
+    "None", "Board Points", "Berlin Rating", "Buchholz", "Buchholz Sum", "Sonneborn-Berger", "Games", "Wins",
     "Progressive Scores", "Koya System", "Direct Encounter"
 ]
 
@@ -31,7 +31,7 @@ TIEBREAKS: dict[str, Callable[..., dict[str, float]] | None] = {
     "Koya System": get_koya_system,
     "Direct Encounter": get_direct_encounter,
     "Board Points": get_board_points,
-    "Berliner Wertung": get_berliner_wertung
+    "Berlin Rating": get_berlin_rating
 }
 FUNC_ARGS: dict[str, dict[str, Any]] = {
     "None": {},
@@ -47,7 +47,7 @@ FUNC_ARGS: dict[str, dict[str, Any]] = {
     "Direct Encounter": {},
     "Koya System": {"threshold": 50},
     "Board Points": {},
-    "Berliner Wertung": {}
+    "Berlin Rating": {}
 }
 FUNC_ARGS_DISPLAY: dict[str, dict[str, str]] = {
     "None": {},
@@ -63,7 +63,7 @@ FUNC_ARGS_DISPLAY: dict[str, dict[str, str]] = {
     "Direct Encounter": {},
     "Koya System": {"threshold": "Threshold (%)"},
     "Board Points": {},
-    "Berliner Wertung": {}
+    "Berlin Rating": {}
 }
 
 

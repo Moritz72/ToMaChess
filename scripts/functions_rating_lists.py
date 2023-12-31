@@ -38,39 +38,39 @@ def process_xml(xml_file_path: str, keys: Sequence[str]) -> list[tuple[str, ...]
 
 
 def process_csv(csv_file_path: str, keys: Sequence[str]) -> list[tuple[str, ...]]:
-    with open(csv_file_path, 'r') as file:
+    with open(csv_file_path, 'r', encoding="utf-8") as file:
         csv_reader = reader(file)
         header = next(csv_reader)
-        indices = tuple(header.index(key) for key in keys)
-        return [tuple(row[indices[j]] for j, value in enumerate(keys)) for row in csv_reader]
+        indices = tuple(-1 if key == "" else header.index(key) for key in keys)
+        return [tuple("" if value == "" else row[indices[j]] for j, value in enumerate(keys)) for row in csv_reader]
 
 
-def download_and_unzip(url: str, file_to_extract: str, verify: bool | str = True, retry: bool = True) -> str | None:
-    path_zip = os.path.join(get_app_data_directory(), "temp", "zip_file.zip")
-    path_extract = os.path.join(get_app_data_directory(), "temp")
+def download_file(url: str, file_name: str, verify: bool | str = True, retry: bool = True) -> bool:
+    download_path = os.path.join(get_app_data_directory(), "temp", file_name)
     try:
         response = get(url, verify=verify, headers={"User-Agent": "XY"})
         response.raise_for_status()
-        with open(path_zip, 'wb') as file:
+        with open(download_path, 'wb') as file:
             file.write(response.content)
-        with ZipFile(path_zip) as zip_file:
-            return zip_file.extract(file_to_extract, path_extract)
+            return True
     except (exceptions.SSLError, OSError):
         if isinstance(verify, str):
             renew_certificate(verify)
         if retry:
-            return download_and_unzip(url, file_to_extract, verify=verify, retry=False)
-        return None
+            return download_file(url, file_name, verify=verify, retry=False)
+        return False
     except exceptions.RequestException:
-        return None
+        return False
+
+
+def unzip_file(file_name_zip: str, file_name_extract: str) -> bool:
+    path_zip = os.path.join(get_app_data_directory(), "temp", file_name_zip)
+    try:
+        with ZipFile(path_zip) as zip_file:
+            zip_file.extract(file_name_extract, os.path.join(get_app_data_directory(), "temp"))
+            return True
     except BadZipFile:
-        return None
-    finally:
-        if os.path.exists(path_zip):
-            os.remove(path_zip)
-        path_extract = os.path.join(path_extract, file_to_extract)
-        if os.path.exists(path_extract):
-            os.rename(path_extract, os.path.join(get_app_data_directory(), "temp", "extracted_file"))
+        return False
 
 
 def update_list(name: str, get_list: Callable[[], list[Player] | None]) -> None:
@@ -90,14 +90,16 @@ def update_list(name: str, get_list: Callable[[], list[Player] | None]) -> None:
 
 def get_fide_standard_list() -> list[Player] | None:
     url = "http://ratings.fide.com/download/standard_rating_list_xml.zip"
-    unzipped_file = download_and_unzip(url, "standard_rating_list.xml")
-    if unzipped_file is None:
+    file_name_zip = "fide.zip"
+    file_name_xml = "standard_rating_list.xml"
+    path_zip = os.path.join(get_app_data_directory(), "temp", file_name_zip)
+    path_xml = os.path.join(get_app_data_directory(), "temp", file_name_xml)
+
+    if not download_file(url, file_name_zip) or not unzip_file(file_name_zip, file_name_xml):
         return None
-    data = process_xml(
-        os.path.join(get_app_data_directory(), "temp", "extracted_file"),
-        ("name", "sex", "birthday", "country", "title", "rating", "fideid")
-    )
-    os.remove(os.path.join(get_app_data_directory(), "temp", "extracted_file"))
+    data = process_xml(path_xml, ("name", "sex", "birthday", "country", "title", "rating", "fideid"))
+    os.remove(path_zip)
+    os.remove(path_xml)
     return [Player(
         entry[1], entry[3], entry[6], entry[2], entry[4], entry[5],
         get_uuid_from_numbers(1, int(entry[0])), get_uuid_from_numbers(1, 0)
@@ -106,15 +108,17 @@ def get_fide_standard_list() -> list[Player] | None:
 
 def get_dsb_list() -> list[Player] | None:
     url = "https://dwz.svw.info/services/files/export/csv/LV-0-csv_v2.zip"
+    file_name_zip = "dsb.zip"
+    file_name_csv = "spieler.csv"
+    path_zip = os.path.join(get_app_data_directory(), "temp", file_name_zip)
+    path_csv = os.path.join(get_app_data_directory(), "temp", file_name_csv)
     certificate = os.path.join(get_app_data_directory(), "certificates", "svw-info-certificate.pem")
-    unzipped_file = download_and_unzip(url, "spieler.csv", verify=certificate)
-    if unzipped_file is None:
+
+    if not download_file(url, file_name_zip, verify=certificate) or not unzip_file(file_name_zip, file_name_csv):
         return None
-    data = process_csv(
-        os.path.join(get_app_data_directory(), "temp", "extracted_file"),
-        ("Spielername", "Geschlecht", "Geburtsjahr", "FIDE-Land", "FIDE-Titel", "DWZ", "ID")
-    )
-    os.remove(os.path.join(get_app_data_directory(), "temp", "extracted_file"))
+    data = process_csv(path_csv, ("Spielername", "Geschlecht", "Geburtsjahr", "FIDE-Land", "FIDE-Titel", "DWZ", "ID"))
+    os.remove(path_zip)
+    os.remove(path_csv)
     return [Player(
         entry[0].replace(",", ", "), entry[1], entry[2], entry[3], None if entry[4] == '-' else entry[4], entry[5],
         get_uuid_from_numbers(2, int(entry[6])), get_uuid_from_numbers(2, 0)
@@ -123,22 +127,42 @@ def get_dsb_list() -> list[Player] | None:
 
 def get_uscf_list() -> list[Player] | None:
     url = "https://www.kingregistration.com/combineddb/db"
-    unzipped_file = download_and_unzip(url, "uscffide.dbf")
-    if unzipped_file is None:
+    file_name_zip = "uscf.zip"
+    file_name_dbf = "uscffide.dbf"
+    path_zip = os.path.join(get_app_data_directory(), "temp", file_name_zip)
+    path_dbf = os.path.join(get_app_data_directory(), "temp", file_name_dbf)
+
+    if not download_file(url, file_name_zip) or not unzip_file(file_name_zip, file_name_dbf):
         return None
     data: list[tuple[str, ...]] = [(
         record["MEM_NAME"], record["GENDER"], record["BYEAR"], record["FEDERATION"],
         record["TITLE"], record["R_LPB_RAT"], record["MEM_ID"]
-    ) for record in DBF(os.path.join(get_app_data_directory(), "temp", "extracted_file"))]
-    os.remove(os.path.join(get_app_data_directory(), "temp", "extracted_file"))
+    ) for record in DBF(path_dbf)]
+    os.remove(path_zip)
+    os.remove(path_dbf)
     return [Player(
         entry[0].replace(",", ", ").title(), entry[1], entry[2], entry[3], entry[4], entry[5],
         get_uuid_from_numbers(3, int(entry[6])), get_uuid_from_numbers(3, 0)
     ) for entry in data]
 
 
+def get_ecf_list() -> list[Player] | None:
+    url = "https://www.ecfrating.org.uk/v2/new/api.php?v2/rating_list_csv"
+    file_name = "ecf.csv"
+    path = os.path.join(get_app_data_directory(), "temp", file_name)
+
+    if not download_file(url, file_name):
+        return None
+    data = process_csv(path, ("full_name", "gender", "", "nation", "", "original_standard", "ECF_code"))
+    os.remove(path)
+    return [Player(
+        entry[0], entry[1], None, entry[3], None, entry[5],
+        get_uuid_from_numbers(2, int(entry[6][:-1])), get_uuid_from_numbers(4, 0)
+    ) for entry in data]
+
+
 RATING_LISTS: dict[str, Callable[[], list[Player] | None]] = {
-    "FIDE": get_fide_standard_list, "DSB": get_dsb_list, "USCF": get_uscf_list
+    "FIDE": get_fide_standard_list, "DSB": get_dsb_list, "USCF": get_uscf_list, "ECF": get_ecf_list
 }
 
 

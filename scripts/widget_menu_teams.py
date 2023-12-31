@@ -1,4 +1,4 @@
-from PySide6.QtWidgets import QHeaderView, QPushButton
+from PySide6.QtWidgets import QPushButton
 from PySide6.QtCore import Qt
 from .team import Team
 from .table_objects import Table_Objects
@@ -14,13 +14,11 @@ class Widget_Menu_Teams(Widget_Search_Generic[Team]):
         super().__init__(DB_TEAM)
         self.window_team_edit: Window_Team_Edit | None = None
 
-    @staticmethod
-    def get_table() -> Table_Objects[Team]:
-        table = Table_Objects[Team](4, 3.5, 55, [None, 5, 9, 3.5], TEAM_ATTRIBUTE_LIST + ["", ""], translate=True)
-        header_horizontal, header_vertical = table.horizontalHeader(), table.verticalHeader()
-        header_horizontal.setSectionResizeMode(0, QHeaderView.ResizeMode.Stretch)
-        header_vertical.setDefaultAlignment(Qt.AlignmentFlag.AlignCenter)
-        return table
+    def get_table(self) -> Table_Objects[Team]:
+        return Table_Objects[Team](
+            4, 3.5, 55, [None, 5, 9, 3.5], TEAM_ATTRIBUTE_LIST + ["", ""],
+            stretches=[0], translate=True, parent=self
+        )
 
     def get_buttons(self) -> list[QPushButton]:
         return [

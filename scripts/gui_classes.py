@@ -1,6 +1,7 @@
 from typing import Callable, cast
 from PySide6.QtWidgets import QComboBox, QLineEdit, QStyledItemDelegate, QStyleOptionViewItem
-from PySide6.QtCore import Qt, QTimer, QEvent, QObject, QModelIndex, QPersistentModelIndex, QThread, Signal
+from PySide6.QtCore import Qt, QTimer, QEvent, QObject, QModelIndex, QPersistentModelIndex, QThread, Signal, QPointF, \
+    QRectF
 
 
 class Combo_Box_Editable(QComboBox):
@@ -45,6 +46,22 @@ class Align_Delegate(QStyledItemDelegate):
         super().initStyleOption(option, index)
         if self.align is not None:
             option.displayAlignment = self.align
+
+
+class Vertical_Text_Delegate(QStyledItemDelegate):
+    def __init__(self, parent: QObject | None = None) -> None:
+        super().__init__(parent=parent)
+
+    def paint(self, painter, option, index):
+        optionCopy = QStyleOptionViewItem(option)
+        rectCenter = QPointF(QRectF(option.rect).center())
+        painter.save()
+        painter.translate(rectCenter.x(), rectCenter.y())
+        painter.rotate(90)
+        painter.translate(-rectCenter.x(), -rectCenter.y())
+        optionCopy.rect = painter.worldTransform().mapRect(option.rect)
+        super().paint(painter, optionCopy, index)
+        painter.restore()
 
 
 class Function_Worker(QThread):

@@ -85,7 +85,7 @@ def get_team_result(result_team: Result_Team, results_dict: dict[str, float]) ->
     return '½', '½'
 
 
-def is_valid_seating(pairings: Sequence[Pairing], uuids: Sequence[str], side: int, enforce_lineup: bool) -> bool:
+def is_valid_lineup(pairings: Sequence[Pairing], uuids: Sequence[str], side: int, enforce_lineup: bool) -> bool:
     if not enforce_lineup:
         return not has_duplicates([pairing[side] for pairing in pairings])
     index: int | None = 0

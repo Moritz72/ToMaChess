@@ -8,7 +8,7 @@ from .functions_bbp import get_pairings_bbp
 from .functions_pairing import PAIRING_FUNCTIONS
 from .functions_util import has_duplicates
 from .functions_tournament_util import get_score_dict_by_point_system
-from .db_player import sort_players_by_rating
+from .db_player import sort_players_swiss
 
 
 class Tournament_Swiss(Tournament):
@@ -24,10 +24,11 @@ class Tournament_Swiss(Tournament):
         self.mode = "Swiss"
         self.parameters = {
             "rounds": 7,
-            "pairing_method_first_round": ["Slide", "Fold", "Adjacent", "Random", "Custom"],
+            "pairing_method_first_round": ["Fold", "Slide", "Adjacent", "Random", "Custom"],
             "top_seed_color_first_round": ["Random", "White", "Black"],
             "point_system": ["1 - ½ - 0", "2 - 1 - 0", "3 - 1 - 0"],
             "half_bye": False,
+            "baku_acceleration": False,
             "tiebreak_1": Parameter_Tiebreak(get_tiebreak_list("Buchholz")),
             "tiebreak_2": Parameter_Tiebreak(get_tiebreak_list("Buchholz Sum")),
             "tiebreak_3": Parameter_Tiebreak(get_tiebreak_list("None")),
@@ -39,6 +40,7 @@ class Tournament_Swiss(Tournament):
             "top_seed_color_first_round": "Top Seed (First Round)",
             "point_system": "Point System",
             "half_bye": "Half-Point Bye",
+            "baku_acceleration": "Baku Acceleration",
             "tiebreak_1": ("Tiebreak", " (1)"),
             "tiebreak_2": ("Tiebreak", " (2)"),
             "tiebreak_3": ("Tiebreak", " (3)"),
@@ -63,6 +65,9 @@ class Tournament_Swiss(Tournament):
     def get_top_seed_color_first_round(self) -> str:
         return cast(str, self.get_parameter("top_seed_color_first_round")[0])
 
+    def get_baku_acceleration(self) -> bool:
+        return cast(bool, self.get_parameter("baku_acceleration"))
+
     def get_tiebreaks(self) -> tuple[Parameter_Tiebreak, ...]:
         return (
             cast(Parameter_Tiebreak, self.get_parameter("tiebreak_1")),
@@ -81,8 +86,11 @@ class Tournament_Swiss(Tournament):
     def is_done(self) -> bool:
         return self.get_round() > self.get_rounds()
 
-    def seat_participants(self) -> None:
-        self.set_participants(sort_players_by_rating(cast(list[Player], self.get_participants())))
+    def seed_participants(self, seeds: list[int] | None = None) -> None:
+        if seeds is None and not self.is_team_tournament():
+            self.set_participants(sort_players_swiss(cast(list[Player], self.get_participants())))
+        else:
+            super().seed_participants(seeds)
 
     def load_pairings(self) -> None:
         if bool(self.get_pairings()) or self.is_done():
@@ -106,7 +114,16 @@ class Tournament_Swiss(Tournament):
                     first_seed_white = random() > .5
             if participant_number % 2:
                 uuids.append("")
-            pairing_indices = PAIRING_FUNCTIONS[first_round_method](participant_number, first_seed_white)
+            if self.get_baku_acceleration():
+                accelerated = (len(self.get_participants()) + 1) // 2
+                accelerated += accelerated % 2
+                accelerated = len([uuid for uuid in uuids if uuid in self.get_participant_uuids()[:accelerated]])
+                accelerated -= accelerated % 2
+                pairing_indices = PAIRING_FUNCTIONS[first_round_method](accelerated, first_seed_white)
+                rest_indices = PAIRING_FUNCTIONS[first_round_method](participant_number - accelerated, first_seed_white)
+                pairing_indices += [(i_1 + accelerated, i_2 + accelerated) for i_1, i_2 in rest_indices]
+            else:
+                pairing_indices = PAIRING_FUNCTIONS[first_round_method](participant_number, first_seed_white)
             pairings = [Pairing(uuids[i_1], uuids[i_2]) for i_1, i_2 in pairing_indices]
         else:
             pairings = get_pairings_bbp(self)
@@ -114,15 +131,14 @@ class Tournament_Swiss(Tournament):
             pairings.append(Pairing(uuid, "bye"))
         self.set_pairings(pairings)
 
-    def drop_in_participants(self, participants: Sequence[Participant] | None = None) -> bool:
+    def drop_in_participants(self, participants: Sequence[Participant]) -> None:
+        if self.is_team_tournament():
+            default_seeds = False
+        else:
+            default_seeds = self.get_participants() == sort_players_swiss(cast(list[Player], self.get_participants()))
         super().drop_in_participants(participants)
-        self.seat_participants()
-        return True
-
-    def add_byes(self, uuids: Sequence[str] | None = None) -> bool:
-        if uuids is not None:
-            self.set_byes(list(uuids))
-        return True
+        if default_seeds:
+            self.seed_participants()
 
 
 class Tournament_Swiss_Team(Tournament_Swiss):
@@ -170,6 +186,3 @@ class Tournament_Swiss_Team(Tournament_Swiss):
 
     def get_point_system_game(self) -> str:
         return cast(str, self.get_parameter("point_system_game")[0])
-
-    def seat_participants(self) -> None:
-        return

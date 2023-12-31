@@ -144,8 +144,8 @@ def set_object_name(widget: QWidget, object_name: str | None) -> None:
 
 
 def get_label(
-        text: str | Sequence[str], size: str | None, widget_size: Widget_Size = None,
-        bold: bool = False, translate: bool = False, object_name: str | None = None
+        text: str | Sequence[str], size: str | None, widget_size: Widget_Size = None, bold: bool = False,
+        align: Qt.AlignmentFlag | None = None, translate: bool = False, object_name: str | None = None
 ) -> QLabel:
     if translate:
         text = MANAGER_TRANSLATION.tl(text)
@@ -154,6 +154,8 @@ def get_label(
     set_object_name(label, object_name)
     set_fixed_size(label, widget_size)
     set_font(label, size, bold)
+    if align is not None:
+        label.setAlignment(align)
     return label
 
 

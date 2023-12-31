@@ -24,7 +24,7 @@ class Tournament_Round_Robin(Tournament):
         self.parameters = {
             "cycles": 1,
             "pairing_method": ["Cycle", "Berger"],
-            "choose_seating": False,
+            "custom_seeding": False,
             "point_system": ["1 - ½ - 0", "2 - 1 - 0", "3 - 1 - 0"],
             "tiebreak_1": Parameter_Tiebreak(get_tiebreak_list("Direct Encounter")),
             "tiebreak_2": Parameter_Tiebreak(get_tiebreak_list("Sonneborn-Berger")),
@@ -34,7 +34,7 @@ class Tournament_Round_Robin(Tournament):
         self.parameters_display = {
             "cycles": "Cycles",
             "pairing_method": "Pairing Method",
-            "choose_seating": "Choose Seating",
+            "custom_seeding": "Custom Seeding",
             "point_system": "Point System",
             "tiebreak_1": ("Tiebreak", " (1)"),
             "tiebreak_2": ("Tiebreak", " (2)"),
@@ -66,8 +66,8 @@ class Tournament_Round_Robin(Tournament):
     def get_pairing_method(self) -> str:
         return cast(str, self.get_parameter("pairing_method")[0])
 
-    def get_choose_seating(self) -> bool:
-        return cast(bool, self.get_parameter("choose_seating"))
+    def get_custom_seeding(self) -> bool:
+        return cast(bool, self.get_parameter("custom_seeding"))
 
     def get_point_system(self) -> str:
         return cast(str, self.get_parameter("point_system")[0])
@@ -92,28 +92,34 @@ class Tournament_Round_Robin(Tournament):
         assert(all(pairing.is_fixed() for pairing in pairings))
         return not has_duplicates([item for item, _ in pairings] + [item for _, item in pairings])
 
-    def add_results(self, results: Sequence[Result] | Sequence[Result_Team]) -> None:
-        super().add_results(results)
-        if self.get_round() != 2 or not self.get_choose_seating():
-            return
-
-        results = self.get_results()[-1]
-        uuid_to_seat = dict()
-        pairing_indices = PAIRING_FUNCTIONS_ROUND_ROBIN[self.get_pairing_method()](len(self.get_participants()), 1)
-        for ((item_1, _), (item_2, _)), (i_1, i_2) in zip(results, pairing_indices):
-            uuid_to_seat[cast(str, item_1)], uuid_to_seat[cast(str, item_2)] = i_1, i_2
-        self.set_participants(sorted(
-            self.get_participants(), key=lambda x: uuid_to_seat[x.get_uuid()] if x.get_uuid() in uuid_to_seat else 0
-        ))
-
-    def drop_in_participants(self, participants: Sequence[Participant] | None = None) -> bool:
-        return False
-
     def is_done(self) -> bool:
         participant_number = len(self.get_participants())
         if participant_number % 2:
             return self.get_round() > self.get_cycles() * participant_number
         return self.get_round() > self.get_cycles() * (participant_number - 1)
+
+    def is_drop_in_allowed(self) -> bool:
+        return False
+
+    def is_add_byes_allowed(self) -> bool:
+        return False
+
+    def is_seeding_allowed(self) -> bool:
+        return self.get_round() == 1 and not self.get_custom_seeding()
+
+    def add_results(self, results: Sequence[Result] | Sequence[Result_Team]) -> None:
+        super().add_results(results)
+        if self.get_round() != 2 or not self.get_custom_seeding():
+            return
+
+        results = self.get_results()[-1]
+        uuid_to_seed = dict()
+        pairing_indices = PAIRING_FUNCTIONS_ROUND_ROBIN[self.get_pairing_method()](len(self.get_participants()), 1)
+        for ((item_1, _), (item_2, _)), (i_1, i_2) in zip(results, pairing_indices):
+            uuid_to_seed[cast(str, item_1)], uuid_to_seed[cast(str, item_2)] = i_1, i_2
+        self.set_participants(sorted(
+            self.get_participants(), key=lambda x: uuid_to_seed[x.get_uuid()] if x.get_uuid() in uuid_to_seed else 0
+        ))
 
     def load_pairings(self) -> None:
         if bool(self.get_pairings()) or self.is_done():
@@ -122,7 +128,7 @@ class Tournament_Round_Robin(Tournament):
         participant_number = len(self.get_participants())
         uuids = self.get_participant_uuids()
 
-        if roun == 1 and self.get_choose_seating():
+        if roun == 1 and self.get_custom_seeding():
             pairings = [Pairing(uuids, uuids) for _ in range(participant_number // 2)]
             self.set_pairings(pairings)
             return
@@ -153,7 +159,7 @@ class Tournament_Round_Robin_Team(Tournament_Round_Robin):
             "enforce_lineups": True,
             "cycles": 1,
             "pairing_method": ["Cycle", "Berger"],
-            "choose_seating": False,
+            "custom_seeding": False,
             "point_system": ["2 - 1 - 0", "1 - ½ - 0", "3 - 1 - 0"],
             "point_system_game": ["1 - ½ - 0", "2 - 1 - 0", "3 - 1 - 0"],
             "tiebreak_1": Parameter_Tiebreak(get_tiebreak_list("Board Points", team=True)),
@@ -166,7 +172,7 @@ class Tournament_Round_Robin_Team(Tournament_Round_Robin):
             "enforce_lineups": "Enforce Lineups",
             "cycles": "Cycles",
             "pairing_method": "Pairing Method",
-            "choose_seating": None,
+            "custom_seeding": None,
             "point_system": "Point System (Match)",
             "point_system_game": "Point System (Game)",
             "tiebreak_1": ("Tiebreak", " (1)"),

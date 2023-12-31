@@ -87,7 +87,7 @@ def make_index_file(folder_path: str, tournament: Tournament) -> None:
 
     html = f"<!DOCTYPE html><html><head><style>{get_style('index.css')}</style></head><body>"
     html += f"<h2>{tournament}</h2><table class='table-info'>"
-    for key, value in tournament.get_info().items():
+    for key, value in tournament.get_details().items():
         html += f"<tr><td class='bold'>{MANAGER_TRANSLATION.tl(key)}</td><td>{MANAGER_TRANSLATION.tl(value)}</td></tr>"
     if not tournament.is_valid():
         html += "</table></body></html>"

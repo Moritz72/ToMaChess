@@ -1,6 +1,6 @@
 from typing import Sequence, Callable, cast
 from copy import deepcopy
-from PySide6.QtWidgets import QWidget, QVBoxLayout, QHeaderView, QComboBox, QTableWidget
+from PySide6.QtWidgets import QWidget, QVBoxLayout, QComboBox, QTableWidget
 from PySide6.QtCore import Qt, Signal, QTimer
 from .pairing_item import Bye_PA, Pairing_Item, get_item_from_string, get_tentative_results
 from .pairing import Pairing, Pairing_Item_s
@@ -87,7 +87,9 @@ class Widget_Tournament_Round(QWidget):
             self, row: int, item_s_1: Pairing_Item_s, item_s_2: Pairing_Item_s,
             score_s: tuple[str, str] | list[tuple[str, str]]
     ) -> None:
-        add_content_to_table(self.table, row + 1, row, 0, edit=False, bold=True, align=Qt.AlignmentFlag.AlignCenter)
+        add_content_to_table(
+            self.table, str(row + 1), row, 0, edit=False, bold=True, align=Qt.AlignmentFlag.AlignCenter
+        )
         self.add_row_name(row, 1, item_s_1)
         self.add_row_result(row, 2, score_s)
         self.add_row_name(row, 3, item_s_2)
@@ -109,12 +111,10 @@ class Widget_Tournament_Round(QWidget):
 
     def fill_in_table(self) -> None:
         set_up_table(self.table, 0, 4, header_horizontal=["", self.headers[0], "", self.headers[1]])
-        size_table(self.table, self.get_rows(), 3.5, max_width=55, widths=[3.5, None, 5, None])
-
-        header_horizontal, header_vertical = self.table.horizontalHeader(), self.table.verticalHeader()
-        header_horizontal.setSectionResizeMode(1, QHeaderView.ResizeMode.Stretch)
-        header_horizontal.setSectionResizeMode(3, QHeaderView.ResizeMode.Stretch)
-        header_vertical.setVisible(False)
+        size_table(
+            self.table, rows=self.get_rows(), row_height=3.5, max_width=55, widths=[3.5, None, 5, None],
+            header_width=0, stretches_h=[1, 3]
+        )
 
         if self.drop_outs is None or self.possible_scores is None or self.is_valid_pairings is None:
             for i, ((item_1, score_1), (item_2, score_2)) in enumerate(self.get_results()):

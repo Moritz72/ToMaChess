@@ -5,16 +5,16 @@ from PySide6.QtGui import QCloseEvent
 from .team import Team
 from .window_choice_objects import Window_Choice_Players
 from .window_remove_objects import Window_Remove_Players
-from .window_team_line_up import Window_Line_Up
-from .db_player import sort_players_by_rating
+from .window_drag_objects import Window_Drag_Players
+from .db_player import sort_players_swiss
 from .gui_functions import get_button, set_window_title, set_window_size, close_window
 
 
 @dataclass
 class Windows:
-    add: Window_Choice_Players | None
-    remove: Window_Remove_Players | None
-    lineup: Window_Line_Up | None
+    add: Window_Choice_Players | None = None
+    remove: Window_Remove_Players | None = None
+    lineup: Window_Drag_Players | None = None
 
 
 class Window_Team_Edit(QMainWindow):
@@ -26,7 +26,7 @@ class Window_Team_Edit(QMainWindow):
         set_window_title(self, "Edit Team")
 
         self.team: Team = team
-        self.windows: Windows = Windows(None, None, None)
+        self.windows: Windows = Windows()
 
         self.widget = QWidget()
         self.layout_main: QHBoxLayout = QHBoxLayout(self.widget)
@@ -49,7 +49,7 @@ class Window_Team_Edit(QMainWindow):
     def close_windows(self) -> None:
         for field in fields(self.windows):
             close_window(getattr(self.windows, field.name))
-        self.windows = Windows(None, None, None)
+        self.windows = Windows()
 
     def open_window_add_members(self) -> None:
         self.close_windows()
@@ -66,13 +66,13 @@ class Window_Team_Edit(QMainWindow):
 
     def open_window_line_up(self) -> None:
         self.close_windows()
-        self.windows.lineup = Window_Line_Up(self.team, parent=self)
+        self.windows.lineup = Window_Drag_Players(self.team.get_members(), "Change Lineup", parent=self)
         self.windows.lineup.window_closed.connect(self.line_up)
         self.windows.lineup.show()
 
     def add_members(self) -> None:
         assert(self.windows.add is not None)
-        self.team.add_members(sort_players_by_rating(self.windows.add.get_checked_objects()))
+        self.team.add_members(sort_players_swiss(self.windows.add.get_checked_objects()))
 
     def remove_members(self) -> None:
         assert(self.windows.remove is not None)
@@ -81,8 +81,7 @@ class Window_Team_Edit(QMainWindow):
 
     def line_up(self) -> None:
         assert(self.windows.lineup is not None)
-        members = self.team.get_members()
-        self.team.set_members([members[i] for i in self.windows.lineup.get_permutation()])
+        self.team.set_members(self.windows.lineup.get_objects())
 
     def closeEvent(self, event: QCloseEvent) -> None:
         self.window_closed.emit()

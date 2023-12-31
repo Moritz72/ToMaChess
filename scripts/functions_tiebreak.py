@@ -237,7 +237,7 @@ def get_board_points(uuids: Sequence[str], tournament: Tournament) -> Score_Dict
     return scores
 
 
-def get_berliner_wertung(uuids: Sequence[str], tournament: Tournament) -> dict[str, float]:
+def get_berlin_rating(uuids: Sequence[str], tournament: Tournament) -> dict[str, float]:
     scores = {uuid: 0. for uuid in uuids}
     score_dict_game = tournament.get_score_dict_game()
     boards = tournament.get_boards()

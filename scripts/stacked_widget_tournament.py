@@ -1,8 +1,9 @@
 from __future__ import annotations
-from typing import TYPE_CHECKING, Any, cast
+from typing import TYPE_CHECKING, cast
 from functools import partial
-from .stacked_widget import Stacked_Widget
+from .stacked_widget import Buttons_Args, Stacked_Widget
 from .widget_tournament_info import Widget_Tournament_Info
+from .widget_tournament_details import Widget_Tournament_Details
 from .widget_tournament_standings import Widget_Tournament_Standings
 from .widget_tournament_cross_table import Widget_Tournament_Cross_Table
 from .widget_tournament_standings_categories import Widget_Tournament_Standings_Categories
@@ -52,9 +53,10 @@ class Stacked_Widget_Tournament(Stacked_Widget):
         self.associate: tuple[str, str] | None = associate
         self.window_tournament_actions: Window_Tournament_Actions | None = None
 
-        self.widgets_info: list[Widget_Tournament_Info] = []
-        self.widgets_info.append(Widget_Tournament_Standings(self.tournament))
-        self.widgets_info.append(Widget_Tournament_Cross_Table(self.tournament))
+        self.widgets_info: list[Widget_Tournament_Info] = [
+            Widget_Tournament_Details(self.tournament), Widget_Tournament_Standings(self.tournament),
+            Widget_Tournament_Cross_Table(self.tournament)
+        ]
         if self.tournament.get_category_ranges():
             self.widgets_info.append(Widget_Tournament_Standings_Categories(self.tournament))
         for widget_info in self.widgets_info:
@@ -91,27 +93,22 @@ class Stacked_Widget_Tournament(Stacked_Widget):
 
     def set_index(self) -> None:
         if self.tournament.is_done():
-            self.setCurrentIndex(0)
+            self.setCurrentIndex(1)
         else:
             self.setCurrentIndex(self.count() - 1)
 
-    def get_buttons_args(self) -> list[dict[str, Any]]:
-        texts: list[str | tuple[str, ...]] = ["Standings", "Crosstable"]
-        if len(self.widgets_info) == 3:
-            texts.append("Categories")
+    def get_buttons_args_list(self) -> list[Buttons_Args]:
+        texts: list[str | tuple[str, ...]] = [widget_info.name for widget_info in self.widgets_info]
         texts.extend([self.tournament.get_round_name(i + 1) for i in range(len(self.widgets_round))])
 
-        buttons_args: list[dict[str, Any]] = [
+        buttons_args: Buttons_Args = [
             {"text": text, "connect": partial(self.setCurrentIndex, i), "checkable": True}
             for i, text in enumerate(texts)
         ]
         buttons_args.append({"enabled": False})
         buttons_args.append({"text": "Actions", "connect": self.open_actions, "bold": True})
         buttons_args.append({"text": "Back", "connect": self.open_default, "bold": True})
-        return buttons_args
-
-    def get_active_button_index(self) -> int:
-        return self.currentIndex()
+        return [buttons_args]
 
     def open_default(self) -> None:
         if self.associate is None:

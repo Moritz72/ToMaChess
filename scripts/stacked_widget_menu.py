@@ -1,7 +1,7 @@
 from __future__ import annotations
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING
 from functools import partial
-from .stacked_widget import Stacked_Widget
+from .stacked_widget import Buttons_Args, Stacked_Widget
 from .widget_menu_players import Widget_Menu_Players
 from .widget_menu_tournaments import Widget_Menu_Tournaments
 from .widget_menu_teams import Widget_Menu_Teams
@@ -27,18 +27,15 @@ class Stacked_Widget_Menu(Stacked_Widget):
         self.addWidget(Widget_Menu_Collections(window_main))
         self.addWidget(Widget_Settings(window_main))
 
-    def get_buttons_args(self) -> list[dict[str, Any]]:
-        return [
+    def get_buttons_args_list(self) -> list[Buttons_Args]:
+        return [[
             {"text": "Tournaments", "connect": partial(self.setCurrentIndex, 0), "checkable": True},
             {"text": "Players", "connect": partial(self.setCurrentIndex, 1), "checkable": True},
             {"text": "Teams", "connect": partial(self.setCurrentIndex, 2), "checkable": True},
             {"text": "MS Tournaments", "connect": partial(self.setCurrentIndex, 3), "checkable": True},
             {"text": "Collections", "connect": partial(self.setCurrentIndex, 4), "checkable": True},
             {"text": "Settings", "connect": partial(self.setCurrentIndex, 5), "checkable": True}
-        ]
-
-    def get_active_button_index(self) -> int:
-        return self.currentIndex()
+        ]]
 
     def open_tournament(self) -> None:
         tournament = self.widget_tournament.get_current_tournament_loaded()

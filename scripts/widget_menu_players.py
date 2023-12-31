@@ -1,5 +1,4 @@
-from PySide6.QtWidgets import QHeaderView, QPushButton
-from PySide6.QtCore import Qt
+from PySide6.QtWidgets import QPushButton
 from .player import Player
 from .table_objects import Table_Objects
 from .widget_search_generic import Widget_Search_Generic
@@ -12,15 +11,11 @@ class Widget_Menu_Players(Widget_Search_Generic[Player]):
     def __init__(self) -> None:
         super().__init__(DB_PLAYER)
 
-    @staticmethod
-    def get_table() -> Table_Objects[Player]:
-        table = Table_Objects[Player](
-            7, 3.5, 55, [None, 3.5, 5, 4.5, 4, 5, 3.5], PLAYER_ATTRIBUTE_LIST + [""], translate=True
+    def get_table(self) -> Table_Objects[Player]:
+        return Table_Objects[Player](
+            7, 3.5, 55, [None, 3.5, 5, 4.5, 4, 5, 3.5], PLAYER_ATTRIBUTE_LIST + [""],
+            stretches=[0], translate=True, parent=self
         )
-        header_horizontal, header_vertical = table.horizontalHeader(), table.verticalHeader()
-        header_horizontal.setSectionResizeMode(0, QHeaderView.ResizeMode.Stretch)
-        header_vertical.setDefaultAlignment(Qt.AlignmentFlag.AlignCenter)
-        return table
 
     def get_buttons(self) -> list[QPushButton]:
         return [

@@ -5,21 +5,24 @@
 The most recent release can be downloaded at [Releases](https://github.com/Moritz72/ToMaChess/releases).  
   
 ## Tournaments  
-There are currently five tournament modes available: *Swiss*, *Round Robin*, *Knockout*, *Keizer* and *Custom*.  
+There are currently six tournament modes available: *Swiss*, *Round Robin*, *Knockout*, *Keizer* and *Custom*.  
   
 ![demo_tournament_0](./images/demo_tournament_0.PNG)  
   
 *Swiss* uses the Dutch System implementation from [bbpPairings](https://github.com/BieremaBoyzProgramming/bbpPairings) to pair the rounds.  
-Parameters: *Rounds*, *Pairings (First Round)*, *Top Seed (First Round)*, *Point System*, *Half-Point Bye* and *Tiebreak (1) - (4)*.  
+Parameters: *Rounds*, *Pairings (First Round)*, *Top Seed (First Round)*, *Point System*, *Half-Point Bye*, *Baku Acceleration* and *Tiebreak (1) - (4)*.  
   
 *Round Robin* pairs the rounds by the Circle or Berger method.  
-Parameters: *Cycles*, *Pairing Method*, *Choose Seating*, *Point System* and *Tiebreak (1) - (4)*.  
+Parameters: *Cycles*, *Pairing Method*, *Custom Seeding*, *Point System* and *Tiebreak (1) - (4)*.  
   
 *Knockout* (Single-elimination) pairs rounds by the specified pairing method but, in successive rounds, only pairs the winners of the previous round. Furthermore, if there is a tie after the number of games specified, the specified number of tiebreak games will be played until either the tie is resolved or the number of tiebreaks specified in the Armageddon parameter is reached.  
 Parameters: *Games per Match*, *Games per Tiebreak*, *Pairing Method* and *Armageddon*.  
   
 *Keizer* pairs rounds according to the [Keizer system](https://jbfsoftware.com/wordpress/sevilla-keizer) or at least according to the information I was able to find on how it is supposed to work.  
-Parameters: *Rounds*, *Ratio (First to Last)*, *Score for Byes (%)*, *No Pairing Repeats*, *Points System*, *Tiebreak (1) - (2)*.  
+Parameters: *Rounds*, *Ratio (First to Last)*, *Score for Byes (%)*, *No Pairing Repeats*, *Points System* and *Tiebreak (1) - (2)*.  
+  
+*Scheveningen* pairs rounds according to the [Scheveningen system](https://en.wikipedia.org/wiki/Scheveningen_system). More specifically the exact pairing system is inspired by the one developed by Richard Furness as described in [this document](https://www.englishchess.org.uk/wp-content/uploads/2010/04/roundRobinPairings.pdf).  
+Parameters: *Cycles*, *Point System* and *Tiebreak (1) - (2)*.  
   
 *Custom* does not pair by itself at all, instead the user can manually pair all games of all rounds.  
 Parameters: *Games per Round*, *Rounds*, *Point System*, *Half-Point Bye* and *Tiebreak (1) - (4)*.  
@@ -35,9 +38,9 @@ The available tiebreak criteria are
 - *Buchholz Sum* (with additional parameters *Cut (bottom)*, *Cut (top)* and *Virtual Opponents*)  
 - *Sonneborn-Berger* (with additional parameters *Cut (bottom)*, *Cut (top)* and *Virtual Opponents*)  
 - *Games*  
-- *Games as black*  
+- *Games as Black*  
 - *Wins* (with additional parameter *Include Forfeits*)  
-- *Wins as black*  (with additional parameter *Include Forfeits*)  
+- *Wins as Black*  (with additional parameter *Include Forfeits*)  
 - *Average Rating* (with additional parameters *Cut (bottom)*, *Cut (top)* and *Include Forfeits*)  
 - *Progressive Scores* (with additional parameters *Cut (bottom)* and *Cut (top)*)  
 - *Koya System* (with additional parameter *Threshold (%)*)  
@@ -47,7 +50,7 @@ The available tiebreak criteria are
 For the *Armageddon* parameter the user can specify additional parameters *With Armageddon*, *After Tiebreak* and *Color Determination* (In Order, Random or Choice).  
   
 ## Players  
-Players can be manually added. Additionally, one can use the FIDE Standard rating list, the German national rating list and the USCF rating list after creating them by clicking the corresponding buttons in the settings.  
+Players can be manually added. Additionally, one can use the FIDE Standard rating list, the German national rating list, the USCF rating list and the English national rating list after creating them by clicking the corresponding buttons in the settings.  
   
 ![demo_player](./images/demo_player.PNG)  
   

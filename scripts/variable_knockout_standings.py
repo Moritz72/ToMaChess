@@ -21,15 +21,15 @@ class Variable_Knockout_Standings(dict[str, Knockout_Standing], Variable):
     def get_current_level(self) -> int:
         min_level: int | None = None
         for standing in self.values():
-            if standing.beaten_by_seat is None and (min_level is None or standing.level < min_level):
+            if standing.beaten_by_seed is None and (min_level is None or standing.level < min_level):
                 min_level = standing.level
         return min_level or 0
 
     def get_uuids(self, level: int | None = None) -> list[str]:
         level = level or self.get_current_level()
         return sorted(
-            [uuid for uuid, standing in self.items() if standing.beaten_by_seat is None and standing.level == level],
-            key=lambda x: self[x].seating
+            [uuid for uuid, standing in self.items() if standing.beaten_by_seed is None and standing.level == level],
+            key=lambda x: self[x].seed
         )
 
     def add(self, uuid: str, level: int, score: Sequence[float]) -> None:

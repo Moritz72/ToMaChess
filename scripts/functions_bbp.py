@@ -12,7 +12,7 @@ from .functions_util import read_file, write_file, get_app_data_directory
 if TYPE_CHECKING:
     from .tournament_swiss import Tournament_Swiss
 
-BBP_Result = tuple[int | None, bool | None, str]
+BBP_Result = tuple[int | None, bool | None, str | None]
 
 
 def get_bye_score(bye: Pairing_Item, tournament: Tournament_Swiss) -> str:
@@ -26,7 +26,7 @@ def get_bbp_results(tournament: Tournament_Swiss) -> list[list[BBP_Result]]:
     participants = tournament.get_participants()
     results = tournament.get_results()
     item_dict = {participant.get_uuid(): i for i, participant in enumerate(participants)} | {"bye": -1, "": -1}
-    bbp_results: list[list[BBP_Result]] = [[(None, None, '-') for _ in results] for _ in participants]
+    bbp_results: list[list[BBP_Result]] = [[(None, None, None) for _ in results] for _ in participants]
 
     for roun, round_results in enumerate(results):
         for (item_1, score_1), (item_2, score_2) in round_results:
@@ -46,6 +46,17 @@ def get_bbp_results(tournament: Tournament_Swiss) -> list[list[BBP_Result]]:
     return bbp_results
 
 
+def get_accelerated_count(bbp_results: list[list[BBP_Result]], participants: list[Participant]) -> int:
+    limit = (len(participants) + 1) // 2
+    limit += limit % 2
+    count, i = 0, 0
+    while count < limit:
+        if (None, None, None) not in bbp_results[i]:
+            count += 1
+        i += 1
+    return count
+
+
 def convert_side(side: bool) -> str:
     return 'w' if side else 'b'
 
@@ -63,7 +74,7 @@ def convert_result(result: BBP_Result) -> str:
                 return "  0000 - H"
             case _:
                 return "  0000 - Z"
-    assert(result[1] is not None)
+    assert(result[1] is not None and result[2] is not None)
     return f"{result[0] + 1} {convert_side(result[1])} {convert_points(result[2])}".rjust(10)
 
 
@@ -98,6 +109,19 @@ def write_input_file(tournament: Tournament_Swiss) -> None:
         lines += f"{point:.1f}".rjust(4) + " "
         lines += str(standings.participants.index(participant) + 1).rjust(4)
         lines += ''.join(results) + "\r\n"
+
+    if tournament.get_baku_acceleration():
+        count = get_accelerated_count(bbp_results, participants)
+        full = (tournament.get_rounds() + 1) // 2
+        half = full // 2
+        full -= half
+        full_string, half_string, null_string = (f"{score_dict[res]:.1f}".rjust(5) for res in ('1', '½', '0'))
+        points_accelerated = full * [full_string] + half * [half_string]
+        points_null = (full + half) * [null_string]
+        for i in range(count):
+            lines += f"XXA {str(i + 1).rjust(4)}{''.join(points_accelerated)}\r\n"
+        for i in range(count, len(participants)):
+            lines += f"XXA {str(i + 1).rjust(4)}{''.join(points_null)}\r\n"
 
     lines += f"XXR {tournament.get_rounds()}\r\n"
     lines += f"BBW  {float(score_dict['1'])}\r\n"

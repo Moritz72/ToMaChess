@@ -15,13 +15,13 @@ if TYPE_CHECKING:
 
 def get_update_lists_widget(parent: QObject) -> QWidget:
     buttons = [get_button_threaded(
-        parent, "large", (9, 3), string, "Updating...", connect=partial(update_list_by_name, string), translate=True
-    ) for string in ("FIDE", "DSB", "USCF")]
+        parent, "large", (15, 3), string, "Updating...", connect=partial(update_list_by_name, string), translate=True
+    ) for string in ("FIDE", "DSB", "USCF", "ECF")]
     widget = QWidget()
-    layout = QHBoxLayout(widget)
+    layout = QGridLayout(widget)
     layout.setContentsMargins(0, 0, 0, 0)
-    for button in buttons:
-        layout.addWidget(button)
+    for i, button in enumerate(buttons):
+        layout.addWidget(button, i // 2, i % 2)
     return widget
 
 
@@ -53,8 +53,7 @@ class Widget_Settings(QWidget):
             text = "ToMaChess"
         else:
             text = f"ToMaChess {version}"
-        header = get_label(text, "extra_large", bold=True)
-        header.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        header = get_label(text, "extra_large", bold=True, align=Qt.AlignmentFlag.AlignCenter)
         self.layout_main.addWidget(header)
 
     def fill_in_layout(self) -> None:

@@ -1,5 +1,5 @@
 from typing import Sequence, Any, Callable
-from PySide6.QtWidgets import QWidget, QHeaderView, QTableWidgetItem, QTableWidget
+from PySide6.QtWidgets import QWidget, QTableWidgetItem, QTableWidget, QHeaderView
 from PySide6.QtCore import Qt
 from .manager_size import MANAGER_SIZE
 from .manager_translation import MANAGER_TRANSLATION
@@ -38,40 +38,83 @@ def set_up_table(
         table.setVerticalHeaderLabels(header_vertical)
 
 
-def size_table(
-        table: QTableWidget, rows: int, row_height: float,
-        max_width: float | None = None, widths: Sequence[float | None] | Sequence[float] | None = None,
-        header_width: float | None = None
+def size_headers(
+        table: QTableWidget, width: float | None, height: float | None,
+        stretches_h: list[int] | None = None, stretches_v: list[int] | None = None
 ) -> None:
     size_factor = MANAGER_SIZE.widget_size_factor
+    stretches_h, stretches_v = stretches_h or [], stretches_v or []
+    header_h, header_v = table.horizontalHeader(), table.verticalHeader()
+    header_h.setMinimumSectionSize(0)
+    header_v.setMinimumSectionSize(0)
+    if width is not None:
+        header_v.setFixedWidth(int(width * size_factor))
+    if height is not None:
+        header_h.setFixedHeight(int(height * size_factor))
+    for column in range(table.columnCount()):
+        resize_mode = QHeaderView.ResizeMode.Stretch if column in stretches_h else QHeaderView.ResizeMode.Fixed
+        header_h.setSectionResizeMode(column, resize_mode)
+    for row in range(table.rowCount()):
+        resize_mode = QHeaderView.ResizeMode.Stretch if row in stretches_v else QHeaderView.ResizeMode.Fixed
+        header_v.setSectionResizeMode(row, resize_mode)
 
-    horizontal_header, vertical_header = table.horizontalHeader(), table.verticalHeader()
-    horizontal_header.setMinimumSectionSize(0)
-    horizontal_header.setFixedHeight(int(row_height * size_factor))
-    vertical_header.setSectionResizeMode(QHeaderView.ResizeMode.Fixed)
-    vertical_header.setDefaultSectionSize(int(row_height * size_factor))
 
-    table.setRowCount(rows)
-    if max_width is not None:
-        table.setMaximumWidth(2 + int(max_width * size_factor))
-    table.setMaximumHeight(2 + int(row_height * size_factor) * (rows + 1))
-    if header_width is not None:
-        vertical_header.setFixedWidth(int(header_width * size_factor))
-    if widths is None:
-        return
+def size_table(
+        table: QTableWidget, rows: int | None = None, columns: int | None = None,
+        row_height: float | None = None, column_width: float | None = None,
+        max_width: float | None = None, max_height: float | None = None,
+        widths: Sequence[float | None] | None = None, heights: Sequence[float | None] | None = None,
+        header_width: float | None = None, header_height: float | None = None,
+        stretches_h: list[int] | None = None, stretches_v: list[int] | None = None
+) -> None:
+    widths = widths or []
+    heights = heights or []
+    size_factor = MANAGER_SIZE.widget_size_factor
+
+    if rows is not None:
+        table.setRowCount(rows)
+    if columns is not None:
+        table.setColumnCount(columns)
+    if header_width is None:
+        header_width = column_width
+    if header_height is None:
+        header_height = row_height
+    size_headers(table, header_width, header_height, stretches_h, stretches_v)
+    if row_height is not None:
+        for row in range(table.rowCount()):
+            table.setRowHeight(row, int(row_height * size_factor))
+    if column_width is not None:
+        for column in range(table.columnCount()):
+            table.setColumnWidth(column, int(column_width * size_factor))
+    for row, height in enumerate(heights):
+        if height is not None:
+            table.setRowHeight(row, int(height * size_factor))
     for column, width in enumerate(widths):
         if width is not None:
             table.setColumnWidth(column, int(width * size_factor))
+    if max_width is not None:
+        table.setMaximumWidth(int(max_width * size_factor) + 2)
+    else:
+        width_sum = sum(table.columnWidth(column) for column in range(table.columnCount()))
+        table.setMaximumWidth(table.verticalHeader().width() + width_sum + 2)
+    if max_height is not None:
+        table.setMaximumHeight(int(max_height * size_factor) + 2)
+    else:
+        height_sum = sum(table.rowHeight(row) for row in range(table.rowCount()))
+        table.setMaximumHeight(table.horizontalHeader().height() + height_sum + 2)
 
 
 def add_content_to_table(
-        table: QTableWidget, content: Any, row: int, column: int,
+        table: QTableWidget, content: Any, row: int, column: int, size: str | None = "medium",
         edit: bool = True, align: Qt.AlignmentFlag | None = None, bold: bool = False, translate: bool = False
 ) -> None:
-    if content is None:
-        content = ""
-    item = QTableWidgetItem(MANAGER_TRANSLATION.tl(str(content)) if translate else str(content))
-    set_font(item, "medium", bold)
+    content = content or ""
+    if translate:
+        if not isinstance(content, str | tuple):
+            content = str(content)
+        content = MANAGER_TRANSLATION.tl(content)
+    item = QTableWidgetItem(str(content))
+    set_font(item, size, bold)
     if not edit:
         item.setFlags(item.flags() & ~Qt.ItemFlag.ItemIsEditable)
     if align is not None:

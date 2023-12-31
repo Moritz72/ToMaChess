@@ -108,7 +108,7 @@ class Window_Tournament_New_Generic(QMainWindow, Generic[T]):
         if valid_parameters and (self.new_tournament.is_valid() or not self.add_participants):
             self.new_tournament.possess_participants()
             if self.add_participants:
-                self.new_tournament.seat_participants()
+                self.new_tournament.seed_participants()
             self.added_tournament.emit()
             self.close()
         else:

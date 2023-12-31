@@ -1,6 +1,6 @@
 from typing import Any
 from math import inf
-from PySide6.QtWidgets import QMainWindow, QHBoxLayout, QWidget, QTableWidget, QHeaderView, QVBoxLayout
+from PySide6.QtWidgets import QMainWindow, QHBoxLayout, QWidget, QTableWidget, QVBoxLayout
 from PySide6.QtCore import Qt, QSize
 from PySide6.QtGui import QCloseEvent
 from .category_range import INTEGER_CATEGORIES, Category_Range
@@ -41,7 +41,10 @@ class Window_Add_Categories(QMainWindow):
         set_window_size(self, QSize(self.table.maximumWidth() + self.add_row_button.width(), 0), factor_y=.4)
 
     def resize_table(self) -> None:
-        size_table(self.table, self.table.rowCount(), 3.5, max_width=29.5, widths=[12, 7, 7, 3.5])
+        size_table(
+            self.table, rows=self.table.rowCount(), row_height=3.5, max_width=29.5, widths=[12, 7, 7, 3.5],
+            header_width=0, stretches_h=[0]
+        )
 
     def add_category_row(self) -> None:
         row = self.table.rowCount()
@@ -54,10 +57,6 @@ class Window_Add_Categories(QMainWindow):
 
     def make_table(self) -> None:
         set_up_table(self.table, 0, 4, header_horizontal=["Category", "From", "Up To", ""], translate=True)
-
-        header_horizontal, header_vertical = self.table.horizontalHeader(), self.table.verticalHeader()
-        header_horizontal.setSectionResizeMode(0, QHeaderView.ResizeMode.Stretch)
-        header_vertical.setVisible(False)
 
     def remove_row(self) -> None:
         row = self.table.currentRow()

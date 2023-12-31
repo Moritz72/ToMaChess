@@ -59,7 +59,10 @@ class Standings_Table(list[list[float]]):
         i = 0
         while i < len(placements):
             for j in range(i + 1, i + len(placements[i])):
-                placements[j] = [placements[i].pop(0)]
+                if j >= len(placements):
+                    placements.append([placements[i].pop(0)])
+                else:
+                    placements[j] = [placements[i].pop(0)]
                 i += 1
             i += 1
         return placements

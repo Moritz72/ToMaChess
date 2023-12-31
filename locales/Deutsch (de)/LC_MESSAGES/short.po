@@ -86,7 +86,7 @@ msgstr "DiVe"
 msgid "Board Points"
 msgstr "BrPu"
 
-msgid "Berliner Wertung"
+msgid "Berlin Rating"
 msgstr "BeWe"
 
 msgid "Games"

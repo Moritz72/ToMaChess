@@ -74,9 +74,10 @@ class Window_MS_Tournament_New_Generic(QMainWindow, Generic[T]):
             self.stage_widgets.pop()
 
     def create_tournament(self) -> None:
-        stages_tournaments = [stage_widget.tournaments for stage_widget in self.stage_widgets]
+        stages_tournaments = [stage_widget.get_tournaments() for stage_widget in self.stage_widgets]
         stages_advance_lists = [[
-            advance_list.get_simplified(stages_tournaments[stage - 1]) for advance_list in stage_widget.advance_lists
+            advance_list.get_simplified(stages_tournaments[stage - 1])
+            for advance_list in stage_widget.get_advance_lists()
         ] for stage, stage_widget in enumerate(self.stage_widgets)]
 
         assert(self.name_line is not None and self.draw_lots_check is not None)
@@ -87,13 +88,13 @@ class Window_MS_Tournament_New_Generic(QMainWindow, Generic[T]):
         if self.new_tournament.is_valid():
             self.new_tournament.possess_participants_and_tournaments()
             for tournament in self.new_tournament.get_current_tournaments():
-                tournament.seat_participants()
+                tournament.seed_participants()
             self.added_tournament.emit()
             self.close()
 
     def validate_advance_lists(self, stage: int) -> None:
         for stage_widget in self.stage_widgets[stage:]:
-            for advance_list in stage_widget.advance_lists:
+            for advance_list in stage_widget.get_advance_lists():
                 advance_list.validate()
             stage_widget.fill_in_table()
 

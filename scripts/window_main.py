@@ -1,5 +1,5 @@
 from typing import Any
-from PySide6.QtWidgets import QMainWindow, QApplication
+from PySide6.QtWidgets import QMainWindow, QApplication, QDockWidget
 from PySide6.QtCore import Qt
 from PySide6.QtGui import QKeyEvent, QCloseEvent
 from .manager_size import MANAGER_SIZE
@@ -23,9 +23,10 @@ STACKED_WIDGETS = {
 class Window_Main(QMainWindow):
     def __init__(self) -> None:
         MANAGER_SETTINGS.load()
+        MANAGER_SIZE.refresh()
         super().__init__()
-        self.side_menu: Side_Menu | None = None
-        self.stacked_widget: Stacked_Widget | None = None
+        self.stacked_widget: Stacked_Widget = Stacked_Widget_Menu(self)
+        self.side_menu: Side_Menu = Side_Menu(self.stacked_widget)
         self.reload()
         set_window_title(self, "ToMaChess")
 
@@ -42,28 +43,31 @@ class Window_Main(QMainWindow):
     def set_stacked_widget(self, string: str, args: dict[str, Any] | None = None, index: int | None = None) -> None:
         self.close_windows()
         args = args or dict()
-        if self.side_menu is not None:
-            self.removeDockWidget(self.side_menu)
         self.stacked_widget = STACKED_WIDGETS[string](self, **args)
-        if self.stacked_widget is None:
-            return
-
         self.setCentralWidget(self.stacked_widget)
-        self.side_menu = Side_Menu(self.stacked_widget)
-        self.addDockWidget(Qt.DockWidgetArea.LeftDockWidgetArea, self.side_menu)
+        self.side_menu.set_stacked_widget(self.stacked_widget)
+        self.set_side_menu()
         if index is not None:
             self.stacked_widget.setCurrentIndex(index)
             self.side_menu.make_side_menu()
-        self.resizeDocks(
-            [self.side_menu], [int(self.side_menu.layout().sizeHint().width() * 1.2)], Qt.Orientation.Horizontal
-        )
+
+    def set_side_menu(self) -> None:
+        dock_widgets = self.side_menu.get_widgets()
+        dock_widget_heights = [2 * dock_widget.sizeHint().height() for dock_widget in dock_widgets]
+        for dock_widget in self.findChildren(QDockWidget):
+            self.removeDockWidget(dock_widget)
+        for dock_widget in dock_widgets[::-1]:
+            self.addDockWidget(Qt.DockWidgetArea.LeftDockWidgetArea, dock_widget)
+        for i in range(len(dock_widgets) - 1):
+            self.splitDockWidget(dock_widgets[i], dock_widgets[i + 1], Qt.Orientation.Vertical)
+        self.resizeDocks(dock_widgets, len(dock_widgets) * [self.side_menu.get_width()], Qt.Orientation.Horizontal)
+        self.resizeDocks(dock_widgets, dock_widget_heights, Qt.Orientation.Vertical)
 
     def reload(self) -> None:
         MANAGER_SIZE.refresh()
         MANAGER_TRANSLATION.refresh()
         set_stylesheet(f"{MANAGER_SETTINGS['style'][0]}.qss")
-        index = 0 if self.stacked_widget is None else self.stacked_widget.currentIndex()
-        self.set_stacked_widget("Default", index=index)
+        self.set_stacked_widget("Default", index=self.stacked_widget.currentIndex())
 
     def close_windows(self) -> None:
         for window in QApplication.topLevelWidgets():

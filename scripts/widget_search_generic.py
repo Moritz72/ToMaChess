@@ -62,9 +62,8 @@ class Widget_Search_Generic(QWidget, Generic[T]):
 
         self.fill_in_table()
 
-    @staticmethod
     @abstractmethod
-    def get_table() -> Table_Objects[T]:
+    def get_table(self) -> Table_Objects[T]:
         pass
 
     @abstractmethod

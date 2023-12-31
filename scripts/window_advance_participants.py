@@ -1,5 +1,5 @@
 from typing import cast
-from PySide6.QtWidgets import QMainWindow, QHBoxLayout, QWidget, QTableWidget, QHeaderView, QVBoxLayout, QComboBox
+from PySide6.QtWidgets import QMainWindow, QHBoxLayout, QWidget, QTableWidget, QVBoxLayout, QComboBox
 from PySide6.QtCore import Qt, Signal, QSize
 from PySide6.QtGui import QCloseEvent
 from .advance_list import Advance_List
@@ -46,9 +46,11 @@ class Window_Advance_Participants(QMainWindow):
             self.close()
 
     def resize_table(self) -> None:
-        size_table(self.table, self.table.rowCount(), 3.5, max_width=30, widths=[None, 8, 3.5])
+        size_table(
+            self.table, rows=self.table.rowCount(), row_height=3.5, max_width=30, widths=[None, 8, 3.5], stretches_h=[0]
+        )
 
-    def get_seatings_choices(self, tournament: Tournament | None) -> list[int]:
+    def get_seeding_choices(self, tournament: Tournament | None) -> list[int]:
         if tournament is None:
             return [i + 1 for i in range(self.participant_counts[0])]
         return [i + 1 for i in range(self.participant_counts[self.tournaments.index(tournament)])]
@@ -68,7 +70,7 @@ class Window_Advance_Participants(QMainWindow):
 
         add_combobox_to_table(self.table, self.tournaments, row, 0, "medium", None, current=tournament)
         add_combobox_to_table(
-            self.table, self.get_seatings_choices(tournament), row, 1, "medium", None, current=placement
+            self.table, self.get_seeding_choices(tournament), row, 1, "medium", None, current=placement
         )
         add_button_to_table(self.table, row, 2, "medium", None, '-', connect=self.remove_row)
 
@@ -81,10 +83,7 @@ class Window_Advance_Participants(QMainWindow):
     def fill_in_table(self) -> None:
         set_up_table(self.table, 0, 3, header_horizontal=["Tournament", "Placement", ""], translate=True)
         self.resize_table()
-
-        header_horizontal, header_vertical = self.table.horizontalHeader(), self.table.verticalHeader()
-        header_horizontal.setSectionResizeMode(0, QHeaderView.ResizeMode.Stretch)
-        header_vertical.setDefaultAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.table.verticalHeader().setDefaultAlignment(Qt.AlignmentFlag.AlignCenter)
 
         for tournament, placement in self.advance_list:
             self.add_row(tournament, placement)
@@ -93,7 +92,7 @@ class Window_Advance_Participants(QMainWindow):
         row = self.table.currentRow()
         placement_box = self.get_combo_box(row, 1)
         placement_box.clear()
-        for placement in self.get_seatings_choices(self.get_tournament(row)):
+        for placement in self.get_seeding_choices(self.get_tournament(row)):
             placement_box.addItem(str(placement), placement)
 
     def remove_row(self) -> None:

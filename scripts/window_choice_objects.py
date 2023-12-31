@@ -1,7 +1,7 @@
 from abc import abstractmethod
 from typing import Any, TypeVar, Generic
-from PySide6.QtWidgets import QMainWindow, QHeaderView, QPushButton, QWidget
-from PySide6.QtCore import Qt, Signal, QSize
+from PySide6.QtWidgets import QMainWindow, QPushButton, QWidget
+from PySide6.QtCore import Signal, QSize
 from PySide6.QtGui import QCloseEvent
 from .object import Object
 from .player import Player
@@ -28,9 +28,8 @@ class Widget_Choice_Object(Widget_Search_Generic[T], Generic[T]):
         self.uuids_only: bool = uuids_only
         super().__init__(db, table_root=table_root, associates=associates, shallow_load=shallow_load)
 
-    @staticmethod
     @abstractmethod
-    def get_table() -> Table_Objects[T]:
+    def get_table(self) -> Table_Objects[T]:
         pass
 
     def get_buttons(self) -> list[QPushButton]:
@@ -73,15 +72,11 @@ class Widget_Choice_Players(Widget_Choice_Object[Player]):
             db, tuples_excluded, tuples_checked, table_root=table_root, associates=associates, uuids_only=uuids_only
         )
 
-    @staticmethod
-    def get_table() -> Table_Objects[Player]:
-        table = Table_Objects[Player](
-            7, 3.5, 55, [None, 3.5, 5, 4.5, 4, 5, 3.5], PLAYER_ATTRIBUTE_LIST + [""], translate=True
+    def get_table(self) -> Table_Objects[Player]:
+        return Table_Objects[Player](
+            7, 3.5, 55, [None, 3.5, 5, 4.5, 4, 5, 3.5], PLAYER_ATTRIBUTE_LIST + [""],
+            stretches=[0], translate=True, parent=self
         )
-        header_horizontal, header_vertical = table.horizontalHeader(), table.verticalHeader()
-        header_horizontal.setSectionResizeMode(0, QHeaderView.ResizeMode.Stretch)
-        header_vertical.setDefaultAlignment(Qt.AlignmentFlag.AlignCenter)
-        return table
 
     def fill_in_row(self, row: int, player: Player | None = None) -> None:
         if player is None:
@@ -103,13 +98,10 @@ class Widget_Choice_Teams(Widget_Choice_Object[Team]):
             table_root=table_root, associates=associates, uuids_only=uuids_only, shallow_load=True
         )
 
-    @staticmethod
-    def get_table() -> Table_Objects[Team]:
-        table = Table_Objects[Team](3, 3.5, 55, [None, 5, 3.5], TEAM_ATTRIBUTE_LIST + [""], translate=True)
-        header_horizontal, header_vertical = table.horizontalHeader(), table.verticalHeader()
-        header_horizontal.setSectionResizeMode(0, QHeaderView.ResizeMode.Stretch)
-        header_vertical.setDefaultAlignment(Qt.AlignmentFlag.AlignCenter)
-        return table
+    def get_table(self) -> Table_Objects[Team]:
+        return Table_Objects[Team](
+            3, 3.5, 55, [None, 5, 3.5], TEAM_ATTRIBUTE_LIST + [""], stretches=[0], translate=True, parent=self
+        )
 
     def fill_in_row(self, row: int, team: Team | None = None) -> None:
         if team is None:

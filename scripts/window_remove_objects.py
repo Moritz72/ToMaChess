@@ -1,6 +1,6 @@
 from abc import abstractmethod
 from typing import TypeVar, Generic
-from PySide6.QtWidgets import QMainWindow, QTableWidget, QHeaderView, QWidget
+from PySide6.QtWidgets import QMainWindow, QTableWidget, QWidget
 from PySide6.QtCore import Qt, Signal, QSize
 from PySide6.QtGui import QCloseEvent
 from .object import Object
@@ -50,15 +50,15 @@ class Table_Remove_Players(Table_Remove_Objects[Player]):
         add_button_to_table(self, row, 6, "medium", None, '-', connect=self.add_object_to_be_removed)
 
     def resize_table(self) -> None:
-        size_table(self, len(self.objects), 3.5, max_width=55, widths=[None, 3.5, 5, 4.5, 4, 5, 3.5])
+        size_table(
+            self, rows=len(self.objects), row_height=3.5, max_width=55, widths=[None, 3.5, 5, 4.5, 4, 5, 3.5],
+            stretches_h=[0]
+        )
 
     def fill_in_table(self) -> None:
         set_up_table(self, 0, 7, header_horizontal=PLAYER_ATTRIBUTE_LIST + [""], translate=True)
         self.resize_table()
-
-        header_horizontal, header_vertical = self.horizontalHeader(), self.verticalHeader()
-        header_horizontal.setSectionResizeMode(0, QHeaderView.ResizeMode.Stretch)
-        header_vertical.setDefaultAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.verticalHeader().setDefaultAlignment(Qt.AlignmentFlag.AlignCenter)
         super().fill_in_table()
 
 
@@ -71,15 +71,12 @@ class Table_Remove_Teams(Table_Remove_Objects[Team]):
         add_button_to_table(self, row, 2, "medium", None, '-', connect=self.add_object_to_be_removed)
 
     def resize_table(self) -> None:
-        size_table(self, len(self.objects), 3.5, max_width=55, widths=[None, 5, 3.5])
+        size_table(self, rows=len(self.objects), row_height=3.5, max_width=55, widths=[None, 5, 3.5], stretches_h=[0])
 
     def fill_in_table(self) -> None:
         set_up_table(self, 0, 3, header_horizontal=TEAM_ATTRIBUTE_LIST + [""], translate=True)
         self.resize_table()
-
-        header_horizontal, header_vertical = self.horizontalHeader(), self.verticalHeader()
-        header_horizontal.setSectionResizeMode(0, QHeaderView.ResizeMode.Stretch)
-        header_vertical.setDefaultAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.verticalHeader().setDefaultAlignment(Qt.AlignmentFlag.AlignCenter)
         super().fill_in_table()
 
 
