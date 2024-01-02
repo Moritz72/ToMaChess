@@ -37,7 +37,7 @@ class Tournament_Knockout(Tournament):
         self.parameters = {
             "games": 2,
             "games_per_tiebreak": 2,
-            "pairing_method": ["Slide", "Fold", "Adjacent", "Random", "Custom"],
+            "pairing_method": ["Fold", "Slide", "Adjacent", "Random", "Custom"],
             "armageddon": Parameter_Armageddon()
         } | self.parameters
         self.parameters_display = {

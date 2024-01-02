@@ -24,7 +24,7 @@ class Tournament_Swiss(Tournament):
         self.mode = "Swiss"
         self.parameters = {
             "rounds": 7,
-            "pairing_method_first_round": ["Fold", "Slide", "Adjacent", "Random", "Custom"],
+            "pairing_method_first_round": ["Slide", "Fold", "Adjacent", "Random", "Custom"],
             "top_seed_color_first_round": ["Random", "White", "Black"],
             "point_system": ["1 - ½ - 0", "2 - 1 - 0", "3 - 1 - 0"],
             "half_bye": False,
