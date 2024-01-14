@@ -5,7 +5,7 @@
 The most recent release can be downloaded at [Releases](https://github.com/Moritz72/ToMaChess/releases).  
   
 ## Tournaments  
-There are currently six tournament modes available: *Swiss*, *Round Robin*, *Knockout*, *Keizer* and *Custom*.  
+There are currently six tournament modes available: *Swiss*, *Round Robin*, *Knockout*, *Keizer*, *Scheveningen* and *Custom*.  
   
 ![demo_tournament_0](./images/demo_tournament_0.PNG)  
   
