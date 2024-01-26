@@ -32,6 +32,7 @@ class Table_Objects(QTableWidget, Generic[T]):
 
     def insert_object(self, i: int, obj: T) -> None:
         self.objects.insert(i, obj)
+        self.insertRow(i)
         self.resize_table()
 
     def reset_changes(self) -> None:

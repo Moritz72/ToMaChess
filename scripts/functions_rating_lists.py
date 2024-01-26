@@ -37,8 +37,8 @@ def process_xml(xml_file_path: str, keys: Sequence[str]) -> list[tuple[str, ...]
     ]
 
 
-def process_csv(csv_file_path: str, keys: Sequence[str]) -> list[tuple[str, ...]]:
-    with open(csv_file_path, 'r', encoding="utf-8") as file:
+def process_csv(csv_file_path: str, keys: Sequence[str], encoding: str | None = None) -> list[tuple[str, ...]]:
+    with open(csv_file_path, 'r', encoding=encoding) as file:
         csv_reader = reader(file)
         header = next(csv_reader)
         indices = tuple(-1 if key == "" else header.index(key) for key in keys)
@@ -153,7 +153,7 @@ def get_ecf_list() -> list[Player] | None:
 
     if not download_file(url, file_name):
         return None
-    data = process_csv(path, ("full_name", "gender", "", "nation", "", "original_standard", "ECF_code"))
+    data = process_csv(path, ("full_name", "gender", "", "nation", "", "original_standard", "ECF_code"), "utf-8")
     os.remove(path)
     return [Player(
         entry[0], entry[1], None, entry[3], None, entry[5],
