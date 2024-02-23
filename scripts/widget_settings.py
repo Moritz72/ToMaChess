@@ -1,7 +1,7 @@
 from __future__ import annotations
 from typing import TYPE_CHECKING, cast
 from functools import partial
-from PySide6.QtWidgets import QWidget, QGridLayout, QVBoxLayout, QHBoxLayout, QLineEdit
+from PySide6.QtWidgets import QWidget, QGridLayout, QVBoxLayout, QLineEdit
 from PySide6.QtCore import Qt, QObject
 from .manager_settings import SETTINGS_DISPLAY, MANAGER_SETTINGS
 from .ftp_connection import FTP_CONNECTION

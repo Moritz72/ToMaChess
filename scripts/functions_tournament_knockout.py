@@ -1,6 +1,14 @@
 from typing import Sequence, cast
+from .bracket_tree import Bracket_Tree, Bracket_Tree_Node
+from .pairing_item import Pairing_Item, Bye_PA, get_item_from_string
+from .result import Result
 from .parameter_armageddon import Parameter_Armageddon
 from .variable_knockout_standings import Variable_Knockout_Standings
+from .variable_pairings import Variable_Pairings
+from .variable_results import Variable_Results
+from .functions_pairing import PAIRING_FUNCTIONS
+
+Results_Dict = dict[tuple[Pairing_Item, Pairing_Item], list[tuple[str, str]]]
 
 
 def div(a: float, b: float) -> float:
@@ -98,3 +106,92 @@ def get_end_rounds(
         calculate_number_of_games(max_score, games, games_per_tiebreak, armageddon, total, total_tb)
         for _, max_score in sorted(levels_max.items())
     ]
+
+
+def get_layer_results_dict(results: list[list[Result]], auto_advance: list[str]) -> Results_Dict:
+    results_dict: Results_Dict = dict()
+    for advancer in auto_advance:
+        results_dict[(get_item_from_string(advancer), Bye_PA())] = []
+    for round_results in results:
+        for result in round_results:
+            pair = (result[0][0], result[1][0])
+            score = (result[0][1], result[1][1])
+            if pair in results_dict:
+                results_dict[pair].append(score)
+            elif pair[::-1] in results_dict:
+                results_dict[pair[::-1]].append(score[::-1])
+            else:
+                results_dict[pair] = [score]
+    return results_dict
+
+
+def get_layers(
+        standings_dict: Variable_Knockout_Standings, pairings: Variable_Pairings, results: Variable_Results,
+        history: list[list[str]], ends: list[int]
+) -> list[list[Bracket_Tree_Node]]:
+    levels = {uuid: standing.level for uuid, standing in standings_dict.items()} | {"": -1}
+    results_dicts = [get_layer_results_dict(results[ends[i]:ends[i + 1]], history[i]) for i in range(len(history))]
+    layers = [[
+        Bracket_Tree_Node(
+            (item_1, item_2), scores, None if levels[item_1] == levels[item_2] else levels[item_1] < levels[item_2]
+        )
+        for (item_1, item_2), scores in results_dict.items()
+    ] for results_dict in results_dicts]
+
+    if bool(pairings) and all(pairing.is_fixed() for pairing in pairings) and len(results) in ends:
+        pairs = [(cast(Pairing_Item, item_1), cast(Pairing_Item, item_2)) for item_1, item_2 in pairings]
+        pairs_flat = [item for pair in pairs for item in pair]
+        advancers = [get_item_from_string(uuid) for uuid in standings_dict.get_uuids() if uuid not in pairs_flat]
+        layers.append(
+            [Bracket_Tree_Node((advancer, Bye_PA()), [], False) for advancer in advancers] +
+            [Bracket_Tree_Node(pair, []) for pair in pairs]
+        )
+
+    i = 1
+    while i < len(layers):
+        if len(layers[-i - 1]) > 2 * len(layers[-i]):
+            items = [cast(Pairing_Item, item) for node in layers[-i] for item in node.items]
+            nodes = [Bracket_Tree_Node((item, Bye_PA()), [], None if item.is_bye() else False) for item in items]
+            layers.insert(-i, nodes)
+        i += 1
+    return layers
+
+
+def connect_layers(layer_1: list[Bracket_Tree_Node], layer_2: list[Bracket_Tree_Node]) -> None:
+    nodes_to_connect = layer_1.copy()
+    for parent_node in layer_2:
+        children = [node for node in layer_1 if bool((set(node.items) & set(parent_node.items)) - {Bye_PA()})]
+        parent_node.set_children(children, len(children) * [True])
+        if parent_node.children[0] is not None and parent_node.items[0] not in parent_node.children[0].items:
+            parent_node.swap()
+        nodes_to_connect = [node for node in nodes_to_connect if node not in children]
+    for _ in range(2):
+        j = 1
+        while bool(nodes_to_connect) and j <= len(layer_2):
+            parent_node = layer_2[-j]
+            if parent_node.get_n_children() < 2:
+                parent_node.set_children([nodes_to_connect[-1]], [False])
+                nodes_to_connect.pop()
+            j += 1
+
+
+def add_future_layer(layers: list[list[Bracket_Tree_Node]], pairing_method: str | None) -> None:
+    pairs = PAIRING_FUNCTIONS[pairing_method or "Fold"](len(layers[-1]), True)
+    layers.append([Bracket_Tree_Node((None, None), []) for _ in range(len(pairs))])
+    for node, (p_1, p_2) in zip(layers[-1], pairs):
+        node.set_children([layers[-2][p_1], layers[-2][p_2]], 2 * [pairing_method is not None])
+
+
+def get_bracket_tree(
+        standings_dict: Variable_Knockout_Standings, pairings: Variable_Pairings, results: Variable_Results,
+        auto_advance_history: list[list[str]], pairing_method: str, end_rounds: list[int]
+) -> Bracket_Tree:
+    end_rounds = [0] + end_rounds
+    for i in range(1, len(end_rounds)):
+        end_rounds[i] += end_rounds[i - 1]
+    layers = get_layers(standings_dict, pairings, results, auto_advance_history, end_rounds)
+    for i in range(1, len(layers)):
+        connect_layers(layers[i - 1], layers[i])
+    while len(layers[-1]) > 1:
+        add_future_layer(layers, pairing_method if pairing_method in ("Fold", "Slide") else None)
+    return Bracket_Tree(layers[-1][0])

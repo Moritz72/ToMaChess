@@ -11,6 +11,11 @@ QWidget#blank_widget {
   background-color: qlineargradient(spread:pad, x1:0 y1:.4, x2:1 y2:.6, stop:0 rgb(38, 38, 38), stop:1 rgb(37, 37, 37));
 }
 
+QWidget#turn_widget, QWidget#line_widget {
+  background: rgb(180, 180, 180);
+}
+
+
 QMainWindow::separator {
   background: rgb(110, 110, 110);
   width: 2px;
@@ -23,6 +28,42 @@ QSplitter::handle {
 
 QLabel {
   color: rgb(180, 180, 180);
+}
+
+QLabel#bracket {
+  background: rgb(30, 30, 80);
+}
+
+QLabel#bracket_winner {
+  background: rgb(0, 80, 0);
+}
+
+QLabel#bracket_loser {
+  background: rgb(80, 0, 0);
+}
+
+QLabel#bracket_blank {
+  background: rgb(50, 50, 100);
+}
+
+QLabel#bracket_winner_blank {
+  background: rgb(0, 100, 0);
+}
+
+QLabel#bracket_loser_blank {
+  background: rgb(100, 0, 0);
+}
+
+QLabel#bracket_name {
+  background: qlineargradient(spread:pad, x1:0 y1:.4, x2:1 y2:.6, stop:0 rgb(20, 20, 50), stop:1 rgb(30, 30, 80));
+}
+
+QLabel#bracket_winner_name {
+  background: qlineargradient(spread:pad, x1:0 y1:.4, x2:1 y2:.6, stop:0 rgb(0, 50, 0), stop:1 rgb(0, 80, 0));;
+}
+
+QLabel#bracket_loser_name {
+  background: qlineargradient(spread:pad, x1:0 y1:.4, x2:1 y2:.6, stop:0 rgb(50, 0, 0), stop:1 rgb(80, 0, 0));
 }
 
 QPushButton {

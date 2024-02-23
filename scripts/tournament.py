@@ -13,6 +13,7 @@ from .result_team import Result_Team
 from .category_range import Category_Range
 from .standings_table import Standings_Table
 from .cross_table import Cross_Table
+from .bracket_tree import Bracket_Tree
 from .parameter import Parameter
 from .parameter_armageddon import Parameter_Armageddon
 from .parameter_tiebreak import Parameter_Tiebreak
@@ -234,6 +235,9 @@ class Tournament(Object):
                     table[index_2][index_1] = entry_2 + score_2
         return Cross_Table(table, [participant.get_name() for participant in participants])
 
+    def get_bracket_tree(self) -> Bracket_Tree:
+        return Bracket_Tree()
+
     def get_details(self) -> dict[tuple[str, ...] | str, str]:
         details: dict[tuple[str, ...] | str, str] = {
             "Name": self.get_name(), "Participants": str(self.get_participant_count()), "Mode": self.get_mode()
@@ -341,6 +345,12 @@ class Tournament(Object):
 
     def is_seeding_allowed(self) -> bool:
         return True
+
+    def has_cross_table(self) -> bool:
+        return True
+
+    def has_bracket_tree(self) -> bool:
+        return False
 
     def load_parameters_and_variables(self) -> None:
         for parameter, value in self.get_parameters().items():

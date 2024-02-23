@@ -1,12 +1,13 @@
 from abc import abstractmethod
 from typing import Any, TypeVar, Generic
 from PySide6.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout, QPushButton
-from PySide6.QtCore import Qt, QTimer
+from PySide6.QtCore import Qt
 from .object import Object
 from .db_object import DB_Object
 from .db_collection import load_collections_by_type
 from .table_objects import Table_Objects
 from .gui_functions import add_widgets_in_layout, get_lineedit, get_combo_box
+from .gui_search import Search_Bar
 
 T = TypeVar('T', bound=Object)
 
@@ -31,11 +32,6 @@ class Widget_Search_Generic(QWidget, Generic[T]):
                 for collection in load_collections_by_type(self.table_root, db.type)
             ]
 
-        self.search_timer: QTimer = QTimer()
-        self.search_timer.setInterval(300)
-        self.search_timer.setSingleShot(True)
-        self.search_timer.timeout.connect(self.fill_in_table)
-
         self.layout_main: QHBoxLayout = QHBoxLayout(self)
         self.layout_main.addWidget(QWidget())
         self.table: Table_Objects[T] = self.get_table()
@@ -43,17 +39,14 @@ class Widget_Search_Generic(QWidget, Generic[T]):
         layout.setAlignment(Qt.AlignmentFlag.AlignTop)
         add_widgets_in_layout(self.layout_main, layout, [self.table])
 
-        self.search_bar = get_lineedit("medium", (14, 3))
-        self.search_bar.textChanged.connect(self.reset_timer)
+        self.search_bar: Search_Bar = Search_Bar(self.fill_in_table, "medium", (14, 3))
         widgets = [self.search_bar, *self.get_buttons()]
         if self.associates is not None:
             if len(self.associates) == 1:
                 lineedit = get_lineedit("large", (14, 3), text=self.associates[0][0], read_only=True)
                 widgets = [lineedit] + widgets
             else:
-                combo_box = get_combo_box(
-                    [associate[0] for associate in self.associates], "large", (14, 3)
-                )
+                combo_box = get_combo_box([associate[0] for associate in self.associates], "large", (14, 3))
                 combo_box.currentIndexChanged.connect(self.change_associate)
                 widgets = [combo_box] + widgets
         layout = QVBoxLayout()
@@ -90,10 +83,6 @@ class Widget_Search_Generic(QWidget, Generic[T]):
         assert(self.associates is not None)
         self.associates_index = i
         self.fill_in_table()
-
-    def reset_timer(self) -> None:
-        self.search_timer.stop()
-        self.search_timer.start()
 
     def add_new_row(self) -> None:
         self.table.add_row()

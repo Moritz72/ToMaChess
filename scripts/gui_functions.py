@@ -121,6 +121,16 @@ def set_fixed_size(widget: QWidget, widget_size: Widget_Size) -> None:
         widget.setFixedHeight(int(widget_size[1] * size_factor))
 
 
+def set_max_size(widget: QWidget, widget_size: Widget_Size) -> None:
+    if widget_size is None:
+        return
+    size_factor = MANAGER_SIZE.widget_size_factor
+    if widget_size[0] is not None:
+        widget.setMaximumWidth(int(widget_size[0] * size_factor))
+    if widget_size[1] is not None:
+        widget.setMaximumHeight(int(widget_size[1] * size_factor))
+
+
 def get_font(font_size: int | None = None, bold: bool = False) -> QFont:
     font = QFont(MANAGER_SETTINGS["font"][0])
     if font_size is not None:

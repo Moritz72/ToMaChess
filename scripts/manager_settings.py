@@ -41,7 +41,7 @@ def get_font_list() -> list[str]:
 def get_defaults() -> dict[str, Any]:
     return {
         "language": ["English (en)", "Deutsch (de)", "日本語 (jp)"],
-        "style": ["Light", "Dark", "Old (Light)", "Old (Dark)"],
+        "style": ["Light", "Dark"],
         "font": get_font_list(),
         "font_size": 12,
         "bbp_path": os.path.join(get_root_directory(), "bbp"),

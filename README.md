@@ -82,7 +82,7 @@ Similarly, one can configure *Server Address*, *Server Username* and *Server Pas
   
 ## Settings  
 - *Language* (English, German or Japanese)  
-- *Style* (Light, Dark, Old (Light) or Old (Dark))  
+- *Style* (Light or Dark)  
 - *Font*  
 - *Font Size*  
 - *bbpPairings Path*  

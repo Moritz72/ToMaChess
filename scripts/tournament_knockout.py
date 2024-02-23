@@ -7,12 +7,13 @@ from .result import Result
 from .result_team import Result_Team
 from .category_range import Category_Range
 from .standings_table import Standings_Table
+from .bracket_tree import Bracket_Tree
 from .parameter_armageddon import Parameter_Armageddon
 from .variable_knockout_standings import Variable_Knockout_Standings
 from .functions_pairing import PAIRING_FUNCTIONS
 from .functions_util import shorten_float, has_duplicates
 from .functions_tournament_knockout import get_end_rounds, update_participant_standings,\
-    reverse_participant_standings
+    reverse_participant_standings, get_bracket_tree
 from .db_player import sort_players_swiss
 
 
@@ -40,6 +41,9 @@ class Tournament_Knockout(Tournament):
             "pairing_method": ["Fold", "Slide", "Adjacent", "Random", "Custom"],
             "armageddon": Parameter_Armageddon()
         } | self.parameters
+        self.variables = {
+            "auto_advance_history": []
+        } | self.variables
         self.parameters_display = {
             "games": "Games per Match",
             "games_per_tiebreak": "Games per Tiebreak",
@@ -98,6 +102,9 @@ class Tournament_Knockout(Tournament):
     def get_standings_dict(self) -> Variable_Knockout_Standings:
         return cast(Variable_Knockout_Standings, self.get_variable("standings_dict"))
 
+    def get_auto_advance_history(self) -> list[list[str]]:
+        return cast(list[list[str]], self.get_variable("auto_advance_history"))
+
     @staticmethod
     def get_initial_score() -> list[float]:
         return [0.]
@@ -109,6 +116,16 @@ class Tournament_Knockout(Tournament):
         return [
             get_scores(score_1, score_2, self.get_score_dict()) for (_, score_1), (_, score_2) in self.get_results()[-1]
         ]
+
+    def get_bracket_tree(self) -> Bracket_Tree:
+        standings_dict = self.get_standings_dict()
+        end_rounds = get_end_rounds(
+            standings_dict, self.get_games(), self.get_games_per_tiebreak(), self.get_armageddon(), *self.get_totals()
+        )
+        return get_bracket_tree(
+            self.get_standings_dict(), self.get_pairings(), self.get_results(),
+            self.get_auto_advance_history(), self.get_pairing_method(), end_rounds
+        )
 
     def set_participants(self, participants: Sequence[Participant], from_order: bool = False) -> None:
         if "standings_dict" not in self.get_variables():
@@ -128,12 +145,32 @@ class Tournament_Knockout(Tournament):
         assert(all(pairing.is_fixed() for pairing in pairings))
         return not has_duplicates([item for item, _ in pairings] + [item for _, item in pairings])
 
+    def is_done(self) -> bool:
+        return tuple(standing.beaten_by_seed for standing in self.get_standings_dict().values()).count(None) == 1
+
+    def is_drop_in_allowed(self) -> bool:
+        standings_dict = self.get_standings_dict()
+        return all(standings_dict[uuid].score == self.get_initial_score() for uuid in standings_dict.get_uuids())
+
+    def is_add_byes_allowed(self) -> bool:
+        return False
+
+    def is_seeding_allowed(self) -> bool:
+        return self.get_round() == 1
+
+    def has_cross_table(self) -> bool:
+        return False
+
+    def has_bracket_tree(self) -> bool:
+        return True
+
     def add_results(self, results: Sequence[Result] | Sequence[Result_Team]) -> None:
         super().add_results(results)
         games = self.get_games()
         games_per_tiebreak = self.get_games_per_tiebreak()
         armageddon = self.get_armageddon()
         standings_dict = self.get_standings_dict()
+        first_round = all(standings_dict[uuid].score == self.get_initial_score() for uuid in standings_dict.get_uuids())
         level = standings_dict[cast(str, self.get_results()[-1][0][0][0])].level
         uuids = set()
 
@@ -143,9 +180,14 @@ class Tournament_Knockout(Tournament):
                 games, games_per_tiebreak, armageddon, *self.get_totals()
             )
             uuids |= {item_1, item_2}
-        alives = set(uuid for uuid in standings_dict if standings_dict[uuid].beaten_by_seed is None)
-        for uuid in alives.difference(uuids):
-            standings_dict[uuid].level = level + 1
+
+        if first_round:
+            alives = set(uuid for uuid in standings_dict if standings_dict[uuid].beaten_by_seed is None)
+            for uuid in alives.difference(uuids):
+                standings_dict[uuid].level = level + 1
+            self.get_auto_advance_history().append(
+                sorted(alives.difference(uuids), key=lambda x: standings_dict[x].seed)
+            )
         self.set_participants(sorted(self.get_participants(), key=lambda x: standings_dict[x.get_uuid()].seed))
 
     def remove_results(self) -> None:
@@ -161,11 +203,13 @@ class Tournament_Knockout(Tournament):
                 games, games_per_tiebreak, armageddon, *self.get_totals()
             )
             uuids |= {item_1, item_2}
+
         level = standings_dict[cast(str, self.get_results()[-1][0][0][0])].level
         alives = set(uuid for uuid in standings_dict if standings_dict[uuid].beaten_by_seed is None)
         if all(standings_dict[uuid].score == self.get_initial_score() for uuid in uuids):
             for uuid in alives:
                 standings_dict[uuid].level = level
+            self.get_auto_advance_history().pop()
         self.set_participants(sorted(self.get_participants(), key=lambda x: standings_dict[x.get_uuid()].seed))
         super().remove_results()
 
@@ -184,21 +228,6 @@ class Tournament_Knockout(Tournament):
         standings_dict = self.get_standings_dict()
         for i, uuid in enumerate(self.get_participant_uuids()):
             standings_dict[uuid].seed = i + 1
-
-    def is_done(self) -> bool:
-        return tuple(standing.beaten_by_seed for standing in self.get_standings_dict().values()).count(None) == 1
-
-    def is_drop_in_allowed(self) -> bool:
-        standings_dict = self.get_standings_dict()
-        uuids = standings_dict.get_uuids()
-        score_sum = 2 * sum(standings_dict[uuid].score[0] for uuid in uuids) // len(uuids)
-        return score_sum == 0
-
-    def is_add_byes_allowed(self) -> bool:
-        return False
-
-    def is_seeding_allowed(self) -> bool:
-        return self.get_round() == 1
 
     def load_pairings(self) -> None:
         if bool(self.get_pairings()) or self.is_done():
@@ -241,24 +270,25 @@ class Tournament_Knockout(Tournament):
             self.set_pairings(pairings)
 
     def drop_out_participants(self, uuids: Sequence[str]) -> None:
-        if self.get_participant_count(drop_outs=False) <= len(uuids) + 1:
-            return
         standings_dict = self.get_standings_dict()
         uuids_current = standings_dict.get_uuids()
+        if len(set(uuids_current) - set(uuids)) == 0:
+            return
         score_sum = 2 * sum(standings_dict[uuid].score[0] for uuid in uuids_current) // len(uuids_current)
 
         if score_sum == 0:
             for uuid in uuids:
                 if standings_dict[uuid].beaten_by_seed is None:
                     standings_dict[uuid].beaten_by_seed = 0
+
         return super().drop_out_participants(uuids)
 
     def drop_in_participants(self, participants: Sequence[Participant]) -> None:
+        uuids = [participant.get_uuid() for participant in participants]
         standings_dict = self.get_standings_dict()
         current_level = standings_dict.get_current_level()
 
-        for participant in participants:
-            uuid = participant.get_uuid()
+        for uuid in uuids:
             if uuid in standings_dict and not standings_dict[uuid].was_beaten():
                 standings_dict[uuid].level = current_level
                 standings_dict[uuid].beaten_by_seed = None
@@ -310,6 +340,9 @@ class Tournament_Knockout_Team(Tournament_Knockout):
             "pairing_method": ["Slide", "Fold", "Adjacent", "Random"],
             "armageddon": Parameter_Armageddon()
         } | self.parameters
+        self.variables = {
+            "auto_advance_history": []
+        } | self.variables
         self.parameters_display = {
             "boards": "Boards",
             "enforce_lineups": "Enforce Lineups",

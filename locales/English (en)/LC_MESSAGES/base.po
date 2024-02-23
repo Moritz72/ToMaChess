@@ -451,3 +451,6 @@ msgstr "Details"
 
 msgid "Baku Acceleration"
 msgstr "Baku Acceleration"
+
+msgid "Bracket Tree"
+msgstr "Bracket Tree"

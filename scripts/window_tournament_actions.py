@@ -175,7 +175,7 @@ class Window_Tournament_Actions(QMainWindow):
         assert(self.windows.drop_out is not None)
         uuids = [participant.get_uuid() for participant in self.windows.drop_out.get_removed_objects()]
         self.tournament.drop_out_participants(uuids)
-        self.reload_local_signal.emit()
+        self.reload_global_signal.emit()
 
     def drop_in_closed(self) -> None:
         assert(self.windows.drop_in is not None)
@@ -185,11 +185,11 @@ class Window_Tournament_Actions(QMainWindow):
     def add_byes_closed(self) -> None:
         assert(self.windows.add_byes is not None)
         self.tournament.add_byes([uuid for uuid, _ in self.windows.add_byes.get_checked_tuples()])
-        self.reload_local_signal.emit()
+        self.reload_global_signal.emit()
 
     def seeding_closed(self) -> None:
         assert(self.windows.seeding is not None)
         participants = self.tournament.get_participants()
         seeds = [participants.index(participant) for participant in self.windows.seeding.get_objects()]
         self.tournament.seed_participants(seeds)
-        self.reload_local_signal.emit()
+        self.reload_global_signal.emit()

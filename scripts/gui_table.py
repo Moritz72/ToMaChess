@@ -8,7 +8,7 @@ from .player import Player
 from .team import Team
 from .tournament import Tournament
 from .ms_tournament import MS_Tournament
-from .gui_functions import Widget_Size, set_font, get_button, get_combo_box
+from .gui_functions import Widget_Size, set_font, get_label, get_button, get_combo_box
 from .gui_options import get_value_from_suitable_widget
 
 
@@ -120,6 +120,15 @@ def add_content_to_table(
     if align is not None:
         item.setTextAlignment(align)
     table.setItem(row, column, item)
+
+
+def add_label_to_table(
+        table: QTableWidget, row: int, column: int, size: str | None = "medium", widget_size: Widget_Size = None,
+        text: str | Sequence[str] = "", bold: bool = False, align: Qt.AlignmentFlag | None = None,
+        translate: bool = False, object_name: str | None = None
+) -> None:
+    label = get_label(text, size, widget_size, bold, align, translate, object_name)
+    table.setCellWidget(row, column, label)
 
 
 def add_button_to_table(

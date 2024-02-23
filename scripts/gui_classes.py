@@ -1,7 +1,8 @@
 from typing import Callable, cast
-from PySide6.QtWidgets import QComboBox, QLineEdit, QStyledItemDelegate, QStyleOptionViewItem
+from PySide6.QtWidgets import QComboBox, QLineEdit, QStyledItemDelegate, QStyleOptionViewItem, QWidget
 from PySide6.QtCore import Qt, QTimer, QEvent, QObject, QModelIndex, QPersistentModelIndex, QThread, Signal, QPointF, \
     QRectF
+from PySide6.QtGui import QPainter, QPen, QPaintEvent, QPalette
 
 
 class Combo_Box_Editable(QComboBox):
@@ -62,6 +63,49 @@ class Vertical_Text_Delegate(QStyledItemDelegate):
         optionCopy.rect = painter.worldTransform().mapRect(option.rect)
         super().paint(painter, optionCopy, index)
         painter.restore()
+
+
+class Turn_Widget(QWidget):
+    def __init__(self, orientation: int = 0, parent: QWidget | None = None) -> None:
+        super().__init__(parent)
+        self.orientation: int = orientation
+        self.setObjectName("turn_widget")
+
+    def paintEvent(self, event: QPaintEvent) -> None:
+        painter = QPainter(self)
+        painter.setRenderHint(QPainter.RenderHint.Antialiasing)
+        color = self.palette().color(QPalette.ColorRole.Base)
+        pen = QPen(color, 2, Qt.PenStyle.SolidLine)
+        painter.setPen(pen)
+        mid_x = self.width() // 2
+        mid_y = self.height() // 2
+        painter.translate(mid_x, mid_y)
+        painter.rotate(self.orientation * 90)
+        if self.orientation % 2:
+            mid_x, mid_y = mid_y, mid_x
+        painter.drawLine(-mid_x, 0, 0, 0)
+        painter.drawLine(0, 0, 0, -mid_y)
+
+
+class Line_Widget(QWidget):
+    def __init__(self, orientation: int = 0, parent: QWidget | None = None) -> None:
+        super().__init__(parent)
+        self.orientation: int = orientation
+        self.setObjectName("line_widget")
+
+    def paintEvent(self, event: QPaintEvent) -> None:
+        painter = QPainter(self)
+        painter.setRenderHint(QPainter.RenderHint.Antialiasing)
+        color = self.palette().color(QPalette.ColorRole.Base)
+        pen = QPen(color, 2, Qt.PenStyle.SolidLine)
+        painter.setPen(pen)
+        mid_x = self.width() // 2
+        mid_y = self.height() // 2
+        painter.translate(mid_x, mid_y)
+        painter.rotate(self.orientation * 90)
+        if self.orientation % 2:
+            mid_x, mid_y = mid_y, mid_x
+        painter.drawLine(-mid_x, 0, mid_x, 0)
 
 
 class Function_Worker(QThread):

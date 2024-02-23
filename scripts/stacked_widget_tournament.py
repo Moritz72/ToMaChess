@@ -6,6 +6,7 @@ from .widget_tournament_info import Widget_Tournament_Info
 from .widget_tournament_details import Widget_Tournament_Details
 from .widget_tournament_standings import Widget_Tournament_Standings
 from .widget_tournament_cross_table import Widget_Tournament_Cross_Table
+from .widget_tournament_bracket_tree import Widget_Tournament_Bracket_Tree
 from .widget_tournament_standings_categories import Widget_Tournament_Standings_Categories
 from .widget_tournament_round import Widget_Tournament_Round
 from .widget_tournament_round_team import Widget_Tournament_Round_Team
@@ -52,11 +53,15 @@ class Stacked_Widget_Tournament(Stacked_Widget):
         self.tournament: Tournament = tournament
         self.associate: tuple[str, str] | None = associate
         self.window_tournament_actions: Window_Tournament_Actions | None = None
+        self.tournament.load_pairings()
 
         self.widgets_info: list[Widget_Tournament_Info] = [
             Widget_Tournament_Details(self.tournament), Widget_Tournament_Standings(self.tournament),
-            Widget_Tournament_Cross_Table(self.tournament)
         ]
+        if self.tournament.has_cross_table():
+            self.widgets_info.append(Widget_Tournament_Cross_Table(self.tournament))
+        if self.tournament.has_bracket_tree():
+            self.widgets_info.append(Widget_Tournament_Bracket_Tree(self.tournament))
         if self.tournament.get_category_ranges():
             self.widgets_info.append(Widget_Tournament_Standings_Categories(self.tournament))
         for widget_info in self.widgets_info:
@@ -65,7 +70,6 @@ class Stacked_Widget_Tournament(Stacked_Widget):
         self.widgets_round: list[Widget_Tournament_Round | Widget_Tournament_Round_Team] = []
         for roun in range(1, self.tournament.get_round()):
             self.add_round_widget(roun)
-        self.tournament.load_pairings()
         if bool(self.tournament.get_pairings()):
             self.add_round_widget()
 
