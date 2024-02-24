@@ -13,7 +13,7 @@ from .result_team import Result_Team
 from .category_range import Category_Range
 from .standings_table import Standings_Table
 from .cross_table import Cross_Table
-from .bracket_tree import Bracket_Tree
+from .bracket_tree import Bracket_Tree, Bracket_Tree_Node
 from .parameter import Parameter
 from .parameter_armageddon import Parameter_Armageddon
 from .parameter_tiebreak import Parameter_Tiebreak
@@ -55,9 +55,11 @@ class Tournament(Object):
         self.parameters: dict[str, Any] = parameters or dict()
         self.variables: dict[str, Any] = variables or dict()
         self.parameters = self.parameters
-        self.variables = {"round": 1, "pairings": Variable_Pairings([]), "results": Variable_Results([]),
-                          "results_team": Variable_Results_Team([]), "drop_outs": [], "byes": [],
-                          "category_ranges": Variable_Category_Ranges([])} | self.variables
+        self.variables = {
+            "round": 1, "pairings": Variable_Pairings([]), "results": Variable_Results([]),
+            "results_team": Variable_Results_Team([]), "drop_outs": [], "byes": [],
+            "forbidden_pairings": [], "category_ranges": Variable_Category_Ranges([])
+        } | self.variables
         self.order: list[str] | None = order
         self.mode: str = ""
         self.parameters_display: dict[str, tuple[str, ...] | str | None] = dict()
@@ -134,6 +136,9 @@ class Tournament(Object):
 
     def get_byes(self) -> list[str]:
         return cast(list[str], self.get_variable("byes"))
+
+    def get_forbidden_pairings(self) -> list[tuple[str, str]]:
+        return [(uuids[0], uuids[1]) for uuids in cast(list[list[str]], self.get_variable("forbidden_pairings"))]
 
     def get_category_ranges(self) -> Variable_Category_Ranges:
         return cast(Variable_Category_Ranges, self.get_variable("category_ranges"))
@@ -236,7 +241,7 @@ class Tournament(Object):
         return Cross_Table(table, [participant.get_name() for participant in participants])
 
     def get_bracket_tree(self) -> Bracket_Tree:
-        return Bracket_Tree()
+        return Bracket_Tree(Bracket_Tree_Node((None, None), []))
 
     def get_details(self) -> dict[tuple[str, ...] | str, str]:
         details: dict[tuple[str, ...] | str, str] = {
@@ -286,6 +291,9 @@ class Tournament(Object):
 
     def set_byes(self, uuids: list[str]) -> None:
         self.set_variable("byes", uuids)
+
+    def set_forbidden_pairings(self, forbidden_pairings: list[tuple[str, str]]):
+        self.set_variable("forbidden_pairings", forbidden_pairings)
 
     def set_category_ranges(self, category_ranges: Sequence[Category_Range]) -> None:
         self.get_category_ranges().clear()
@@ -345,6 +353,9 @@ class Tournament(Object):
 
     def is_seeding_allowed(self) -> bool:
         return True
+
+    def is_forbidden_pairings_allowed(self) -> bool:
+        return False
 
     def has_cross_table(self) -> bool:
         return True

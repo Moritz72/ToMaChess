@@ -454,3 +454,12 @@ msgstr "Baku Beschleunigung"
 
 msgid "Bracket Tree"
 msgstr "Paarungsbaum"
+
+msgid "Choose Participant"
+msgstr "Wähle Teilnehmer"
+
+msgid "Forbidden Pairings"
+msgstr "Verbotene Paarungen"
+
+msgid "Add Forbidden Pairings"
+msgstr "Verbotene Paarungen hinzufügen"

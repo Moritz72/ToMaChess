@@ -94,3 +94,6 @@ msgstr "Part"
 
 msgid "Koya System"
 msgstr "Koya"
+
+msgid "Participant"
+msgstr "Teilnehmer"

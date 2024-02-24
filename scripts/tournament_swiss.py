@@ -86,6 +86,9 @@ class Tournament_Swiss(Tournament):
     def is_done(self) -> bool:
         return self.get_round() > self.get_rounds()
 
+    def is_forbidden_pairings_allowed(self) -> bool:
+        return True
+
     def seed_participants(self, seeds: list[int] | None = None) -> None:
         if seeds is None and not self.is_team_tournament():
             self.set_participants(sort_players_swiss(cast(list[Player], self.get_participants())))
@@ -104,7 +107,7 @@ class Tournament_Swiss(Tournament):
             pairings = [Pairing(uuids, uuids) for _ in range(participant_number // 2)]
             if participant_number % 2:
                 pairings.append(Pairing(uuids, ""))
-        elif first_round:
+        elif first_round and first_round_method != "Slide":
             match self.get_top_seed_color_first_round():
                 case "White":
                     first_seed_white = True

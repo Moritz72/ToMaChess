@@ -13,6 +13,7 @@ from .window_tournament_edit_parameters import Window_Tournament_Edit_Parameters
 from .window_choice_objects import Window_Choice_Players, Window_Choice_Teams
 from .window_drag_objects import Window_Drag_Players, Window_Drag_Teams
 from .window_remove_objects import Window_Remove_Players, Window_Remove_Teams
+from .window_forbidden_pairings import Window_Forbidden_Pairings_Players, Window_Forbidden_Pairings_Teams
 from .gui_functions import set_window_title, set_window_size, get_button, close_window
 
 
@@ -24,6 +25,7 @@ class Windows:
     drop_in: Window_Choice_Players | Window_Choice_Teams | None = None
     add_byes: Window_Choice_Players | Window_Choice_Teams | None = None
     seeding: Window_Drag_Players | Window_Drag_Teams | None = None
+    forbidden_pairings: Window_Forbidden_Pairings_Players | Window_Forbidden_Pairings_Teams | None = None
 
 
 class Window_Tournament_Actions(QMainWindow):
@@ -64,7 +66,8 @@ class Window_Tournament_Actions(QMainWindow):
             get_button("large", (25, 5), "Drop Out Participants", connect=self.drop_out_action, **args),
             get_button("large", (25, 5), "Drop In Participants", connect=self.drop_in_action, **args),
             get_button("large", (25, 5), "Manage Byes", connect=self.add_byes_action, **args),
-            get_button("large", (25, 5), "Seeding", connect=self.seeding_action, **args)
+            get_button("large", (25, 5), "Seeding", connect=self.seeding_action, **args),
+            get_button("large", (25, 5), "Forbidden Pairings", connect=self.forbidden_pairings_action, **args)
         )
         conditions = (
             not self.tournament.is_done(),
@@ -73,7 +76,8 @@ class Window_Tournament_Actions(QMainWindow):
             self.tournament.is_drop_out_allowed(),
             self.tournament.is_drop_in_allowed(),
             self.tournament.is_add_byes_allowed(),
-            self.tournament.is_seeding_allowed()
+            self.tournament.is_seeding_allowed(),
+            self.tournament.is_forbidden_pairings_allowed()
         )
 
         for button, condition in zip(buttons, conditions):
@@ -171,6 +175,37 @@ class Window_Tournament_Actions(QMainWindow):
         self.windows.seeding.window_closed.connect(self.seeding_closed)
         self.windows.seeding.show()
 
+    def forbidden_pairings_action(self) -> None:
+        if self.associate is None:
+            table_root = "tournaments_"
+            uuid = self.tournament.get_uuid()
+        else:
+            table_root = "ms_tournaments_"
+            uuid = self.associate[1]
+        associates = [(self.tournament.get_name(), uuid)]
+        participant_dict = self.tournament.get_uuid_to_participant_dict()
+        forbidden_pairings_participants = [
+            (participant_dict[uuid_1], participant_dict[uuid_2])
+            for uuid_1, uuid_2 in self.tournament.get_forbidden_pairings()
+        ]
+        uuid_tuples = [[p_1.get_uuid_tuple(), p_2.get_uuid_tuple()] for p_1, p_2 in forbidden_pairings_participants]
+        names = [[p_1.get_name(), p_2.get_name()] for p_1, p_2 in forbidden_pairings_participants]
+        window: Window_Forbidden_Pairings_Players | Window_Forbidden_Pairings_Teams
+        if self.tournament.is_team_tournament():
+            teams_db = DB_Team_List(cast(list[Team], self.tournament.get_participants()))
+            window = Window_Forbidden_Pairings_Teams(
+                uuid_tuples, names, teams_db, table_root=table_root, associates=associates, parent=self
+            )
+        else:
+            players_db = DB_Player_List(cast(list[Player], self.tournament.get_participants()))
+            window = Window_Forbidden_Pairings_Players(
+                uuid_tuples, names, players_db, table_root=table_root, associates=associates, parent=self
+            )
+        self.close_windows()
+        self.windows.forbidden_pairings = window
+        self.windows.forbidden_pairings.window_closed.connect(self.forbidden_pairings_closed)
+        self.windows.forbidden_pairings.show()
+
     def drop_out_closed(self) -> None:
         assert(self.windows.drop_out is not None)
         uuids = [participant.get_uuid() for participant in self.windows.drop_out.get_removed_objects()]
@@ -192,4 +227,10 @@ class Window_Tournament_Actions(QMainWindow):
         participants = self.tournament.get_participants()
         seeds = [participants.index(participant) for participant in self.windows.seeding.get_objects()]
         self.tournament.seed_participants(seeds)
+        self.reload_global_signal.emit()
+
+    def forbidden_pairings_closed(self) -> None:
+        assert(self.windows.forbidden_pairings is not None)
+        forbidden_pairings = self.windows.forbidden_pairings.get_pairings()
+        self.tournament.set_forbidden_pairings(forbidden_pairings)
         self.reload_global_signal.emit()

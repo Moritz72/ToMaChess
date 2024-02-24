@@ -72,7 +72,10 @@ class Window_Main(QMainWindow):
     def close_windows(self) -> None:
         for window in QApplication.topLevelWidgets():
             if window is not self:
-                window.close()
+                try:
+                    window.close()
+                except RuntimeError:
+                    pass
 
     def closeEvent(self, event: QCloseEvent) -> None:
         self.close_windows()

@@ -29,20 +29,6 @@ QLabel {
   color: rgb(0, 0, 0);
 }
 
-QLabel#help_label {
-  color: rgb(0, 0, 0);
-  background: qlineargradient(spread:pad, x1:0 y1:.4, x2:1 y2:.6, stop:0 rgb(245, 245, 245), stop:1 rgb(230, 230, 230));
-  selection-color: rgb(255, 255, 255);
-  selection-background-color: qlineargradient(spread:pad, x1:0 y1:.4, x2:1 y2:.6, stop:0 rgb(26, 152, 255), stop:1 rgb(0, 120, 215));
-  border: 1px solid rgb(50, 50, 50);
-  border-radius: 10%;
-  padding-top: 2px;
-  padding-bottom: 2px;
-  padding-left: 4px;
-  padding-right: 4px;
-  margin 0px;
-}
-
 QLabel#bracket {
   background: rgb(255, 255, 255);
 }
@@ -84,6 +70,7 @@ QPushButton {
   background: qlineargradient(spread:pad, x1:0 y1:.4, x2:1 y2:.6, stop:0 rgb(235, 235, 235), stop:1 rgb(215, 215, 215));
   border: 1px solid rgb(50, 50, 50);
   border-radius:10%;
+  padding: 3px;
 }
 
 QDockWidget QPushButton {

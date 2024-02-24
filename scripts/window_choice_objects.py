@@ -9,8 +9,8 @@ from .team import Team
 from .table_objects import Table_Objects
 from .widget_search_generic import Widget_Search_Generic
 from .db_object import DB_Object
-from .db_player import DB_Player, DB_PLAYER, PLAYER_ATTRIBUTE_LIST
-from .db_team import DB_Team, DB_TEAM, TEAM_ATTRIBUTE_LIST
+from .db_player import DB_PLAYER, PLAYER_ATTRIBUTE_LIST
+from .db_team import DB_TEAM, TEAM_ATTRIBUTE_LIST
 from .gui_functions import get_check_box, set_window_title, set_window_size
 from .gui_table import add_player_to_table, add_team_to_table
 
@@ -21,11 +21,13 @@ class Widget_Choice_Object(Widget_Search_Generic[T], Generic[T]):
     def __init__(
             self, db: DB_Object[T], tuples_excluded: set[tuple[str, str]], tuples_checked: set[tuple[str, str]],
             table_root: str = "", associates: list[tuple[str, str]] | None = None,
-            uuids_only: bool = False, shallow_load: bool = False
+            uuids_only: bool = False, shallow_load: bool = False, only_one: bool = False
     ) -> None:
         self.tuples_excluded: set[tuple[str, str]] = tuples_excluded
         self.tuples_checked: set[tuple[str, str]] = tuples_checked
+        self.table_root: str = table_root
         self.uuids_only: bool = uuids_only
+        self.only_one: bool = only_one
         super().__init__(db, table_root=table_root, associates=associates, shallow_load=shallow_load)
 
     @abstractmethod
@@ -52,24 +54,29 @@ class Widget_Choice_Object(Widget_Search_Generic[T], Generic[T]):
         if obj is None:
             return
         if state == 2:
-            self.tuples_checked.add(obj.get_uuid_tuple())
+            if self.only_one:
+                self.tuples_checked = {obj.get_uuid_tuple()}
+                self.fill_in_table()
+            else:
+                self.tuples_checked.add(obj.get_uuid_tuple())
         else:
             self.tuples_checked.remove(obj.get_uuid_tuple())
 
     def get_checked_objects(self) -> list[T]:
         return self.db.load_list(
-            "", [uuids[0] for uuids in self.tuples_checked], [uuids[1] for uuids in self.tuples_checked]
+            self.table_root, [uuids[0] for uuids in self.tuples_checked], [uuids[1] for uuids in self.tuples_checked]
         )
 
 
 class Widget_Choice_Players(Widget_Choice_Object[Player]):
     def __init__(
             self, tuples_excluded: set[tuple[str, str]], tuples_checked: set[tuple[str, str]],
-            table_root: str = "", associates: list[tuple[str, str]] | None = None, db: DB_Player = DB_PLAYER,
-            uuids_only: bool = False
+            table_root: str = "", associates: list[tuple[str, str]] | None = None, db: DB_Object[Player] = DB_PLAYER,
+            uuids_only: bool = False, only_one: bool = False
     ) -> None:
         super().__init__(
-            db, tuples_excluded, tuples_checked, table_root=table_root, associates=associates, uuids_only=uuids_only
+            db, tuples_excluded, tuples_checked,
+            table_root=table_root, associates=associates, uuids_only=uuids_only, only_one=only_one
         )
 
     def get_table(self) -> Table_Objects[Player]:
@@ -90,12 +97,12 @@ class Widget_Choice_Players(Widget_Choice_Object[Player]):
 class Widget_Choice_Teams(Widget_Choice_Object[Team]):
     def __init__(
             self, tuples_excluded: set[tuple[str, str]], tuples_checked: set[tuple[str, str]],
-            table_root: str = "", associates: list[tuple[str, str]] | None = None, db: DB_Team = DB_TEAM,
-            uuids_only: bool = False
+            table_root: str = "", associates: list[tuple[str, str]] | None = None, db: DB_Object[Team] = DB_TEAM,
+            uuids_only: bool = False, only_one: bool = False
     ) -> None:
         super().__init__(
             db, tuples_excluded, tuples_checked,
-            table_root=table_root, associates=associates, uuids_only=uuids_only, shallow_load=True
+            table_root=table_root, associates=associates, uuids_only=uuids_only, shallow_load=True, only_one=only_one
         )
 
     def get_table(self) -> Table_Objects[Team]:
@@ -141,13 +148,13 @@ class Window_Choice_Players(Window_Choice_Objects[Player]):
     def __init__(
             self, title: str, excluded_uuids: set[tuple[str, str]] | None = None,
             checked_uuids: set[tuple[str, str]] | None = None, table_root: str = "",
-            associates: list[tuple[str, str]] | None = None, db: DB_Player = DB_PLAYER,
-            uuids_only: bool = False, parent: QWidget | None = None
+            associates: list[tuple[str, str]] | None = None, db: DB_Object[Player] = DB_PLAYER,
+            uuids_only: bool = False, only_one: bool = False, parent: QWidget | None = None
     ) -> None:
         super().__init__(
             Widget_Choice_Players(
                 excluded_uuids or set(), checked_uuids or set(),
-                table_root=table_root, associates=associates, db=db, uuids_only=uuids_only
+                table_root=table_root, associates=associates, db=db, uuids_only=uuids_only, only_one=only_one
             ), title, parent
         )
 
@@ -156,12 +163,12 @@ class Window_Choice_Teams(Window_Choice_Objects[Team]):
     def __init__(
             self, title: str, excluded_uuids: set[tuple[str, str]] | None = None,
             checked_uuids: set[tuple[str, str]] | None = None, table_root: str = "",
-            associates: list[tuple[str, str]] | None = None, db: DB_Team = DB_TEAM,
-            uuids_only: bool = False, parent: QWidget | None = None
+            associates: list[tuple[str, str]] | None = None, db: DB_Object[Team] = DB_TEAM,
+            uuids_only: bool = False, only_one: bool = False, parent: QWidget | None = None
     ) -> None:
         super().__init__(
             Widget_Choice_Teams(
                 excluded_uuids or set(), checked_uuids or set(),
-                table_root=table_root, associates=associates, db=db, uuids_only=uuids_only
+                table_root=table_root, associates=associates, db=db, uuids_only=uuids_only, only_one=only_one
             ), title, parent
         )

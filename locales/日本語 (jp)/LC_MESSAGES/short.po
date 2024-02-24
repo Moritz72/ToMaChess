@@ -94,3 +94,6 @@ msgstr "試数"
 
 msgid "Koya System"
 msgstr "コヤ"
+
+msgid "Participant"
+msgstr "参加者"

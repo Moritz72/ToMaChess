@@ -1,4 +1,4 @@
-ToMaChess v1.2.0
+ToMaChess v1.1.3
 
 ABOUT
 	ToMaChess is a gui application to manage chess tournaments written in Python.

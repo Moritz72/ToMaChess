@@ -134,10 +134,10 @@ def add_label_to_table(
 def add_button_to_table(
         table: QTableWidget, row: int, column: int, size: str | None, widget_size: Widget_Size,
         text: str | Sequence[str] = "", connect: Callable[[], None] | list[Callable[[], None]] | None = None,
-        bold: bool = False, checkable: bool = False, enabled: bool = True,
+        bold: bool = False, align: str = "center", checkable: bool = False, enabled: bool = True,
         translate: bool = False, object_name: str | None = None
 ) -> None:
-    button = get_button(size, widget_size, text, connect, bold, checkable, enabled, translate, object_name)
+    button = get_button(size, widget_size, text, connect, bold, align, checkable, enabled, translate, object_name)
     table.setCellWidget(row, column, button)
 
 

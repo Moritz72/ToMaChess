@@ -190,8 +190,8 @@ def get_lineedit(
 
 def get_button(
         size: str | None, widget_size: Widget_Size = None, text: str | Sequence[str] = "",
-        connect: Callable[[], Any] | list[Callable[[], Any]] | None = None, bold: bool = False, checkable: bool = False,
-        enabled: bool = True, translate: bool = False, object_name: str | None = None
+        connect: Callable[[], Any] | list[Callable[[], Any]] | None = None, bold: bool = False, align: str = "center",
+        checkable: bool = False, enabled: bool = True, translate: bool = False, object_name: str | None = None
 ) -> QPushButton:
     if translate:
         text = MANAGER_TRANSLATION.tl(text)
@@ -202,6 +202,7 @@ def get_button(
     set_font(button, size, bold)
     button.setCheckable(checkable)
     button.setEnabled(enabled)
+    button.setStyleSheet(f"text-align: {align}")
     if isinstance(connect, list):
         for function in connect:
             button.clicked.connect(function)
@@ -213,7 +214,8 @@ def get_button(
 def get_button_threaded(
         parent: QObject, size: str | None, widget_size: Widget_Size = None, text: str | Sequence[str] = "",
         load_text: str | Sequence[str] = "", connect: Callable[[], Any] | None = None, bold: bool = False,
-        checkable: bool = True, enabled: bool = True, translate: bool = False, object_name: str | None = None
+        align: str = "center", checkable: bool = True, enabled: bool = True, translate: bool = False,
+        object_name: str | None = None
 ) -> QPushButton:
     assert(connect is not None)
     if translate:
@@ -221,7 +223,8 @@ def get_button_threaded(
         load_text = MANAGER_TRANSLATION.tl(load_text)
     assert(isinstance(text, str) and isinstance(load_text, str))
     button = get_button(
-        size, widget_size, text=text, bold=bold, checkable=checkable, enabled=enabled, object_name=object_name
+        size, widget_size, text=text, bold=bold, align=align,
+        checkable=checkable, enabled=enabled, object_name=object_name
     )
 
     def threaded_function() -> None:

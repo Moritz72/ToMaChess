@@ -2,6 +2,7 @@ from __future__ import annotations
 import os
 import os.path
 from typing import TYPE_CHECKING, Sequence
+from random import random
 from subprocess import run
 from .manager_settings import MANAGER_SETTINGS
 from .pairing_item import Bye, Bye_PA, Pairing_Item
@@ -13,6 +14,16 @@ if TYPE_CHECKING:
     from .tournament_swiss import Tournament_Swiss
 
 BBP_Result = tuple[int | None, bool | None, str | None]
+
+
+def get_color_first_round(tournament: Tournament_Swiss) -> str:
+    match tournament.get_top_seed_color_first_round():
+        case "White":
+            return "white1"
+        case "Black":
+            return "black1"
+        case _:
+            return "white1" if random() > .5 else "black1"
 
 
 def get_bye_score(bye: Pairing_Item, tournament: Tournament_Swiss) -> str:
@@ -85,6 +96,7 @@ def write_input_file(tournament: Tournament_Swiss) -> None:
     bbp_results = get_bbp_results(tournament)
     points = [sum([score_dict[points] for _, _, points in result if points is not None]) for result in bbp_results]
     bbp_results_strings = [[convert_result(result) for result in results] for results in bbp_results]
+    uuid_to_index_dict = {uuid: i + 1 for i, uuid in enumerate(tournament.get_participant_uuids())}
 
     lines = f"012 {tournament.get_name()}\r\n"
     for i, (participant, point, results) in enumerate(zip(participants, points, bbp_results_strings)):
@@ -123,6 +135,10 @@ def write_input_file(tournament: Tournament_Swiss) -> None:
         for i in range(count, len(participants)):
             lines += f"XXA {str(i + 1).rjust(4)}{''.join(points_null)}\r\n"
 
+    for p_1, p_2 in tournament.get_forbidden_pairings():
+        lines += f"XXP {uuid_to_index_dict[p_1]} {uuid_to_index_dict[p_2]}\r\n"
+
+    lines += f"XXC {get_color_first_round(tournament)}\r\n"
     lines += f"XXR {tournament.get_rounds()}\r\n"
     lines += f"BBW  {float(score_dict['1'])}\r\n"
     lines += f"BBD  {float(score_dict['½'])}\r\n"

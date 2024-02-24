@@ -71,6 +71,7 @@ QPushButton {
   background: qlineargradient(spread:pad, x1:0 y1:.4, x2:1 y2:.6, stop:0 rgb(40, 40, 40), stop:1 rgb(30, 30, 30));
   border: 1px solid rgb(70, 70, 70);
   border-radius:10%;
+  padding: 3px;
 }
 
 QDockWidget QPushButton {

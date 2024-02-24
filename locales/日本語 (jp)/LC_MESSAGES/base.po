@@ -454,3 +454,12 @@ msgstr "バクー加速"
 
 msgid "Bracket Tree"
 msgstr "ブラケットツリー"
+
+msgid "Choose Participant"
+msgstr "参加者を選ぶ"
+
+msgid "Forbidden Pairings"
+msgstr "禁止組み合わせ"
+
+msgid "Add Forbidden Pairings"
+msgstr "禁止組み合わせの追加"

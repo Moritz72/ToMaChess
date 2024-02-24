@@ -94,3 +94,6 @@ msgstr "Game"
 
 msgid "Koya System"
 msgstr "Koya"
+
+msgid "Participant"
+msgstr "Participant"
