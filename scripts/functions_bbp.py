@@ -2,7 +2,6 @@ from __future__ import annotations
 import os
 import os.path
 from typing import TYPE_CHECKING, Sequence
-from random import random
 from subprocess import run
 from .manager_settings import MANAGER_SETTINGS
 from .pairing_item import Bye, Bye_PA, Pairing_Item
@@ -16,14 +15,14 @@ if TYPE_CHECKING:
 BBP_Result = tuple[int | None, bool | None, str | None]
 
 
-def get_color_first_round(tournament: Tournament_Swiss) -> str:
+def get_color_first_round(tournament: Tournament_Swiss, hash_value: int) -> str:
     match tournament.get_top_seed_color_first_round():
         case "White":
             return "white1"
         case "Black":
             return "black1"
         case _:
-            return "white1" if random() > .5 else "black1"
+            return "white1" if hash_value % 2 else "black1"
 
 
 def get_bye_score(bye: Pairing_Item, tournament: Tournament_Swiss) -> str:
@@ -135,10 +134,7 @@ def write_input_file(tournament: Tournament_Swiss) -> None:
         for i in range(count, len(participants)):
             lines += f"XXA {str(i + 1).rjust(4)}{''.join(points_null)}\r\n"
 
-    for p_1, p_2 in tournament.get_forbidden_pairings():
-        lines += f"XXP {uuid_to_index_dict[p_1]} {uuid_to_index_dict[p_2]}\r\n"
-
-    lines += f"XXC {get_color_first_round(tournament)}\r\n"
+    lines += f"XXC {get_color_first_round(tournament, hash(lines))}\r\n"
     lines += f"XXR {tournament.get_rounds()}\r\n"
     lines += f"BBW  {float(score_dict['1'])}\r\n"
     lines += f"BBD  {float(score_dict['½'])}\r\n"
@@ -146,6 +142,9 @@ def write_input_file(tournament: Tournament_Swiss) -> None:
     lines += f"BBZ  {float(score_dict['-'])}\r\n"
     lines += f"BBF  {float(score_dict['-'])}\r\n"
     lines += f"BBU  {float(score_dict['+'])}\r\n"
+
+    for p_1, p_2 in tournament.get_forbidden_pairings():
+        lines += f"XXP {uuid_to_index_dict[p_1]} {uuid_to_index_dict[p_2]}\r\n"
 
     path = os.path.join(get_app_data_directory(), "temp")
     if not os.path.exists(path):
@@ -161,7 +160,7 @@ def process_pairings(pairings_raw: str, participants: Sequence[Participant]) -> 
     ]
 
 
-def get_pairings_bbp(tournament: Tournament_Swiss) -> list[Pairing]:
+def get_pairings_bbp(tournament: Tournament_Swiss) -> list[Pairing] | None:
     bbp_directory: str = MANAGER_SETTINGS["bbp_path"]
     write_input_file(tournament)
     path_bbp = os.path.join(bbp_directory, "bbpPairings.exe")
@@ -171,6 +170,6 @@ def get_pairings_bbp(tournament: Tournament_Swiss) -> list[Pairing]:
     try:
         run([path_bbp, "--dutch", path_input, "-p", path_output], check=True, shell=True)
     except:
-        return NotImplemented
+        return None
     pairings_raw = read_file(path_output)
     return process_pairings(pairings_raw, tournament.get_participants())

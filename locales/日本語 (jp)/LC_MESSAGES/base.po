@@ -161,9 +161,6 @@ msgstr "ランダム"
 msgid "Choice"
 msgstr "選択肢"
 
-msgid "Add\nCategory"
-msgstr "カテゴリー\n追加"
-
 msgid "Rating"
 msgstr "レーティング"
 
@@ -208,9 +205,6 @@ msgstr "参加者"
 
 msgid "Copy"
 msgstr "コピー"
-
-msgid "Add\nParticipant"
-msgstr "参加者\n追加"
 
 msgid "Confirm Pairings"
 msgstr "組み合わせを確認する"

@@ -21,16 +21,14 @@ class Window_Add_Categories(QMainWindow):
         self.setCentralWidget(self.widget)
 
         self.table = QTableWidget()
-        self.make_table()
+        set_up_table(self.table, 0, 4, header_horizontal=["Category", "From", "Up To", ""], translate=True)
         self.resize_table()
         layout = QVBoxLayout()
         layout.setAlignment(Qt.AlignmentFlag.AlignTop)
         layout.addWidget(self.table)
         self.layout_main.addLayout(layout)
 
-        self.add_row_button = get_button(
-            "large", (10, 6), "Add\nCategory", connect=self.add_category_row, translate=True
-        )
+        self.add_row_button = get_button("large", (3, 3), '+', connect=self.add_category_row, translate=True)
         layout = QVBoxLayout()
         layout.setAlignment(Qt.AlignmentFlag.AlignTop)
         layout.addWidget(self.add_row_button)
@@ -54,9 +52,6 @@ class Window_Add_Categories(QMainWindow):
         add_content_to_table(self.table, "", row, 2, align=Qt.AlignmentFlag.AlignCenter)
         add_button_to_table(self.table, row, 3, "medium", None, '-', connect=self.remove_row)
         self.resize_table()
-
-    def make_table(self) -> None:
-        set_up_table(self.table, 0, 4, header_horizontal=["Category", "From", "Up To", ""], translate=True)
 
     def remove_row(self) -> None:
         row = self.table.currentRow()

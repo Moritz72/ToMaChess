@@ -161,9 +161,6 @@ msgstr "Zufall"
 msgid "Choice"
 msgstr "Auswahl"
 
-msgid "Add\nCategory"
-msgstr "Kategorie\nhinzufügen"
-
 msgid "Rating"
 msgstr "Wertung"
 
@@ -208,9 +205,6 @@ msgstr "Teilnehmer"
 
 msgid "Copy"
 msgstr "Kopieren"
-
-msgid "Add\nParticipant"
-msgstr "Teilnehmer\nhinzufügen"
 
 msgid "Confirm Pairings"
 msgstr "Paarungen bestätigen"

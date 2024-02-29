@@ -34,30 +34,24 @@ class Window_Forbidden_Pairings_Objects(QMainWindow, Generic[T]):
         self.setCentralWidget(self.widget)
 
         self.table = QTableWidget()
-        self.make_table()
-        self.resize_table()
         layout = QVBoxLayout()
         layout.setAlignment(Qt.AlignmentFlag.AlignTop)
         layout.addWidget(self.table)
         self.layout_main.addLayout(layout)
 
-        for row in range(len(self.uuid_tuples)):
-            self.add_pairing_row(row)
-        self.add_row_button = get_button("large", (3, 3), "+", connect=self.add_new_row, translate=True)
+        self.fill_in_table()
+        self.add_row_button = get_button("large", (3, 3), '+', connect=self.add_new_row, translate=True)
         layout = QVBoxLayout()
         layout.setAlignment(Qt.AlignmentFlag.AlignTop)
         layout.addWidget(self.add_row_button)
         self.layout_main.addLayout(layout)
-        self.size_window()
+        set_window_size(self, QSize(self.table.maximumWidth() + self.add_row_button.width(), 0), factor_y=.4)
 
     def get_pairings(self) -> list[tuple[str, str]]:
         return [
             (tuples[0][0], tuples[1][0]) for tuples in self.uuid_tuples
             if tuples[0] is not None and tuples[1] is not None and tuples[0] != tuples[1]
         ]
-
-    def size_window(self) -> None:
-        set_window_size(self, QSize(self.table.maximumWidth() + self.add_row_button.width(), 0), factor_y=.4)
 
     def resize_table(self) -> None:
         size_table(
@@ -68,15 +62,19 @@ class Window_Forbidden_Pairings_Objects(QMainWindow, Generic[T]):
     def add_pairing_row(self, row: int) -> None:
         name_1, name_2 = self.names[row][0] or "", self.names[row][1] or ""
         add_button_to_table(
-            self.table, row, 0, "medium", None, name_1,
-            connect=partial(self.open_choice_window, 0), align="left"
+            self.table, row, 0, "medium", None, name_1, connect=partial(self.open_choice_window, 0), align="left"
         )
         add_button_to_table(
-            self.table, row, 1, "medium", None, name_2,
-            connect=partial(self.open_choice_window, 1), align="left"
+            self.table, row, 1, "medium", None, name_2, connect=partial(self.open_choice_window, 1), align="left"
         )
         add_button_to_table(self.table, row, 2, "medium", None, '-', connect=self.remove_row)
         self.resize_table()
+
+    def fill_in_table(self) -> None:
+        set_up_table(self.table, 0, 3, header_horizontal=["Participant", "Participant", ""], translate=True)
+        self.resize_table()
+        for row in range(len(self.uuid_tuples)):
+            self.add_pairing_row(row)
 
     def add_new_row(self) -> None:
         row = self.table.rowCount()
@@ -106,9 +104,6 @@ class Window_Forbidden_Pairings_Objects(QMainWindow, Generic[T]):
             self.names[row][i] = objs[0].get_name()
         self.add_pairing_row(row)
         self.choice_window_position = (-1, 0)
-
-    def make_table(self) -> None:
-        set_up_table(self.table, 0, 3, header_horizontal=["Participant", "Participant", ""], translate=True)
 
     def remove_row(self) -> None:
         row = self.table.currentRow()

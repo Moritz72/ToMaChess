@@ -161,9 +161,6 @@ msgstr "Random"
 msgid "Choice"
 msgstr "Choice"
 
-msgid "Add\nCategory"
-msgstr "Add\nCategory"
-
 msgid "Rating"
 msgstr "Rating"
 
@@ -208,9 +205,6 @@ msgstr "Participants"
 
 msgid "Copy"
 msgstr "Copy"
-
-msgid "Add\nParticipant"
-msgstr "Add\nParticipant"
 
 msgid "Confirm Pairings"
 msgstr "Confirm Pairings"

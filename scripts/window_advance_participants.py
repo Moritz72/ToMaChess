@@ -35,7 +35,7 @@ class Window_Advance_Participants(QMainWindow):
         layout.addWidget(self.table)
         self.layout_main.addLayout(layout)
 
-        add_row_button = get_button("large", (10, 6), "Add\nParticipant", connect=self.add_new_row, translate=True)
+        add_row_button = get_button("large", (3, 3), '+', connect=self.add_new_row, translate=True)
         layout = QVBoxLayout()
         layout.setAlignment(Qt.AlignmentFlag.AlignTop)
         layout.addWidget(add_row_button)

@@ -129,7 +129,13 @@ class Tournament_Swiss(Tournament):
                 pairing_indices = PAIRING_FUNCTIONS[first_round_method](participant_number, first_seed_white)
             pairings = [Pairing(uuids[i_1], uuids[i_2]) for i_1, i_2 in pairing_indices]
         else:
-            pairings = get_pairings_bbp(self)
+            bbp_pairings = get_pairings_bbp(self)
+            if bbp_pairings is None:
+                pairings = [Pairing(uuids, uuids) for _ in range(participant_number // 2)]
+                if participant_number % 2:
+                    pairings.append(Pairing(uuids, ""))
+            else:
+                pairings = bbp_pairings
         for uuid in self.get_byes():
             pairings.append(Pairing(uuid, "bye"))
         self.set_pairings(pairings)
