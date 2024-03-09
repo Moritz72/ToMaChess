@@ -1,34 +1,22 @@
 from __future__ import annotations
 from typing import TYPE_CHECKING, cast
-from functools import partial
 from PySide6.QtWidgets import QWidget, QGridLayout, QVBoxLayout, QLineEdit
-from PySide6.QtCore import Qt, QObject
+from PySide6.QtCore import Qt
 from .manager_settings import SETTINGS_DISPLAY, MANAGER_SETTINGS
 from .ftp_connection import FTP_CONNECTION
 from .functions_util import get_version
-from .gui_functions import get_button, get_label, get_button_threaded, get_scroll_area_widgets_and_layouts
+from .gui_functions import get_button, get_label, get_scroll_area_widgets_and_layouts
 from .gui_options import get_suitable_widget, get_value_from_suitable_widget
-from .functions_rating_lists import update_list_by_name
+from .window_rating_lists import Window_Rating_Lists
 if TYPE_CHECKING:
     from .window_main import Window_Main
-
-
-def get_update_lists_widget(parent: QObject) -> QWidget:
-    buttons = [get_button_threaded(
-        parent, "large", (15, 3), string, "Updating...", connect=partial(update_list_by_name, string), translate=True
-    ) for string in ("FIDE", "DSB", "USCF", "ECF")]
-    widget = QWidget()
-    layout = QGridLayout(widget)
-    layout.setContentsMargins(0, 0, 0, 0)
-    for i, button in enumerate(buttons):
-        layout.addWidget(button, i // 2, i % 2)
-    return widget
 
 
 class Widget_Settings(QWidget):
     def __init__(self, window_main: Window_Main) -> None:
         super().__init__()
         self.window_main: Window_Main = window_main
+        self.window_lists: Window_Rating_Lists = Window_Rating_Lists(self.window_main, self)
         self.server_widget: QWidget | None = None
         self.ready: bool = False
         self.layout_main: QVBoxLayout = QVBoxLayout(self)
@@ -67,10 +55,11 @@ class Widget_Settings(QWidget):
                 self.server_widget = widget
             self.layout_inner.addWidget(widget, i, 2)
 
-        self.layout_inner.addWidget(get_label("Update Lists", "large", translate=True), len(settings), 1)
-        self.layout_inner.addWidget(get_update_lists_widget(self.window_main), len(settings), 2)
+        rating_list_button = get_button("large", (None, 4), "Open", connect=self.window_lists.show, translate=True)
         reset_button = get_button("large", (15, 5), "Reset", connect=self.reset_settings, translate=True)
         save_button = get_button("large", (30, 5), "Save", connect=self.save_settings, translate=True)
+        self.layout_inner.addWidget(get_label("Rating Lists", "large", translate=True), len(settings), 1)
+        self.layout_inner.addWidget(rating_list_button, len(settings), 2)
         self.layout_inner.addWidget(reset_button, len(settings) + 1, 1)
         self.layout_inner.addWidget(save_button, len(settings) + 1, 2)
 

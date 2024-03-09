@@ -1,6 +1,6 @@
 from typing import Sequence, Any, Callable
 from PySide6.QtWidgets import QWidget, QTableWidgetItem, QTableWidget, QHeaderView
-from PySide6.QtCore import Qt
+from PySide6.QtCore import Qt, QObject
 from .manager_size import MANAGER_SIZE
 from .manager_translation import MANAGER_TRANSLATION
 from .collection import Collection
@@ -8,7 +8,7 @@ from .player import Player
 from .team import Team
 from .tournament import Tournament
 from .ms_tournament import MS_Tournament
-from .gui_functions import Widget_Size, set_font, get_label, get_button, get_combo_box
+from .gui_functions import Widget_Size, set_font, get_label, get_button, get_button_threaded, get_combo_box
 from .gui_options import get_value_from_suitable_widget
 
 
@@ -139,6 +139,19 @@ def add_button_to_table(
 ) -> None:
     button = get_button(size, widget_size, text, connect, bold, align, checkable, enabled, translate, object_name)
     table.setCellWidget(row, column, button)
+
+
+def add_button_threaded_to_table(
+        table: QTableWidget, row: int, column: int, parent: QObject, size: str | None, widget_size: Widget_Size = None,
+        text: str | Sequence[str] = "", load_text: str | Sequence[str] = "", connect: Callable[[], Any] | None = None,
+        on_finish: Callable[[], Any] | None = None, bold: bool = False, align: str = "center", checkable: bool = True,
+        enabled: bool = True, translate: bool = False, object_name: str | None = None
+) -> None:
+    button_threaded = get_button_threaded(
+        parent, size, widget_size, text, load_text, connect, on_finish,
+        bold, align, checkable, enabled, translate, object_name
+    )
+    table.setCellWidget(row, column, button_threaded)
 
 
 def add_combobox_to_table(

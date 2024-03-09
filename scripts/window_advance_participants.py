@@ -28,7 +28,7 @@ class Window_Advance_Participants(QMainWindow):
         self.layout_main: QHBoxLayout = QHBoxLayout(self.widget)
         self.setCentralWidget(self.widget)
 
-        self.table = QTableWidget()
+        self.table: QTableWidget = QTableWidget()
         self.fill_in_table()
         layout = QVBoxLayout()
         layout.setAlignment(Qt.AlignmentFlag.AlignTop)

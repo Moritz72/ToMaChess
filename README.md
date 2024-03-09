@@ -50,7 +50,7 @@ The available tiebreak criteria are
 For the *Armageddon* parameter the user can specify additional parameters *With Armageddon*, *After Tiebreak* and *Color Determination* (In Order, Random or Choice).  
   
 ## Players  
-Players can be manually added. Additionally, one can use the FIDE Standard rating list, the German national rating list, the USCF rating list and the English national rating list after creating them by clicking the corresponding buttons in the settings.  
+Players can be manually added. Additionally, one can use various rating lists (FIDE, DSB (Germany), USCF (USA), ECF (England), (ÖSB (Austria)) after downloading them through the rating lists window in the settings.  
   
 ![demo_player](./images/demo_player.PNG)  
   

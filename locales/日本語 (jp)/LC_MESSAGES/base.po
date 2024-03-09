@@ -65,14 +65,29 @@ msgstr "bbpPairings パス"
 msgid "PDF Output Path"
 msgstr "PDF 出力先"
 
-msgid "Update Lists"
-msgstr "レーティングリスト更新"
+msgid "Rating Lists"
+msgstr "レーティングリスト"
 
 msgid "Reset"
 msgstr "リセット"
 
+msgid "Create"
+msgstr "作成"
+
+msgid "Creating..."
+msgstr "作成中"
+
+msgid "Update"
+msgstr "更新"
+
 msgid "Updating..."
 msgstr "更新中"
+
+msgid "Delete"
+msgstr "削除"
+
+msgid "Deleting..."
+msgstr "削除中"
 
 msgid "Options"
 msgstr "設定"
@@ -82,9 +97,6 @@ msgstr "参加者\n追加"
 
 msgid "Add\nCategories"
 msgstr "カテゴリー\n追加"
-
-msgid "Create"
-msgstr "作成"
 
 msgid "Swiss"
 msgstr "スイス"

@@ -65,14 +65,11 @@ msgstr "bbpPairings Path"
 msgid "PDF Output Path"
 msgstr "PDF Output Path"
 
-msgid "Update Lists"
-msgstr "Update Lists"
+msgid "Rating Lists"
+msgstr "Rating Lists"
 
 msgid "Reset"
 msgstr "Reset"
-
-msgid "Updating..."
-msgstr "Updating..."
 
 msgid "Options"
 msgstr "Options"
@@ -85,6 +82,21 @@ msgstr "Add\nCategories"
 
 msgid "Create"
 msgstr "Create"
+
+msgid "Creating..."
+msgstr "Creating..."
+
+msgid "Update"
+msgstr "Update"
+
+msgid "Updating..."
+msgstr "Updating..."
+
+msgid "Delete"
+msgstr "Delete"
+
+msgid "Deleting..."
+msgstr "Deleting..."
 
 msgid "Swiss"
 msgstr "Swiss"

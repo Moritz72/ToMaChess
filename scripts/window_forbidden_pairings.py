@@ -33,7 +33,7 @@ class Window_Forbidden_Pairings_Objects(QMainWindow, Generic[T]):
         self.layout_main: QHBoxLayout = QHBoxLayout(self.widget)
         self.setCentralWidget(self.widget)
 
-        self.table = QTableWidget()
+        self.table: QTableWidget = QTableWidget()
         layout = QVBoxLayout()
         layout.setAlignment(Qt.AlignmentFlag.AlignTop)
         layout.addWidget(self.table)

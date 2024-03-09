@@ -65,14 +65,29 @@ msgstr "bbpPairings Pfad"
 msgid "PDF Output Path"
 msgstr "PDF Speicherort"
 
-msgid "Update Lists"
-msgstr "Listen aktualisieren"
+msgid "Rating Lists"
+msgstr "Rating Listen"
 
 msgid "Reset"
 msgstr "Zurücksetzen"
 
+msgid "Create"
+msgstr "Erstellen"
+
+msgid "Create..."
+msgstr "Erstellen..."
+
+msgid "Update"
+msgstr "Aktualisieren"
+
 msgid "Updating..."
 msgstr "Aktualisieren..."
+
+msgid "Delete"
+msgstr "Löschen"
+
+msgid "Deleting..."
+msgstr "Löschen..."
 
 msgid "Options"
 msgstr "Optionen"
@@ -82,9 +97,6 @@ msgstr "Teilnehmer\nhinzufügen"
 
 msgid "Add\nCategories"
 msgstr "Kategorien\nhinzufügen"
-
-msgid "Create"
-msgstr "Erstellen"
 
 msgid "Swiss"
 msgstr "Schweizer System"

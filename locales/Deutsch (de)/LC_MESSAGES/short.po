@@ -97,3 +97,6 @@ msgstr "Koya"
 
 msgid "Participant"
 msgstr "Teilnehmer"
+
+msgid "Rating List"
+msgstr "Rating Liste"

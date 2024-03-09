@@ -76,10 +76,10 @@ def set_window_title(window: QMainWindow, title: str) -> None:
     window.setWindowTitle(MANAGER_TRANSLATION.tl(title))
 
 
-def set_window_size_absolute(window: QMainWindow, size: QSize) -> None:
+def set_window_size_absolute(window: QMainWindow, size: QSize, center: bool = False) -> None:
     screen_geometry = get_screen(window).availableGeometry()
     parent = cast(QWidget, window.parent())
-    window_center = parent.window().geometry().center()
+    window_center = screen_geometry.center() if center else parent.window().geometry().center()
     window_left = window_center.x() - size.width() // 2
     window_top = window_center.y() - size.height() // 2
     space_left = window_center.x() - size.width() // 2 - screen_geometry.x()
@@ -101,14 +101,15 @@ def set_window_size_absolute(window: QMainWindow, size: QSize) -> None:
 
 
 def set_window_size(
-        window: QMainWindow, size: QSize, factor_x: float | None = None, factor_y: float | None = None
+        window: QMainWindow, size: QSize,
+        factor_x: float | None = None, factor_y: float | None = None, center: bool = False
 ) -> None:
     screen_geometry = get_screen(window).availableGeometry()
     if factor_x is not None:
         size.setWidth(int(factor_x * screen_geometry.width()))
     if factor_y is not None:
         size.setHeight(int(factor_y * screen_geometry.height()))
-    set_window_size_absolute(window, size)
+    set_window_size_absolute(window, size, center=center)
 
 
 def set_fixed_size(widget: QWidget, widget_size: Widget_Size) -> None:
@@ -213,9 +214,9 @@ def get_button(
 
 def get_button_threaded(
         parent: QObject, size: str | None, widget_size: Widget_Size = None, text: str | Sequence[str] = "",
-        load_text: str | Sequence[str] = "", connect: Callable[[], Any] | None = None, bold: bool = False,
-        align: str = "center", checkable: bool = True, enabled: bool = True, translate: bool = False,
-        object_name: str | None = None
+        load_text: str | Sequence[str] = "", connect: Callable[[], Any] | None = None,
+        on_finish: Callable[[], Any] | None = None, bold: bool = False, align: str = "center", checkable: bool = True,
+        enabled: bool = True, translate: bool = False, object_name: str | None = None
 ) -> QPushButton:
     assert(connect is not None)
     if translate:
@@ -232,16 +233,18 @@ def get_button_threaded(
         button.setChecked(True)
         button.setText(load_text)
         worker = Function_Worker(connect, parent)
-        worker.finished.connect(on_finish)
+        worker.finished.connect(on_finish_function)
         worker.start()
 
-    def on_finish() -> None:
+    def on_finish_function() -> None:
         try:
             button.setEnabled(True)
             button.setChecked(False)
             button.setText(text)
         except RuntimeError:
             pass
+        if on_finish is not None:
+            on_finish()
 
     button.clicked.connect(threaded_function)
     return button
