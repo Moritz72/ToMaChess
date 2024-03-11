@@ -50,10 +50,10 @@ class Player(Object):
                self.get_rating(), self.get_uuid(), self.get_uuid_associate()
 
     def set_sex(self, sex: str | None) -> None:
-        if sex in SEX_DICT:
-            self.sex = SEX_DICT[sex]
-        elif sex == "" or sex is None:
+        if sex == "" or sex is None:
             self.sex = None
+        elif sex.upper() in SEX_DICT:
+            self.sex = SEX_DICT[sex.upper()]
 
     def set_birthday(self, birthday: int | str | None) -> None:
         if isinstance(birthday, int) or (isinstance(birthday, str) and birthday.isdigit()):

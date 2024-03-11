@@ -99,4 +99,10 @@ msgid "Participant"
 msgstr "Teilnehmer"
 
 msgid "Rating List"
-msgstr "Rating Liste"
+msgstr "Ratingliste"
+
+msgid "Chess Federation"
+msgstr "Schachföderation"
+
+msgid "Country"
+msgstr "Land"

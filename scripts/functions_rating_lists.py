@@ -6,6 +6,8 @@ from zipfile import ZipFile, BadZipFile
 from xml.etree.ElementTree import parse
 from csv import reader
 from dbfread import DBF
+from xlrd import open_workbook
+from openpyxl import load_workbook
 from .collection import Collection
 from .player import Player
 from .functions_util import get_app_data_directory, read_file, get_uuid_from_numbers
@@ -19,7 +21,12 @@ INDICES = [
     (3, 0), (3, 1), (3, 2),
     (3, 3), (3, 4), (3, 5),
     (4, 0), (4, 1), (4, 2),
-    (5, 0), (5, 1)
+    (5, 0), (5, 1),
+    (6, 0),
+    (7, 0),
+    (8, 0), (8, 1), (8, 2),
+    (9, 0), (9, 1),
+    (10, 0), (10, 1)
 ]
 NAMES_DICT: dict[tuple[int, int], str] = {
     (1, 0): "FIDE (Standard)", (1, 1): "FIDE (Rapid)", (1, 2): "FIDE (Blitz)",
@@ -27,8 +34,21 @@ NAMES_DICT: dict[tuple[int, int], str] = {
     (3, 0): "USCF (Regular)", (3, 1): "USCF (Quick)", (3, 2): "USCF (Blitz)",
     (3, 3): "USCF (Online Regular)", (3, 4): "USCF (Online Quick)", (3, 5): "USCF (Online Blitz)",
     (4, 0): "ECF (Standard)", (4, 1): "ECF (Rapid)", (4, 2): "ECF (Blitz)",
-    (5, 0): "ÖSB (Standard)", (5, 1): "ÖSB (Rapid)"
+    (5, 0): "ÖSB (Standard)", (5, 1): "ÖSB (Rapid)",
+    (6, 0): "KNSB",
+    (7, 0): "MCF",
+    (8, 0): "CFR (Standard)", (8, 1): "CFR (Rapid)", (8, 2): "CFR (Blitz)",
+    (9, 0): "FCF (Standard)", (9, 1): "FCF (Blitz)",
+    (10, 0): "NZCF (Standard)", (10, 1): "NZCF (Rapid)"
 }
+FEDERATIONS = [
+    "", "Fédération Internationale des Échecs", "Deutscher Schachbund", "United States Chess Federation",
+    "English Chess Federation", "Österreichischer Schachbund", "Koninklijke Nederlandse Schaakbond",
+    "Persekutuan Catur Malaysia", "Федерация шахмат России", "Suomen Shakkiliitto", "New Zealand Chess Federation"
+]
+COUNTRIES = [
+    "", "", "Germany", "USA", "England", "Austria", "Netherlands", "Malaysia", "Russia", "Finland", "New Zealand"
+]
 
 
 def renew_certificate(certificate: str) -> None:
@@ -59,16 +79,55 @@ def process_csv(csv_file_path: str, keys: Sequence[str], encoding: str | None = 
         return [tuple("" if value == "" else row[indices[j]] for j, value in enumerate(keys)) for row in csv_reader]
 
 
-def get_link_from_url(search_url: str, search_text: str) -> str | None:
+def process_xls(xls_file_path: str, keys: Sequence[str]) -> list[tuple[str, ...]]:
+    sheet = open_workbook(xls_file_path).sheet_by_index(0)
+    header = sheet.row_values(0)
+    indices = tuple(-1 if key == "" else header.index(key) for key in keys)
+    return [
+        tuple("" if value == "" else str(sheet.cell_value(row, indices[j])) for j, value in enumerate(keys))
+        for row in range(1, sheet.nrows)
+    ]
+
+
+def process_xlsx(
+        xlsx_file_path: str, keys: Sequence[str], header_rows: int = 1, header_add: Sequence[str] | None = None
+) -> list[tuple[str, ...]]:
+    sheet = load_workbook(xlsx_file_path).active
+    header = [cell.value for cell in sheet[1]]
+    for row in range(2, header_rows + 1):
+        new_header = header.copy()
+        values = [cell.value for cell in sheet[row]]
+        for j, cell in enumerate(sheet[row]):
+            if cell.value is None:
+                continue
+            left = j + 1 - values[:j + 1][::-1].index(None) if None in values[:j + 1] else 0
+            right = j + values[j:].index(None) if None in values[j:] else len(values)
+            one_left = [item for item in header[left:right] if item is not None]
+            if len(one_left) != 1:
+                continue
+            new_header[j] = f"{one_left[0]}_{cell.value}"
+        header = new_header
+    if header_add is not None:
+        for i, add in enumerate(header_add):
+            if bool(add):
+                header[i] = add
+    indices = tuple(-1 if key == "" else header.index(key) for key in keys)
+    return [
+        tuple("" if value == "" else str(row[indices[j]]) for j, value in enumerate(keys))
+        for row in sheet.iter_rows(min_row=header_rows + 1, values_only=True)
+    ]
+
+
+def get_link_from_url(search_url: str, search_text: str, front: str = '"', back: str = '"') -> str | None:
     try:
-        response = get(search_url)
+        response = get(search_url, headers={"User-Agent": "XY"})
         response.raise_for_status()
         text = response.text
         if search_text not in text:
             return None
         index = text.index(search_text)
-        start = text[:index].rindex('"') + 1
-        end = index + text[index:].index('"')
+        start = text[:index].rindex(front) + 1
+        end = index + text[index:].index(back)
         return text[start:end]
     except exceptions.RequestException:
         return None
@@ -104,7 +163,8 @@ def unzip_file(file_name_zip: str, file_name_extract: str) -> bool:
 
 def update_list(list_id: int, sub_id: int) -> None:
     list_function_dict: dict[int, Callable[[int], list[Player] | None]] = {
-        1: get_fide_list, 2: get_dsb_list, 3: get_uscf_list, 4: get_ecf_list, 5: get_oesb_list
+        1: get_fide_list, 2: get_dsb_list, 3: get_uscf_list, 4: get_ecf_list, 5: get_oesb_list, 6: get_knsb_list,
+        7: get_mcf_list, 8: get_cfr_list, 9: get_fcf_list, 10: get_nzcf_list
     }
     name = NAMES_DICT[(list_id, sub_id)]
     players_new = list_function_dict[list_id](sub_id)
@@ -222,4 +282,96 @@ def get_oesb_list(sub_id: int) -> list[Player] | None:
     return [Player(
         entry[0], entry[1], entry[2], entry[3], entry[4], entry[5],
         get_uuid_from_numbers(int(entry[6]), 5, sub_id), get_uuid_from_numbers(0, 5, sub_id)
+    ) for entry in data]
+
+
+def get_knsb_list(sub_id: int) -> list[Player] | None:
+    url = get_link_from_url("https://schaakbond.nl/rating/downloadlijsten/", "/KNSB.zip", front='=', back='>')
+    if url is None:
+        return None
+    file_name_zip = "KNSB.zip"
+    file_name_csv = "KNSB.csv"
+    path_zip = os.path.join(get_app_data_directory(), "temp", file_name_zip)
+    path_csv = os.path.join(get_app_data_directory(), "temp", file_name_csv)
+
+    if not download_file(url, file_name_zip) or not unzip_file(file_name_zip, file_name_csv):
+        return None
+    data = [row.split(';') for row in read_file(path_csv, encoding=None).split('\n')[1:-1]]
+    os.remove(path_zip)
+    os.remove(path_csv)
+    return [Player(
+        entry[1], entry[7].upper() or 'M', entry[6], entry[3], entry[2], entry[4],
+        get_uuid_from_numbers(int(entry[0]), 6, sub_id), get_uuid_from_numbers(0, 6, sub_id)
+    ) for entry in data]
+
+
+def get_mcf_list(sub_id: int) -> list[Player] | None:
+    url = "https://rating.malaysiachess.my/api/mcfratinglist.ashx"
+    file_name = "MCFRating.xls"
+    path = os.path.join(get_app_data_directory(), "temp", file_name)
+
+    if not download_file(url, file_name):
+        return None
+    data = process_xls(path, ("Name", "Sex", "birthday", "FED", "Title", "rtg_nat", "ID_No"))
+    os.remove(path)
+    return [Player(
+        entry[0].title(), entry[1], entry[2], entry[3], entry[4], int(float(entry[5])) or None,
+        get_uuid_from_numbers(int(entry[6]), 7, sub_id), get_uuid_from_numbers(0, 7, sub_id)
+    ) for entry in data]
+
+
+def get_cfr_list(sub_id: int) -> list[Player] | None:
+    rating_list = {0: "standard", 1: "rapid", 2: "blitz"}[sub_id]
+    url = f"https://ratings.ruchess.ru/api/smanager_{rating_list}.csv.zip"
+    file_name_zip = f"cfr_{rating_list}.zip"
+    file_name_csv = f"smanager_{rating_list}.csv"
+    path_zip = os.path.join(get_app_data_directory(), "temp", file_name_zip)
+    path_csv = os.path.join(get_app_data_directory(), "temp", file_name_csv)
+
+    if not download_file(url, file_name_zip) or not unzip_file(file_name_zip, file_name_csv):
+        return None
+    data = process_csv(path_csv, ("Name", "Sex", "Birthday", "Fed", "", "Rtg_Nat", "ID_No"), encoding="utf-8")
+    data = [entry for entry in data if entry[6].isdigit()]
+    os.remove(path_zip)
+    os.remove(path_csv)
+    return [Player(
+        entry[0], entry[1] or 'M', entry[2], entry[3], entry[4], entry[5],
+        get_uuid_from_numbers(int(entry[6]), 8, sub_id), get_uuid_from_numbers(0, 8, sub_id)
+    ) for entry in data]
+
+
+def get_fcf_list(sub_id: int) -> list[Player] | None:
+    rating_list = {0: "selolista", 1: "pelolista"}[sub_id]
+    url = f"http://www.shakki.net/selo/{rating_list}.xls"
+    file_name = f"{rating_list}.xls"
+    path = os.path.join(get_app_data_directory(), "temp", file_name)
+
+    if not download_file(url, file_name):
+        return None
+    data = process_xls(path, ("Last Name", "First Name", "Sex", "Birthday", "Fed", "", "Rtg_Nat", "ID_No"))
+    os.remove(path)
+    return [Player(
+        f"{entry[0]}, {entry[1]}", entry[2], entry[3][:4], entry[4], entry[5], int(float(entry[6])) or None,
+        get_uuid_from_numbers(int(float(entry[7])), 9, sub_id), get_uuid_from_numbers(0, 9, sub_id)
+    ) for entry in data]
+
+
+def get_nzcf_list(sub_id: int) -> list[Player] | None:
+    rating_list = {0: "Standard", 1: "Rapid"}[sub_id]
+    url = get_link_from_url("https://newzealandchess.co.nz/new-zealand-ratings-list", "-Alphabetical-")
+    if url is None:
+        return None
+    file_name = url[url.rindex('/') + 1:]
+    path = os.path.join(get_app_data_directory(), "temp", file_name)
+
+    if not download_file(url, file_name):
+        return None
+    data = process_xlsx(
+        path, ("Name", "First_Name", "", "Year", "FIDE_Fed", "FIDE_Title", f"{rating_list}_Rating", "Code"),
+        header_rows=2, header_add=["", "", "First_Name"]
+    )
+    os.remove(path)
+    return [Player(
+        f"{entry[0]}, {entry[1]}", entry[2], entry[3], entry[4], entry[5].strip(), entry[6],
+        get_uuid_from_numbers(int(entry[7][:-2]), 10, sub_id), get_uuid_from_numbers(0, 10, sub_id)
     ) for entry in data]

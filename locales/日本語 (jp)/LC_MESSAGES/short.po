@@ -100,3 +100,9 @@ msgstr "参加者"
 
 msgid "Rating List"
 msgstr "レーティングリスト"
+
+msgid "Chess Federation"
+msgstr "チェス連盟"
+
+msgid "Country"
+msgstr "国"

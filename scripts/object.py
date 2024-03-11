@@ -41,7 +41,7 @@ class Object:
         pass
 
     def set_name(self, name: str) -> None:
-        self.name = name
+        self.name = name.strip()
 
     def set_uuid_associate(self, uuid_associate: str) -> None:
         self.uuid_associate = uuid_associate
