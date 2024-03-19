@@ -57,7 +57,7 @@ msgid "Font"
 msgstr "Schriftart"
 
 msgid "Font Size"
-msgstr "Schirftgröße"
+msgstr "Schriftgröße"
 
 msgid "bbpPairings Path"
 msgstr "bbpPairings Pfad"
