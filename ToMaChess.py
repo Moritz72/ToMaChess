@@ -1,4 +1,4 @@
-from scripts.main import run
+from scripts.common.main import run
 
 
 if __name__ == "__main__":
