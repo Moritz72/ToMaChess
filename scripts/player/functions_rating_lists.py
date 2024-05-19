@@ -15,6 +15,7 @@ from ..database.db_collection import DB_COLLECTION, collection_exists
 from ..database.db_player import DB_PLAYER
 
 
+USER_AGENT_DUMMY = "Mozilla/5.0 (Windows NT 10.0) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/104.0.0.0 Safari/537.36"
 INDICES = [
     (1, 0), (1, 1), (1, 2),
     (2, 0),
@@ -120,7 +121,7 @@ def process_xlsx(
 
 def get_link_from_url(search_url: str, search_text: str, front: str = '"', back: str = '"') -> str | None:
     try:
-        response = get(search_url, headers={"User-Agent": "XY"})
+        response = get(search_url, headers={"User-Agent": USER_AGENT_DUMMY})
         response.raise_for_status()
         text = response.text
         if search_text not in text:
@@ -136,7 +137,7 @@ def get_link_from_url(search_url: str, search_text: str, front: str = '"', back:
 def download_file(url: str, file_name: str, verify: bool | str = True, retry: bool = True, agent: bool = True) -> bool:
     download_path = os.path.join(get_app_data_directory(), "temp", file_name)
     try:
-        response = get(url, verify=verify, headers={"User-Agent": "XY"} if agent else None)
+        response = get(url, verify=verify, headers={"User-Agent": USER_AGENT_DUMMY} if agent else None)
         response.raise_for_status()
         with open(download_path, 'wb') as file:
             file.write(response.content)

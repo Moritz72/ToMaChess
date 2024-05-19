@@ -55,7 +55,7 @@ def get_standings_with_tiebreaks(tournament: Tournament, category_range: Categor
     headers = ["Name", "Points"] + [tb.criteria[0] for tb in tiebreaks]
 
     def evaluate_simple(_: list[str]) -> dict[str, float]:
-        return {uuid: score for uuid, score in tournament.get_simple_scores().items() if uuid in uuid_list}
+        return {_uuid: _score for _uuid, _score in tournament.get_simple_scores().items() if uuid in uuid_list}
 
     rank_functions = [evaluate_simple] + [tb.get_evaluation_function(tournament) for tb in tiebreaks]
     score_dict = get_score_dict_recursive(tuple(), uuid_list, rank_functions)

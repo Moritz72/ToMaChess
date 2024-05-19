@@ -7,8 +7,10 @@ from .functions_util import get_image, make_app_data_folder, remove_temporary_fi
 def run() -> None:
     make_app_data_folder()
     remove_temporary_files()
-    from scripts.gui.windows.window_main import Window_Main
-    from scripts.database.manager_database import MANAGER_DATABASE
+
+    from ..database.manager_database import MANAGER_DATABASE
+    from ..gui.windows.window_main import Window_Main
+
     MANAGER_DATABASE.create_tables()
     app = QApplication([])
     app.setWindowIcon(QIcon(get_image("logo.png")))
