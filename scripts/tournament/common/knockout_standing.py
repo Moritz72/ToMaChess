@@ -1,4 +1,5 @@
 from typing import Any, Iterator, Sequence
+from ...common.functions_util import shorten_float
 
 
 class Knockout_Standing:
@@ -22,4 +23,4 @@ class Knockout_Standing:
 
     def add_score(self, score: Sequence[float], reverse: bool = False) -> None:
         r = -1 if reverse else 1
-        self.score = [sc_current + r * sc for sc_current, sc in zip(self.score, score)]
+        self.score = [shorten_float(sc_current + r * sc) for sc_current, sc in zip(self.score, score)]

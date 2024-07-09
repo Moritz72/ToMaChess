@@ -1,8 +1,10 @@
 from typing import Any
 from .variable import Variable
 from ..common.result import Result
+from ..registries.variable_registry import VARIABLE_REGISTRY
 
 
+@VARIABLE_REGISTRY.register("Variable_Results")
 class Variable_Results(list[list[Result]], Variable):
     def __init__(self, results: list[list[list[list[str]]]]) -> None:
         assert(all(
@@ -12,6 +14,9 @@ class Variable_Results(list[list[Result]], Variable):
         super().__init__([[
             Result((item_1[0], item_1[1]), (item_2[0], item_2[1])) for item_1, item_2 in result_list
         ] for result_list in results])
+
+    def get_class(self) -> str:
+        return "Variable_Results"
 
     def get_dict(self) -> dict[str, Any]:
         return {"results": [[tuple(result) for result in result_list] for result_list in self]}

@@ -8,8 +8,8 @@ from ...tournament.tournaments.tournament import Tournament
 
 class Widget_Tournament_Details(Widget_Tournament_Info):
     def __init__(self, tournament: Tournament):
-        super().__init__("Details", tournament)
-        self.layout_main = QVBoxLayout(self)
+        super().__init__(("Details",), tournament)
+        self.layout_main: QVBoxLayout = QVBoxLayout(self)
         self.layout_main.setAlignment(Qt.AlignmentFlag.AlignCenter | Qt.AlignmentFlag.AlignTop)
 
         header = get_label(
@@ -18,7 +18,7 @@ class Widget_Tournament_Details(Widget_Tournament_Info):
         )
         self.layout_main.addWidget(header)
 
-        self.table = QTableWidget()
+        self.table: QTableWidget = QTableWidget()
         self.fill_in_table()
         self.layout_main.addWidget(self.table)
 
@@ -32,6 +32,3 @@ class Widget_Tournament_Details(Widget_Tournament_Info):
         for i, (key, value) in enumerate(description.items()):
             add_content_to_table(self.table, key, i, 0, size="large", edit=False, bold=True, translate=True)
             add_content_to_table(self.table, value, i, 1, size="large", edit=False, translate=True)
-
-    def refresh(self) -> None:
-        self.fill_in_table()

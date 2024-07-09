@@ -9,7 +9,7 @@ from ..widgets.widget_ms_tournament_stage_new import Widget_MS_Tournament_Stage_
 from ...ms_tournament.ms_tournament import MS_Tournament
 from ...player.player import Player
 from ...team.team import Team
-from ...tournament.tournaments.tournament import Participant
+from ...tournament.common.type_declarations import Participant
 
 
 T = TypeVar('T', bound=Participant)

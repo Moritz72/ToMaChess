@@ -2,6 +2,7 @@ from random import random
 from typing import Any, Sequence
 from .parameter import Parameter
 from ..common.pairing import Pairing
+from ..registries.parameter_registry import PARAMETER_REGISTRY
 
 
 def determine_color_default(uuid_1: str, uuid_2: str) -> Pairing:
@@ -18,15 +19,19 @@ def determine_color_choice(uuid_1: str, uuid_2: str) -> Pairing:
     return Pairing([uuid_1, uuid_2], [uuid_1, uuid_2])
 
 
+@PARAMETER_REGISTRY.register("Parameter_Armageddon")
 class Parameter_Armageddon(Parameter):
     def __init__(self, enabled: bool = False, after_rounds: int = 1, color_methods: list[str] | None = None) -> None:
         super().__init__()
         self.enabled: bool = enabled
         self.after_rounds: int = after_rounds
-        self.color_methods: list[str] = color_methods or ["In Order", "Random", "Choice"]
+        self.color_methods: list[str] = color_methods or ["Choice", "Random", "In Order"]
 
     def __repr__(self) -> str:
         return f"Armageddon({self.enabled}, {self.after_rounds}, {self.color_methods[0]})"
+
+    def get_class(self) -> str:
+        return "Parameter_Armageddon"
 
     def get_dict(self) -> dict[str, Any]:
         return {"enabled": self.enabled, "after_rounds": self.after_rounds, "color_methods": self.color_methods}

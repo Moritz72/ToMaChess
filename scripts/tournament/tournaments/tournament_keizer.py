@@ -1,9 +1,11 @@
 from typing import Sequence, Any, cast
 from networkx import complete_graph, max_weight_matching
-from .tournament import Participant, Tournament
+from .tournament import Tournament
 from ..common.pairing import Pairing
 from ..common.result import Result
+from ..common.type_declarations import Participant
 from ..parameters.parameter_tiebreak import Parameter_Tiebreak
+from ..registries.tournament_registry import TOURNAMENT_REGISTRY
 from ..utils.functions_tournament_util import get_score_dict_keizer, get_score_dict_by_point_system
 from ...database.db_player import sort_players_swiss
 from ...player.player import Player
@@ -12,6 +14,7 @@ TB_1 = ["Games", "None", "Games as Black", "Wins", "Wins as Black", "Average Rat
 TB_2 = ["None", "Games", "Games as Black", "Wins", "Wins as Black", "Average Rating", "Direct Encounter"]
 
 
+@TOURNAMENT_REGISTRY.register("Keizer")
 class Tournament_Keizer(Tournament):
     def __init__(
             self, participants: list[Participant], name: str, shallow_participant_count: int | None = None,

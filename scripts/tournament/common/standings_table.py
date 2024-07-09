@@ -1,6 +1,6 @@
 from __future__ import annotations
 from random import shuffle
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Callable
 from ...common.functions_util import shorten_float
 if TYPE_CHECKING:
     from ..tournaments.tournament import Participant
@@ -12,14 +12,17 @@ def score_to_string(score: float) -> str:
         string = string[:6]
     if string[-1] == '.':
         string = string[-1:]
+    elif len(string) > 1 and string[-2:] == ".0":
+        string = string[:-2]
     return string
 
 
 class Standings_Table(list[list[float]]):
-    def __init__(self, participants: list[Participant], table: list[list[float]], headers: list[str]):
+    def __init__(self, participants: list[Participant], table: list[list[float]], headers: list[str]) -> None:
         super().__init__(table)
         self.participants: list[Participant] = participants
         self.headers: list[str] = headers
+        self.keys: list[Callable[[float], float]] = [lambda x: x for _ in range(len(self.headers) - 1)]
         self.sort_table()
 
     def __repr__(self) -> str:
@@ -28,8 +31,15 @@ class Standings_Table(list[list[float]]):
             representation += f"{participant.__repr__()}: {scores}\n"
         return representation[:-1]
 
+    def set_key(self, i: int, key: Callable[[float], float]) -> None:
+        self.keys[i] = key
+        self.sort_table()
+
+    def get_row_values(self, row: int) -> tuple[float, ...]:
+        return tuple(key(value) for key, value in zip(self.keys, self[row]))
+
     def sort_table(self) -> None:
-        index_switches = sorted(range(len(self)), key=lambda i: self[i], reverse=True)
+        index_switches = sorted(range(len(self)), key=lambda i: self.get_row_values(i), reverse=True)
         new_table = [self[i] for i in index_switches]
         self.participants = [self.participants[i] for i in index_switches]
         self.clear()
@@ -42,8 +52,8 @@ class Standings_Table(list[list[float]]):
         current_placement = 0
 
         for i in range(1, len(self)):
-            assert(self[i] <= self[i - 1])
-            if self[i] == self[i - 1]:
+            assert(self.get_row_values(i) <= self.get_row_values(i - 1))
+            if self.get_row_values(i) == self.get_row_values(i - 1):
                 placements[current_placement].append(self.participants[i])
             else:
                 while len(placements) < i:

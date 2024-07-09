@@ -1,18 +1,21 @@
 from random import shuffle
 from typing import Any, Sequence, cast
-from .tournament import Participant, Tournament
+from .tournament import Tournament
 from ..common.bracket_tree import Bracket_Tree
 from ..common.category_range import Category_Range
+from ..common.cross_table import Cross_Table
 from ..common.pairing import Pairing
 from ..common.result import Result
 from ..common.result_team import Result_Team
 from ..common.standings_table import Standings_Table
+from ..common.type_declarations import Participant
 from ..parameters.parameter_armageddon import Parameter_Armageddon
+from ..registries.tournament_registry import TEAM_TOURNAMENT_REGISTRY, TOURNAMENT_REGISTRY
 from ..variables.variable_knockout_standings import Variable_Knockout_Standings
 from ..utils.functions_pairing import PAIRING_FUNCTIONS
 from ..utils.functions_tournament_knockout import get_bracket_tree, get_end_rounds, reverse_participant_standings, \
     update_participant_standings
-from ...common.functions_util import has_duplicates, shorten_float
+from ...common.functions_util import has_duplicates
 from ...database.db_player import sort_players_swiss
 from ...player.player import Player
 
@@ -24,6 +27,7 @@ def get_scores(score_1: str, score_2: str, score_dict: dict[str, float]) -> tupl
         return [score_dict[score_1]], [score_dict[score_2]]
 
 
+@TOURNAMENT_REGISTRY.register("Knockout")
 class Tournament_Knockout(Tournament):
     def __init__(
             self, participants: list[Participant], name: str, shallow_participant_count: int | None = None,
@@ -42,6 +46,7 @@ class Tournament_Knockout(Tournament):
             "armageddon": Parameter_Armageddon()
         } | self.parameters
         self.variables = {
+            "standings_dict": Variable_Knockout_Standings(dict()),
             "auto_advance_history": []
         } | self.variables
         self.parameters_display = {
@@ -69,23 +74,29 @@ class Tournament_Knockout(Tournament):
             counter += 1
 
         if armageddon.is_armageddon(games, games_per_tiebreak, r):
-            return "Round", f" {counter}.A"
+            return "Round", ' ', f"{counter}.A"
         if r <= games:
             if games == 1:
-                return "Round", f" {counter}"
-            return "Round", f" {counter}.{r}"
-        return "Round", f" {counter}.T{r - games}"
+                return "Round", ' ', f"{counter}"
+            return "Round", ' ', f"{counter}.{r}"
+        return "Round", ' ', f"{counter}.T{r - games}"
 
     def get_standings(self, category_range: Category_Range | None = None) -> Standings_Table:
         headers = ["Name", "Matches", "Match Points"]
+        if self.is_team_tournament():
+            headers.extend(["Board Points", "Berlin Rating"])
         participants = self.get_participants()
         standings_dict = self.get_standings_dict()
         if category_range is not None:
             participants = category_range.filter_list(participants)
 
-        return Standings_Table(participants, [[
-            standings_dict[participant.get_uuid()].level, shorten_float(standings_dict[participant.get_uuid()].score[0])
-        ] for participant in participants], headers)
+        uuids = [participant.get_uuid() for participant in participants]
+        entries = [[standings_dict[uuid].level, *standings_dict[uuid].score] for uuid in uuids]
+        if self.is_team_tournament():
+            for entry in entries:
+                entry[1] *= 2
+
+        return Standings_Table(participants, entries, headers)
 
     def get_games(self) -> int:
         return cast(int, self.get_parameter("games"))
@@ -117,7 +128,14 @@ class Tournament_Knockout(Tournament):
             get_scores(score_1, score_2, self.get_score_dict()) for (_, score_1), (_, score_2) in self.get_results()[-1]
         ]
 
-    def get_bracket_tree(self) -> Bracket_Tree:
+    def get_cross_table(self, i: int) -> Cross_Table:
+        return NotImplemented
+
+    def get_cross_tables(self) -> int:
+        return 0
+
+    def get_bracket_tree(self, i: int) -> Bracket_Tree:
+        assert(i < self.get_bracket_trees())
         standings_dict = self.get_standings_dict()
         end_rounds = get_end_rounds(
             standings_dict, self.get_games(), self.get_games_per_tiebreak(), self.get_armageddon(), *self.get_totals()
@@ -127,9 +145,10 @@ class Tournament_Knockout(Tournament):
             self.get_auto_advance_history(), self.get_pairing_method(), end_rounds
         )
 
+    def get_bracket_trees(self) -> int:
+        return 1
+
     def set_participants(self, participants: Sequence[Participant], from_order: bool = False) -> None:
-        if "standings_dict" not in self.get_variables():
-            self.get_variables()["standings_dict"] = Variable_Knockout_Standings(dict())
         super().set_participants(participants, from_order=from_order)
         uuids = self.get_participant_uuids()
         standings_dict = self.get_standings_dict()
@@ -158,12 +177,6 @@ class Tournament_Knockout(Tournament):
     def is_seeding_allowed(self) -> bool:
         return self.get_round() == 1
 
-    def has_cross_table(self) -> bool:
-        return False
-
-    def has_bracket_tree(self) -> bool:
-        return True
-
     def add_results(self, results: Sequence[Result] | Sequence[Result_Team]) -> None:
         super().add_results(results)
         games = self.get_games()
@@ -182,12 +195,10 @@ class Tournament_Knockout(Tournament):
             uuids |= {item_1, item_2}
 
         if first_round:
-            alives = set(uuid for uuid in standings_dict if standings_dict[uuid].beaten_by_seed is None)
-            for uuid in alives.difference(uuids):
+            alives_difference = set(standings_dict.get_alives()).difference(uuids)
+            for uuid in alives_difference:
                 standings_dict[uuid].level = level + 1
-            self.get_auto_advance_history().append(
-                sorted(alives.difference(uuids), key=lambda x: standings_dict[x].seed)
-            )
+            self.get_auto_advance_history().append(sorted(alives_difference, key=lambda x: standings_dict[x].seed))
         self.set_participants(sorted(self.get_participants(), key=lambda x: standings_dict[x.get_uuid()].seed))
 
     def remove_results(self) -> None:
@@ -205,9 +216,8 @@ class Tournament_Knockout(Tournament):
             uuids |= {item_1, item_2}
 
         level = standings_dict[cast(str, self.get_results()[-1][0][0][0])].level
-        alives = set(uuid for uuid in standings_dict if standings_dict[uuid].beaten_by_seed is None)
         if all(standings_dict[uuid].score == self.get_initial_score() for uuid in uuids):
-            for uuid in alives:
+            for uuid in standings_dict.get_alives():
                 standings_dict[uuid].level = level
             self.get_auto_advance_history().pop()
         self.set_participants(sorted(self.get_participants(), key=lambda x: standings_dict[x.get_uuid()].seed))
@@ -321,6 +331,7 @@ def get_scores_team(
     )
 
 
+@TEAM_TOURNAMENT_REGISTRY.register("Knockout (Team)")
 class Tournament_Knockout_Team(Tournament_Knockout):
     def __init__(
             self, participants: list[Participant], name: str, shallow_participant_count: int | None = None,
@@ -341,6 +352,7 @@ class Tournament_Knockout_Team(Tournament_Knockout):
             "armageddon": Parameter_Armageddon()
         } | self.parameters
         self.variables = {
+            "standings_dict": Variable_Knockout_Standings(dict()),
             "auto_advance_history": []
         } | self.variables
         self.parameters_display = {
@@ -369,19 +381,3 @@ class Tournament_Knockout_Team(Tournament_Knockout):
             for ((item_1, score_1), (item_2, score_2)), result_team
             in zip(self.get_results()[-1], self.get_results_team()[-1])
         ]
-
-    def get_standings(
-            self, category_range: Category_Range | None = None
-    ) -> Standings_Table:
-        headers = ["Name", "Matches", "Match Points", "Board Points", "Berlin Rating"]
-        participants = self.get_participants()
-        standings_dict = self.get_standings_dict()
-        if category_range is not None:
-            participants = category_range.filter_list(participants)
-
-        return Standings_Table(participants, [[
-            standings_dict[participant.get_uuid()].level,
-            shorten_float(2 * standings_dict[participant.get_uuid()].score[0]),
-            shorten_float(standings_dict[participant.get_uuid()].score[1]),
-            shorten_float(standings_dict[participant.get_uuid()].score[2])
-        ] for participant in participants], headers)

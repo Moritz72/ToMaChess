@@ -3,7 +3,7 @@ from copy import deepcopy
 from json import dumps
 from random import shuffle
 from typing import Any, Sequence, cast
-from ..common.bracket_tree import Bracket_Tree, Bracket_Tree_Node
+from ..common.bracket_tree import Bracket_Tree
 from ..common.category_range import Category_Range
 from ..common.cross_table import Cross_Table
 from ..common.pairing import Pairing
@@ -11,36 +11,20 @@ from ..common.pairing_item import Pairing_Item
 from ..common.result import Result
 from ..common.result_team import Result_Team
 from ..common.standings_table import Standings_Table
+from ..common.type_declarations import Participant, Tournament_Data
 from ..parameters.parameter import Parameter
-from ..parameters.parameter_armageddon import Parameter_Armageddon
 from ..parameters.parameter_tiebreak import Parameter_Tiebreak
+from ..registries.parameter_registry import PARAMETER_REGISTRY
+from ..registries.variable_registry import VARIABLE_REGISTRY
 from ..utils.functions_tournament_util import get_standings_with_tiebreaks, get_team_result, is_valid_lineup
 from ..variables.variable import Variable
 from ..variables.variable_category_ranges import Variable_Category_Ranges
-from ..variables.variable_knockout_standings import Variable_Knockout_Standings
 from ..variables.variable_pairings import Variable_Pairings
 from ..variables.variable_results import Variable_Results
 from ..variables.variable_results_team import Variable_Results_Team
 from ...common.functions_util import has_duplicates
 from ...common.object import Object
-from ...player.player import Player
 from ...team.team import Team
-
-Participant = Player | Team
-Tournament_Data = tuple[str, str, int, str, str, str, str, str]
-Tournament_Data_Loaded = tuple[str, str, int, dict[str, Any], dict[str, Any], list[str], str, str]
-
-PARAMETERS = {
-    Parameter_Armageddon,
-    Parameter_Tiebreak
-}
-VARIABLES = {
-    Variable_Category_Ranges,
-    Variable_Pairings,
-    Variable_Results,
-    Variable_Results_Team,
-    Variable_Knockout_Standings
-}
 
 
 class Tournament(Object):
@@ -51,21 +35,23 @@ class Tournament(Object):
             uuid_associate: str = "00000000-0000-0000-0000-000000000002"
     ):
         super().__init__(name, uuid, uuid_associate)
-        self.participants: list[Participant] = []
+        self.participants: list[Participant] = participants
+        self.shallow_participant_count: int = shallow_participant_count or 0
         self.parameters: dict[str, Any] = parameters or dict()
         self.variables: dict[str, Any] = variables or dict()
-        self.parameters = self.parameters
-        self.variables = {
-            "round": 1, "pairings": Variable_Pairings([]), "results": Variable_Results([]),
-            "results_team": Variable_Results_Team([]), "drop_outs": [], "byes": [],
-            "forbidden_pairings": [], "category_ranges": Variable_Category_Ranges([])
-        } | self.variables
         self.order: list[str] | None = order
         self.mode: str = ""
         self.parameters_display: dict[str, tuple[str, ...] | str | None] = dict()
-        self.load_parameters_and_variables()
-        self.set_participants(participants, from_order=True)
-        self.shallow_participant_count: int = shallow_participant_count or len(self.participants)
+        self.variables = {
+            "round": 1,
+            "pairings": Variable_Pairings([]),
+            "results": Variable_Results([]),
+            "results_team": Variable_Results_Team([]),
+            "drop_outs": [],
+            "byes": [],
+            "forbidden_pairings": [],
+            "category_ranges": Variable_Category_Ranges([])
+        } | self.variables
 
     def copy(self) -> Tournament:
         return deepcopy(self)
@@ -153,10 +139,10 @@ class Tournament(Object):
         variables = self.get_variables().copy()
         for parameter, value in parameters.items():
             if isinstance(value, Parameter):
-                parameters[parameter] = {"class": value.__class__.__name__, "dict": value.get_dict()}
+                parameters[parameter] = {"class": value.get_class(), "dict": value.get_dict()}
         for variable, value in variables.items():
             if isinstance(value, Variable):
-                variables[variable] = {"class": value.__class__.__name__, "dict": value.get_dict()}
+                variables[variable] = {"class": value.get_class(), "dict": value.get_dict()}
         return self.get_mode(), self.get_name(), self.get_participant_count(), dumps(parameters), dumps(variables),\
             dumps([participant.get_uuid() for participant in self.get_participants()] or self.order), \
             self.get_uuid(), self.get_uuid_associate()
@@ -225,7 +211,8 @@ class Tournament(Object):
     def get_standings(self, category_range: Category_Range | None = None) -> Standings_Table:
         return get_standings_with_tiebreaks(self, category_range)
 
-    def get_cross_table(self) -> Cross_Table:
+    def get_cross_table(self, i: int) -> Cross_Table:
+        assert(i < self.get_cross_tables())
         participants = self.get_standings().participants
         uuids = [participant.get_uuid() for participant in participants]
         table = [[None if i == j else "" for j in range(len(uuids))] for i in range(len(uuids))]
@@ -238,10 +225,16 @@ class Tournament(Object):
                     assert(entry_1 is not None and entry_2 is not None)
                     table[index_1][index_2] = entry_1 + score_1
                     table[index_2][index_1] = entry_2 + score_2
-        return Cross_Table(table, [participant.get_name() for participant in participants])
+        return Cross_Table(("Crosstable",), table, [participant.get_name() for participant in participants])
 
-    def get_bracket_tree(self) -> Bracket_Tree:
-        return Bracket_Tree(Bracket_Tree_Node((None, None), []))
+    def get_cross_tables(self) -> int:
+        return 1
+
+    def get_bracket_tree(self, i: int) -> Bracket_Tree:
+        return NotImplemented
+
+    def get_bracket_trees(self) -> int:
+        return 0
 
     def get_details(self) -> dict[tuple[str, ...] | str, str]:
         details: dict[tuple[str, ...] | str, str] = {
@@ -341,8 +334,7 @@ class Tournament(Object):
     def is_undo_last_round_allowed(self) -> bool:
         return self.get_round() > 1
 
-    @staticmethod
-    def is_drop_out_allowed() -> bool:
+    def is_drop_out_allowed(self) -> bool:
         return True
 
     def is_drop_in_allowed(self) -> bool:
@@ -357,19 +349,20 @@ class Tournament(Object):
     def is_forbidden_pairings_allowed(self) -> bool:
         return False
 
-    def has_cross_table(self) -> bool:
-        return True
-
-    def has_bracket_tree(self) -> bool:
-        return False
+    def initialize(self) -> None:
+        participants = self.get_participants()
+        self.load_parameters_and_variables()
+        self.set_participants(participants, from_order=True)
+        if bool(participants):
+            self.shallow_participant_count = len(participants)
 
     def load_parameters_and_variables(self) -> None:
         for parameter, value in self.get_parameters().items():
             if isinstance(value, dict) and set(value) == {"class", "dict"}:
-                self.set_parameter(parameter, globals()[value["class"]](**value["dict"]))
+                self.set_parameter(parameter, PARAMETER_REGISTRY[value["class"]](**value["dict"]))
         for variable, value in self.get_variables().items():
             if isinstance(value, dict) and set(value) == {"class", "dict"}:
-                self.set_variable(variable, globals()[value["class"]](**value["dict"]))
+                self.set_variable(variable, VARIABLE_REGISTRY[value["class"]](**value["dict"]))
 
     def apply_uuid_associate(self, uuid_associate: str) -> None:
         super().apply_uuid_associate(uuid_associate)

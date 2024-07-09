@@ -5,10 +5,10 @@ from .db_player import DB_PLAYER
 from .db_team import DB_TEAM
 from .db_tournament import DB_TOURNAMENT
 from .manager_database import MANAGER_DATABASE
-from ..ms_tournament.ms_tournament import MS_Tournament_Data, MS_Tournament_Data_Loaded
+from ..ms_tournament.type_declerations import MS_Tournament_Data, MS_Tournament_Data_Loaded
 from ..player.player import Player
 from ..team.team import Team
-from ..tournament.tournaments.tournament import Participant
+from ..tournament.common.type_declarations import Participant
 from ..ms_tournament.ms_tournament import MS_Tournament
 from ..common.functions_util import remove_duplicates
 

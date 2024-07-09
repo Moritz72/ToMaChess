@@ -1,10 +1,13 @@
 from typing import Any, cast
-from .tournament import Participant, Tournament
+from .tournament import Tournament
 from ..common.pairing import Pairing
+from ..common.type_declarations import Participant
+from ..registries.tournament_registry import TOURNAMENT_REGISTRY
 from ..parameters.parameter_tiebreak import Parameter_Tiebreak, get_tiebreak_list
 from ..utils.functions_tournament_util import get_score_dict_by_point_system
 
 
+@TOURNAMENT_REGISTRY.register("Custom")
 class Tournament_Custom(Tournament):
     def __init__(
             self, participants: list[Participant], name: str, shallow_participant_count: int | None = None,

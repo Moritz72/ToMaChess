@@ -1,8 +1,10 @@
 from random import random
 from typing import Any, Sequence, cast
-from .tournament import Participant, Tournament
+from .tournament import Tournament
 from ..common.pairing import Pairing
+from ..common.type_declarations import Participant
 from ..parameters.parameter_tiebreak import Parameter_Tiebreak, get_tiebreak_list
+from ..registries.tournament_registry import TEAM_TOURNAMENT_REGISTRY, TOURNAMENT_REGISTRY
 from ..utils.functions_bbp import get_pairings_bbp
 from ..utils.functions_pairing import PAIRING_FUNCTIONS
 from ..utils.functions_tournament_util import get_score_dict_by_point_system
@@ -11,6 +13,7 @@ from ...database.db_player import sort_players_swiss
 from ...player.player import Player
 
 
+@TOURNAMENT_REGISTRY.register("Swiss")
 class Tournament_Swiss(Tournament):
     def __init__(
             self, participants: list[Participant], name: str, shallow_participant_count: int | None = None,
@@ -150,6 +153,7 @@ class Tournament_Swiss(Tournament):
             self.seed_participants()
 
 
+@TEAM_TOURNAMENT_REGISTRY.register("Swiss (Team)")
 class Tournament_Swiss_Team(Tournament_Swiss):
     def __init__(
             self, participants: list[Participant], name: str, shallow_participant_count: int | None = None,
@@ -169,6 +173,7 @@ class Tournament_Swiss_Team(Tournament_Swiss):
             "top_seed_color_first_round": ["Random", "White", "Black"],
             "point_system": ["2 - 1 - 0", "1 - ½ - 0", "3 - 1 - 0"],
             "point_system_game": ["1 - ½ - 0", "2 - 1 - 0", "3 - 1 - 0"],
+            "baku_acceleration": False,
             "half_bye": False,
             "tiebreak_1": Parameter_Tiebreak(get_tiebreak_list("Board Points", team=True)),
             "tiebreak_2": Parameter_Tiebreak(get_tiebreak_list("Buchholz", team=True)),
@@ -184,6 +189,7 @@ class Tournament_Swiss_Team(Tournament_Swiss):
             "point_system": "Point System (Match)",
             "point_system_game": "Point System (Game)",
             "half_bye": None,
+            "baku_acceleration": None,
             "tiebreak_1": ("Tiebreak", " (1)"),
             "tiebreak_2": ("Tiebreak", " (2)"),
             "tiebreak_3": ("Tiebreak", " (3)"),

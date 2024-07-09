@@ -7,7 +7,8 @@ from .window_choice_objects import Window_Choice_Objects, Window_Choice_Players,
 from ..common.gui_functions import add_widgets_to_layout, get_button, get_combo_box, get_label, get_lineedit, \
     set_window_size, set_window_title
 from ..widgets.widget_tournament_parameters import Widget_Tournament_Parameters
-from ...database.db_tournament import MODES, MODES_TEAM, MODE_DEFAULT, MODE_DEFAULT_TEAM, get_blank_tournament
+from ...tournament.registries.tournament_registry import TEAM_TOURNAMENT_REGISTRY, TOURNAMENT_REGISTRY
+from ...tournament.utils.functions_tournament_get import get_blank_tournament
 from ...player.player import Player
 from ...team.team import Team
 from ...tournament.common.category_range import CATEGORIES_PLAYER, CATEGORIES_TEAM
@@ -67,7 +68,7 @@ class Window_Tournament_New_Generic(QMainWindow, Generic[T]):
         )
         mode_label = get_label("Mode", "large", translate=True)
         self.mode_combo_box = get_combo_box(
-            list(self.modes), "medium", (15, 3), current=self.mode_default, translate=True
+            self.modes, "medium", (15, 3), current=self.mode_default, translate=True
         )
         add_categories_button = get_button(
             "medium", (10, 5), "Add\nCategories", connect=self.show_categories_window, translate=True
@@ -121,7 +122,10 @@ class Window_Tournament_New_Generic(QMainWindow, Generic[T]):
 
 class Window_Tournament_New_Player(Window_Tournament_New_Generic[Player]):
     def __init__(self, add_participants: bool = True, parent: QWidget | None = None):
-        super().__init__(list(MODES), MODE_DEFAULT, CATEGORIES_PLAYER, add_participants, parent)
+        super().__init__(
+            TOURNAMENT_REGISTRY.get_modes(), TOURNAMENT_REGISTRY.get_mode_default(),
+            CATEGORIES_PLAYER, add_participants, parent
+        )
 
     def get_add_participants_window(self) -> Window_Choice_Objects[Player]:
         return Window_Choice_Players("Add Participants", parent=self)
@@ -129,7 +133,10 @@ class Window_Tournament_New_Player(Window_Tournament_New_Generic[Player]):
 
 class Window_Tournament_New_Team(Window_Tournament_New_Generic[Team]):
     def __init__(self, add_participants: bool = True, parent: QWidget | None = None):
-        super().__init__(list(MODES_TEAM), MODE_DEFAULT_TEAM, CATEGORIES_TEAM, add_participants, parent)
+        super().__init__(
+            TEAM_TOURNAMENT_REGISTRY.get_modes(), TEAM_TOURNAMENT_REGISTRY.get_mode_default(),
+            CATEGORIES_TEAM, add_participants, parent
+        )
 
     def get_add_participants_window(self) -> Window_Choice_Objects[Team]:
         return Window_Choice_Teams("Add Participants", parent=self)

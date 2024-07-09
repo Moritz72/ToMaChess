@@ -2,13 +2,16 @@ from PySide6.QtCore import Qt
 from PySide6.QtWidgets import QTableWidget, QVBoxLayout
 from .widget_tournament_info import Widget_Tournament_Info
 from ..common.gui_classes import Vertical_Text_Delegate
-from ..common.gui_table import add_blank_to_table, add_content_to_table, clear_table, set_up_table, size_table
+from ..common.gui_table import add_blank_to_table, add_content_to_table, set_up_table, size_table
+from ...tournament.common.cross_table import Cross_Table
 from ...tournament.tournaments.tournament import Tournament
 
 
 class Widget_Tournament_Cross_Table(Widget_Tournament_Info):
-    def __init__(self, tournament: Tournament) -> None:
-        super().__init__("Crosstable", tournament)
+    def __init__(self, tournament: Tournament, i: int) -> None:
+        self.index: int = i
+        self.cross_table: Cross_Table = tournament.get_cross_table(i)
+        super().__init__(self.cross_table.name, tournament)
         self.layout_main: QVBoxLayout = QVBoxLayout(self)
         self.layout_main.setAlignment(Qt.AlignmentFlag.AlignCenter | Qt.AlignmentFlag.AlignTop)
 
@@ -17,13 +20,12 @@ class Widget_Tournament_Cross_Table(Widget_Tournament_Info):
         self.layout_main.addWidget(self.table)
 
     def fill_in_table(self) -> None:
-        cross_table = self.tournament.get_cross_table()
-        size = 2 * max(1.5, cross_table.get_max_length())
-        names_left = cross_table.names_left or []
-        names_top = cross_table.names_top or []
+        size = 2 * max(1.5, self.cross_table.get_max_length())
+        names_left = self.cross_table.names_left or []
+        names_top = self.cross_table.names_top or []
         is_left, is_top = bool(names_left), bool(names_top)
-        header_h = [str(i) for i in range(1, len(cross_table[0]) + 1)]
-        header_v = [str(i) for i in range(1, len(cross_table) + 1)]
+        header_h = [str(i) for i in range(1, len(self.cross_table[0]) + 1)]
+        header_v = [str(i) for i in range(1, len(self.cross_table) + 1)]
         if is_left:
             header_h = [""] + header_h
         if is_top:
@@ -48,14 +50,10 @@ class Widget_Tournament_Cross_Table(Widget_Tournament_Info):
                 edit=False, align=Qt.AlignmentFlag.AlignTop | Qt.AlignmentFlag.AlignVCenter
             )
 
-        for row, entries in enumerate(cross_table):
+        for row, entries in enumerate(self.cross_table):
             for column, entry in enumerate(entries):
                 r, c = is_top + row, is_left + column
                 if entry is None:
                     add_blank_to_table(self.table, r, c)
                     continue
                 add_content_to_table(self.table, entry, r, c, edit=False, align=Qt.AlignmentFlag.AlignCenter, bold=True)
-
-    def refresh(self) -> None:
-        clear_table(self.table)
-        self.fill_in_table()

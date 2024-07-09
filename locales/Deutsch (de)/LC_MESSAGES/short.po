@@ -106,3 +106,6 @@ msgstr "Schachföderation"
 
 msgid "Country"
 msgstr "Land"
+
+msgid "Bracket"
+msgstr "B"

@@ -2,6 +2,7 @@ from __future__ import annotations
 from functools import partial
 from typing import TYPE_CHECKING, Any, Callable, Sequence
 from .parameter import Parameter
+from ..registries.parameter_registry import PARAMETER_REGISTRY
 from ..utils.functions_tiebreak import get_berlin_rating, get_blacks, get_board_points, get_buchholz, \
     get_buchholz_sum, get_direct_encounter, get_games, get_koya_system, get_number_of_black_wins, get_number_of_wins, \
     get_opponent_average_rating, get_progressive_score, get_sonneborn_berger
@@ -73,6 +74,7 @@ def get_tiebreak_list(default: str, team: bool = False) -> list[str]:
     return sorted(TIEBREAK_LIST, key=lambda x: x != default)
 
 
+@PARAMETER_REGISTRY.register("Parameter_Tiebreak")
 class Parameter_Tiebreak(Parameter):
     def __init__(self, criteria: list[str] | None = None, **specifications: Any):
         super().__init__()
@@ -81,6 +83,9 @@ class Parameter_Tiebreak(Parameter):
 
     def __repr__(self) -> str:
         return f"{self.criteria[0]} ({self.specifications})"
+
+    def get_class(self) -> str:
+        return "Parameter_Tiebreak"
 
     def get_dict(self) -> dict[str, Any]:
         return {"criteria": self.criteria} | self.specifications

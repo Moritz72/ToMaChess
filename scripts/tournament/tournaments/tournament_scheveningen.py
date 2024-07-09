@@ -1,13 +1,16 @@
 from typing import Any, Sequence, cast
-from .tournament import Participant, Tournament
+from .tournament import Tournament
 from ..common.cross_table import Cross_Table
 from ..common.pairing import Pairing
 from ..common.result import Result
 from ..common.result_team import Result_Team
+from ..common.type_declarations import Participant
 from ..parameters.parameter_tiebreak import Parameter_Tiebreak, get_tiebreak_list
+from ..registries.tournament_registry import TOURNAMENT_REGISTRY
 from ..utils.functions_tournament_util import get_score_dict_by_point_system
 
 
+@TOURNAMENT_REGISTRY.register("Scheveningen")
 class Tournament_Scheveningen(Tournament):
     def __init__(
             self, participants: list[Participant], name: str, shallow_participant_count: int | None = None,
@@ -48,7 +51,7 @@ class Tournament_Scheveningen(Tournament):
             return super().get_round_name(r)
         half = len(self.get_participants()) // 2
         div, mod = divmod(r - 1, half)
-        return "Round", f" {div + 1}.{mod + 1}"
+        return "Round", ' ', f"{div + 1}.{mod + 1}"
 
     def get_cycles(self) -> int:
         return cast(int, self.get_parameter("cycles"))
@@ -62,7 +65,8 @@ class Tournament_Scheveningen(Tournament):
             cast(Parameter_Tiebreak, self.get_parameter("tiebreak_2"))
         )
 
-    def get_cross_table(self) -> Cross_Table:
+    def get_cross_table(self, i: int) -> Cross_Table:
+        assert(i < self.get_cross_tables())
         uuids = self.get_participant_uuids()
         names = [participant.get_name() for participant in self.get_participants()]
         half = len(uuids) // 2
@@ -75,7 +79,7 @@ class Tournament_Scheveningen(Tournament):
                     table[uuids_1.index(item_1)][uuids_2.index(item_2)] += score_1
                 elif item_1 in uuids_2 and item_2 in uuids_1:
                     table[uuids_1.index(item_2)][uuids_2.index(item_1)] += score_2
-        return Cross_Table(cast(list[list[str | None]], table), names[:half], names[half:])
+        return Cross_Table(("Crosstable",), cast(list[list[str | None]], table), names[:half], names[half:])
 
     def is_valid_parameters(self) -> bool:
         half = len(self.get_participants()) // 2

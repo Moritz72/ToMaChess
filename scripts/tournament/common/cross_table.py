@@ -12,9 +12,11 @@ def get_line_breaked_entry(entry: str | None) -> str | None:
 
 class Cross_Table(list[list[str | None]]):
     def __init__(
-            self, table: list[list[str | None]], names_left: list[str] | None = None, names_top: list[str] | None = None
+            self, name: tuple[str, ...], table: list[list[str | None]],
+            names_left: list[str] | None = None, names_top: list[str] | None = None
     ) -> None:
         super().__init__([[get_line_breaked_entry(entry) for entry in row] for row in table])
+        self.name: tuple[str, ...] = name
         self.names_left: list[str] | None = names_left
         self.names_top: list[str] | None = names_top
 

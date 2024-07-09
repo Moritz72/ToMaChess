@@ -59,11 +59,13 @@ class Bracket_Tree_Node:
         self.items = self.items[::-1]
         self.scores = [score[::-1] for score in self.scores]
         self.winner = self.winner if self.winner is None else not self.winner
-        self.connections = self.connections[::-1]
+        if self.get_n_children() == 2:
+            self.connections = self.connections[::-1]
 
 
 class Bracket_Tree:
-    def __init__(self, root: Bracket_Tree_Node) -> None:
+    def __init__(self, name: tuple[str, ...], root: Bracket_Tree_Node) -> None:
+        self.name: tuple[str, ...] = name
         self.root: Bracket_Tree_Node = root
 
     def __repr__(self) -> str:

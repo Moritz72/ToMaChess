@@ -18,6 +18,9 @@ Parameters: *Cycles*, *Pairing Method*, *Custom Seeding*, *Point System* and *Ti
 *Knockout* (Single-elimination) pairs rounds by the specified pairing method but, in successive rounds, only pairs the winners of the previous round. Furthermore, if there is a tie after the number of games specified, the specified number of tiebreak games will be played until either the tie is resolved or the number of tiebreaks specified in the Armageddon parameter is reached.  
 Parameters: *Games per Match*, *Games per Tiebreak*, *Pairing Method* and *Armageddon*.  
   
+*Multiple Knockout* (Double-elimination, Triple-elimination, ...) consists of multiple *Knockout* tournaments called 'Brackets' where players drop down to the bracket below their current one after losing.  
+Parameters: *Multiplicity*, *With Finals*, *Games per Match*, *Games per Tiebreak*, *Pairing Method* and *Armageddon*.  
+  
 *Keizer* pairs rounds according to the [Keizer system](https://jbfsoftware.com/wordpress/sevilla-keizer) or at least according to the information I was able to find on how it is supposed to work.  
 Parameters: *Rounds*, *Ratio (First to Last)*, *Score for Byes (%)*, *No Pairing Repeats*, *Points System* and *Tiebreak (1) - (2)*.  
   

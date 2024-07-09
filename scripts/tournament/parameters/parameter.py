@@ -7,6 +7,10 @@ class Parameter:
         self.window_update_necessary: bool = False
 
     @abstractmethod
+    def get_class(self) -> str:
+        pass
+
+    @abstractmethod
     def get_dict(self) -> dict[str, Any]:
         pass
 

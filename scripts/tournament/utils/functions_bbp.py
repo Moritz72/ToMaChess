@@ -5,7 +5,7 @@ from typing import TYPE_CHECKING, Sequence
 from subprocess import run
 from ..common.pairing_item import Bye, Bye_PA, Pairing_Item
 from ..common.pairing import Pairing
-from ..tournaments.tournament import Participant
+from ..common.type_declarations import Participant
 from ...common.functions_util import get_app_data_directory, read_file, write_file
 from ...common.manager_settings import MANAGER_SETTINGS
 from ...player.player import Player

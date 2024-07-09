@@ -58,7 +58,7 @@ def remove_temporary_files() -> None:
 
 
 def shorten_float(value: float) -> float:
-    return int(value) if float(value).is_integer() else float(str(value).rstrip('0').rstrip('.'))
+    return round(value, 2)
 
 
 def has_duplicates(list_of_hashables: Sequence[Any]) -> bool:

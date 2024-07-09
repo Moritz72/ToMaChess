@@ -469,3 +469,15 @@ msgstr "禁止組み合わせ"
 
 msgid "Add Forbidden Pairings"
 msgstr "禁止組み合わせの追加"
+
+msgid "Multiple Knockout"
+msgstr "複数勝ち残り"
+
+msgid "Multiple Knockout (Team)"
+msgstr "複数勝ち残り（チーム）"
+
+msgid "Multiplicity"
+msgstr "数"
+
+msgid "With Finals"
+msgstr "決勝戦あり"

@@ -4,13 +4,15 @@ from .widget_tournament_info import Widget_Tournament_Info
 from ..common.gui_classes import Line_Widget, Turn_Widget
 from ..common.gui_functions import get_scroll_area_widgets_and_layouts, set_fixed_size
 from ..common.gui_table import add_label_to_table, set_up_table, size_table
-from ...tournament.common.bracket_tree import Bracket_Tree_Node
+from ...tournament.common.bracket_tree import Bracket_Tree, Bracket_Tree_Node
 from ...tournament.tournaments.tournament import Tournament
 
 
 class Widget_Tournament_Bracket_Tree(Widget_Tournament_Info):
-    def __init__(self, tournament: Tournament) -> None:
-        super().__init__("Bracket Tree", tournament)
+    def __init__(self, tournament: Tournament, i: int) -> None:
+        self.index: int = i
+        self.bracket_tree: Bracket_Tree = tournament.get_bracket_tree(i)
+        super().__init__(self.bracket_tree.name, tournament)
         self.layout_main = QVBoxLayout(self)
         self.grid = QGridLayout()
         self.grid.setAlignment(Qt.AlignmentFlag.AlignCenter | Qt.AlignmentFlag.AlignHCenter)
@@ -70,7 +72,7 @@ class Widget_Tournament_Bracket_Tree(Widget_Tournament_Info):
         self.grid.addWidget(line, row, column)
 
     def make_bracket_tree(self) -> None:
-        root = self.tournament.get_bracket_tree().root
+        root = self.bracket_tree.root
         depth = root.get_depth()
         widths = root.get_widths()
         max_score_lengths = root.get_max_score_lengths()
@@ -101,8 +103,3 @@ class Widget_Tournament_Bracket_Tree(Widget_Tournament_Info):
                     self.add_bracket(child, max_score_lengths[i + 1], row_child, column - 2)
                     cell_dict_new[child] = (row_child, column - 2)
             cell_dict, cell_dict_new = cell_dict_new, dict()
-
-    def refresh(self) -> None:
-        for i in reversed(range(self.grid.count())):
-            self.grid.itemAt(i).widget().deleteLater()
-        self.make_bracket_tree()

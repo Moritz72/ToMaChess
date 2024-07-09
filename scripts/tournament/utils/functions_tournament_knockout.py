@@ -162,8 +162,12 @@ def connect_layers(layer_1: list[Bracket_Tree_Node], layer_2: list[Bracket_Tree_
     for parent_node in layer_2:
         children = [node for node in layer_1 if bool((set(node.items) & set(parent_node.items)) - {Bye_PA()})]
         parent_node.set_children(children, len(children) * [True])
-        if parent_node.children[0] is not None and parent_node.items[0] not in parent_node.children[0].items:
-            parent_node.swap()
+        if len(children) == 1:
+            if parent_node.items[0] != children[0].items[0] and parent_node.items[1] != children[0].items[1]:
+                parent_node.swap()
+        elif len(children) == 2:
+            if parent_node.items[0] not in children[0].items:
+                parent_node.swap()
         nodes_to_connect = [node for node in nodes_to_connect if node not in children]
     for _ in range(2):
         j = 1
@@ -192,6 +196,8 @@ def get_bracket_tree(
     layers = get_layers(standings_dict, pairings, results, auto_advance_history, end_rounds)
     for i in range(1, len(layers)):
         connect_layers(layers[i - 1], layers[i])
+    if not bool(layers):
+        return Bracket_Tree(("Bracket Tree",), Bracket_Tree_Node((Bye_PA(), Bye_PA()), []))
     while len(layers[-1]) > 1:
         add_future_layer(layers, pairing_method if pairing_method in ("Fold", "Slide") else None)
-    return Bracket_Tree(layers[-1][0])
+    return Bracket_Tree(("Bracket Tree",), layers[-1][0])

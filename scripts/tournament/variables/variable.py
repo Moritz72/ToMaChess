@@ -8,5 +8,9 @@ class Variable:
         pass
 
     @abstractmethod
+    def get_class(self) -> str:
+        pass
+
+    @abstractmethod
     def get_dict(self) -> dict[str, Any]:
         pass

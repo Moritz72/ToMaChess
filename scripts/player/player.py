@@ -1,7 +1,7 @@
 from __future__ import annotations
+from .type_declerations import Player_Data
 from ..common.object import Object
 
-Player_Data = tuple[str, str | None, int | None, str | None, str | None, int | None, str, str]
 SEX_DICT = {'M': 'M', 'F': 'F', 'W': 'F', 'D': 'D'}
 TITLES = ("GM", "IM", "WGM", "FM", "WIM", "CM", "WFM", "WCM")
 

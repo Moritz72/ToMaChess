@@ -106,3 +106,6 @@ msgstr "チェス連盟"
 
 msgid "Country"
 msgstr "国"
+
+msgid "Bracket"
+msgstr "表"

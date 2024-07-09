@@ -1,11 +1,10 @@
 from json import dumps
 from typing import cast
+from .type_declerations import MS_Tournament_Data
 from ..common.functions_util import remove_duplicates
 from ..common.object import Object
-from ..tournament.tournaments.tournament import Participant, Tournament
-
-MS_Tournament_Data = tuple[str, int, str, bool, int, str, str, str]
-MS_Tournament_Data_Loaded = tuple[str, int, list[list[list[tuple[int, int]]]], bool, int, list[list[str]], str, str]
+from ..tournament.tournaments.tournament import Tournament
+from ..tournament.common.type_declarations import Participant
 
 
 class MS_Tournament(Object):

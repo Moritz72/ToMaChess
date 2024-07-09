@@ -14,7 +14,8 @@ from ..windows.window_tournament_new import Window_Tournament_New_Generic, Windo
 from ...ms_tournament.advance_list import Advance_List
 from ...player.player import Player
 from ...team.team import Team
-from ...tournament.tournaments.tournament import Participant, Tournament
+from ...tournament.common.type_declarations import Participant
+from ...tournament.tournaments.tournament import Tournament
 
 T = TypeVar('T', bound=Participant)
 
@@ -63,7 +64,7 @@ class Widget_MS_Tournament_Stage_New_Generic(QWidget, Generic[T]):
         participant_count = tournament.get_participant_count()
         connect = self.open_add_participants if self.stage == 0 else self.open_advance_participants
         add_content_to_table(self.table, tournament.get_name(), row, 0, bold=True)
-        add_content_to_table(self.table, tournament.get_mode(), row, 1, edit=False)
+        add_content_to_table(self.table, tournament.get_mode(), row, 1, edit=False, translate=True)
         add_content_to_table(self.table, str(participant_count), row, 2, edit=False, align=Qt.AlignmentFlag.AlignCenter)
         add_button_to_table(self.table, row, 3, "medium", None, "Participants", connect=connect, translate=True)
         add_button_to_table(self.table, row, 4, "medium", None, "Copy", connect=self.copy_tournament, translate=True)
@@ -87,13 +88,14 @@ class Widget_MS_Tournament_Stage_New_Generic(QWidget, Generic[T]):
 
     def remove_tournament(self) -> None:
         tournament = self.get_tournaments()[self.table.currentRow()]
+        is_not_empty = tournament.get_participant_count() > 0
         if self.stage > 0:
             self.advance_lists.pop(tournament.get_uuid())
-        if tournament.get_participant_count() > 0:
-            self.validate_advance_lists.emit(self.stage)
         tournament.set_participants([])
         tournament.set_shallow_participant_count(0)
         self.table.delete_current_row()
+        if is_not_empty:
+            self.validate_advance_lists.emit(self.stage)
 
     def open_new_tournament_window(self) -> None:
         close_window(self.new_tournament_window)

@@ -1,14 +1,14 @@
 from PySide6.QtCore import Qt
 from PySide6.QtWidgets import QTableWidget, QVBoxLayout
 from .widget_tournament_info import Widget_Tournament_Info
-from ..common.gui_table import add_content_to_table, clear_table, set_up_table, size_table
+from ..common.gui_table import add_content_to_table, set_up_table, size_table
 from ...tournament.common.category_range import Category_Range
 from ...tournament.tournaments.tournament import Tournament
 
 
 class Widget_Tournament_Standings(Widget_Tournament_Info):
     def __init__(self, tournament: Tournament, category_range: Category_Range | None = None) -> None:
-        super().__init__("Standings", tournament)
+        super().__init__(("Standings",), tournament)
         self.category_range = category_range
 
         self.layout_main: QVBoxLayout = QVBoxLayout(self)
@@ -39,7 +39,3 @@ class Widget_Tournament_Standings(Widget_Tournament_Info):
             add_content_to_table(self.table, strings[0], i, 0, edit=False, bold=True)
             for j, string in enumerate(strings[1:]):
                 add_content_to_table(self.table, string, i, j + 1, edit=False, align=Qt.AlignmentFlag.AlignCenter)
-
-    def refresh(self) -> None:
-        clear_table(self.table)
-        self.fill_in_table()

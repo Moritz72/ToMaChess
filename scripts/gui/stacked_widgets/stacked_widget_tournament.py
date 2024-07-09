@@ -55,17 +55,8 @@ class Stacked_Widget_Tournament(Stacked_Widget):
         self.window_tournament_actions: Window_Tournament_Actions | None = None
         self.tournament.load_pairings()
 
-        self.widgets_info: list[Widget_Tournament_Info] = [
-            Widget_Tournament_Details(self.tournament), Widget_Tournament_Standings(self.tournament),
-        ]
-        if self.tournament.has_cross_table():
-            self.widgets_info.append(Widget_Tournament_Cross_Table(self.tournament))
-        if self.tournament.has_bracket_tree():
-            self.widgets_info.append(Widget_Tournament_Bracket_Tree(self.tournament))
-        if self.tournament.get_category_ranges():
-            self.widgets_info.append(Widget_Tournament_Standings_Categories(self.tournament))
-        for widget_info in self.widgets_info:
-            self.addWidget(widget_info)
+        self.widgets_info: list[Widget_Tournament_Info] = []
+        self.set_info_widgets()
 
         self.widgets_round: list[Widget_Tournament_Round | Widget_Tournament_Round_Team] = []
         for roun in range(1, self.tournament.get_round()):
@@ -95,21 +86,47 @@ class Stacked_Widget_Tournament(Stacked_Widget):
                 tournament_pairings_to_pdf(self.tournament, self.get_folder())
                 upload_latest_pairings(self.tournament, self.get_folder())
 
+    def set_info_widgets(self) -> None:
+        index_before = self.currentIndex()
+        len_before = len(self.widgets_info)
+
+        for widget_info in self.widgets_info:
+            self.removeWidget(widget_info)
+        self.widgets_info = [
+            Widget_Tournament_Details(self.tournament), Widget_Tournament_Standings(self.tournament),
+        ]
+        if bool(self.tournament.get_category_ranges()):
+            self.widgets_info.append(Widget_Tournament_Standings_Categories(self.tournament))
+        for i in range(self.tournament.get_cross_tables()):
+            self.widgets_info.append(Widget_Tournament_Cross_Table(self.tournament, i))
+        for i in range(self.tournament.get_bracket_trees()):
+            self.widgets_info.append(Widget_Tournament_Bracket_Tree(self.tournament, i))
+        for i, widget_info in enumerate(self.widgets_info):
+            self.insertWidget(i, widget_info)
+
+        self.setCurrentIndex(index_before - len_before + len(self.widgets_info))
+
     def set_index(self) -> None:
         if self.tournament.is_done():
             self.setCurrentIndex(1)
         else:
             self.setCurrentIndex(self.count() - 1)
 
+    def get_active_button_index(self, i: int) -> int:
+        index = super().get_active_button_index(i)
+        return index + int(index >= len(self.widgets_info))
+
     def get_buttons_args_list(self) -> list[Buttons_Args]:
-        texts: list[str | tuple[str, ...]] = [widget_info.name for widget_info in self.widgets_info]
+        empty = {"enabled": False}
+        texts: list[tuple[str, ...]] = [widget_info.name for widget_info in self.widgets_info]
         texts.extend([self.tournament.get_round_name(i + 1) for i in range(len(self.widgets_round))])
 
         buttons_args: Buttons_Args = [
             {"text": text, "connect": partial(self.setCurrentIndex, i), "checkable": True}
             for i, text in enumerate(texts)
         ]
-        buttons_args.append({"enabled": False})
+        buttons_args = buttons_args[:len(self.widgets_info)] + [empty] + buttons_args[len(self.widgets_info):]
+        buttons_args.append(empty)
         buttons_args.append({"text": "Actions", "connect": self.open_actions, "bold": True})
         buttons_args.append({"text": "Back", "connect": self.open_default, "bold": True})
         return [buttons_args]
@@ -173,8 +190,7 @@ class Stacked_Widget_Tournament(Stacked_Widget):
     def update_rounds(self) -> None:
         if self.associate is None:
             DB_TOURNAMENT.update_list("", [self.tournament])
-        for widget_info in self.widgets_info:
-            widget_info.refresh()
+        self.set_info_widgets()
         self.make_side_menu.emit()
         self.update_window_tournament_actions()
 

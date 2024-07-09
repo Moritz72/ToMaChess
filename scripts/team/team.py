@@ -1,9 +1,8 @@
 from __future__ import annotations
 from typing import Sequence
+from .type_declerations import Team_Data
 from ..common.object import Object
 from ..player.player import Player
-
-Team_Data = tuple[str, int, str, str]
 
 
 class Team(Object):

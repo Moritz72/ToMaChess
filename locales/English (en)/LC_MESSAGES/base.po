@@ -469,3 +469,15 @@ msgstr "Forbidden Pairings"
 
 msgid "Add Forbidden Pairings"
 msgstr "Add Forbidden Pairings"
+
+msgid "Multiple Knockout"
+msgstr "Multiple Knockout"
+
+msgid "Multiple Knockout (Team)"
+msgstr "Multiple Knockout (Team)"
+
+msgid "Multiplicity"
+msgstr "Multiplicity"
+
+msgid "With Finals"
+msgstr "With Finals"

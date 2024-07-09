@@ -1,4 +1,4 @@
-from typing import cast
+from typing import Type, cast
 from PySide6.QtCore import Signal
 from PySide6.QtWidgets import QPushButton
 from .widget_search_generic import Widget_Search_Generic
@@ -53,7 +53,7 @@ class Widget_Menu_Tournaments(Widget_Search_Generic[Tournament]):
     def open_new_tournament_team(self) -> None:
         self.open_window(Window_Tournament_New_Team)
 
-    def open_window(self, window_type: type[Window_Tournament_New_Player | Window_Tournament_New_Team]) -> None:
+    def open_window(self, window_type: Type[Window_Tournament_New_Player | Window_Tournament_New_Team]) -> None:
         close_window(self.new_tournament_window)
         self.new_tournament_window = window_type(parent=self)
         self.new_tournament_window.added_tournament.connect(self.add_tournament)

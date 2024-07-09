@@ -1,15 +1,18 @@
 from random import shuffle
 from typing import Any, Sequence, cast
-from .tournament import Participant, Tournament
+from .tournament import Tournament
 from ..common.pairing import Pairing
 from ..common.result import Result
 from ..common.result_team import Result_Team
+from ..common.type_declarations import Participant
 from ..parameters.parameter_tiebreak import Parameter_Tiebreak, get_tiebreak_list
+from ..registries.tournament_registry import TEAM_TOURNAMENT_REGISTRY, TOURNAMENT_REGISTRY
 from ..utils.functions_pairing import PAIRING_FUNCTIONS_ROUND_ROBIN
 from ..utils.functions_tournament_util import get_score_dict_by_point_system
 from ...common.functions_util import has_duplicates
 
 
+@TOURNAMENT_REGISTRY.register("Round Robin")
 class Tournament_Round_Robin(Tournament):
     def __init__(
             self, participants: list[Participant], name: str, shallow_participant_count: int | None = None,
@@ -58,7 +61,7 @@ class Tournament_Round_Robin(Tournament):
             return super().get_round_name(r)
         participant_number = len(self.get_participants())
         div, mod = divmod(r - 1, participant_number + (participant_number % 2) - 1)
-        return "Round", f" {div + 1}.{mod + 1}"
+        return "Round", ' ', f"{div + 1}.{mod + 1}"
 
     def get_cycles(self) -> int:
         return cast(int, self.get_parameter("cycles"))
@@ -143,6 +146,7 @@ class Tournament_Round_Robin(Tournament):
         self.set_pairings(pairings)
 
 
+@TEAM_TOURNAMENT_REGISTRY.register("Round Robin (Team)")
 class Tournament_Round_Robin_Team(Tournament_Round_Robin):
     def __init__(
             self, participants: list[Participant], name: str, shallow_participant_count: int | None = None,
