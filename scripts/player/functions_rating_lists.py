@@ -207,9 +207,8 @@ def get_dsb_list(sub_id: int) -> list[Player] | None:
     file_name_csv = "spieler.csv"
     path_zip = os.path.join(get_app_data_directory(), "temp", file_name_zip)
     path_csv = os.path.join(get_app_data_directory(), "temp", file_name_csv)
-    certificate = os.path.join(get_app_data_directory(), "certificates", "svw-info-certificate.pem")
 
-    if not download_file(url, file_name_zip, verify=certificate) or not unzip_file(file_name_zip, file_name_csv):
+    if not download_file(url, file_name_zip) or not unzip_file(file_name_zip, file_name_csv):
         return None
     data = process_csv(path_csv, ("Spielername", "Geschlecht", "Geburtsjahr", "FIDE-Land", "FIDE-Titel", "DWZ", "ID"))
     os.remove(path_zip)

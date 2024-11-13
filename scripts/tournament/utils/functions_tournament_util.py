@@ -114,15 +114,18 @@ def get_score_dict_keizer(
 
     for result_list in results:
         for (item_1, score_1), (item_2, score_2) in result_list:
-            if item_1 not in uuids:
-                factor = 1 if isinstance(item_1, Bye_PA) else bye_percentage / 100
-                scores[item_2] += score_dict['+'] * (p_max - uuid_to_index[item_2]) * factor
-            elif item_2 not in uuids:
-                factor = 1 if isinstance(item_2, Bye_PA) else bye_percentage / 100
-                scores[item_1] += score_dict['+'] * (p_max - uuid_to_index[item_1]) * factor
-            else:
-                scores[item_1] += score_dict[score_1] * (p_max - uuid_to_index[item_2])
-                scores[item_2] += score_dict[score_2] * (p_max - uuid_to_index[item_1])
+            match (item_1 in uuids, item_2 in uuids):
+                case (False, True):
+                    factor = 1 if isinstance(item_1, Bye_PA) else bye_percentage / 100
+                    scores[item_2] += score_dict['+'] * (p_max - uuid_to_index[item_2]) * factor
+                case (True, False):
+                    factor = 1 if isinstance(item_2, Bye_PA) else bye_percentage / 100
+                    scores[item_1] += score_dict['+'] * (p_max - uuid_to_index[item_1]) * factor
+                case (True, True):
+                    scores[item_1] += score_dict[score_1] * (p_max - uuid_to_index[item_2])
+                    scores[item_2] += score_dict[score_2] * (p_max - uuid_to_index[item_1])
+                case _:
+                    pass
 
     uuids = sorted(list(scores), key=lambda x: scores[x], reverse=True)
     return {uuid: scores[uuid] for uuid in uuids}
